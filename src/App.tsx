@@ -15,33 +15,38 @@ import CoachProfile from "./pages/coach/Profile";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/" element={<Layout />}>
-              <Route path="athlete">
-                <Route path="home" element={<AthleteHome />} />
-                <Route path="planning" element={<AthletePlanning />} />
-                <Route path="profile" element={<AthleteProfile />} />
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<Layout />}>
+                <Route index element={<Navigate to="/athlete/home" replace />} />
+                <Route path="athlete">
+                  <Route index element={<Navigate to="home" replace />} />
+                  <Route path="home" element={<AthleteHome />} />
+                  <Route path="planning" element={<AthletePlanning />} />
+                  <Route path="profile" element={<AthleteProfile />} />
+                </Route>
+                <Route path="coach">
+                  <Route index element={<Navigate to="home" replace />} />
+                  <Route path="home" element={<CoachHome />} />
+                  <Route path="planning" element={<CoachPlanning />} />
+                  <Route path="profile" element={<CoachProfile />} />
+                </Route>
+                <Route path="*" element={<Navigate to="/login" replace />} />
               </Route>
-              <Route path="coach">
-                <Route path="home" element={<CoachHome />} />
-                <Route path="planning" element={<CoachPlanning />} />
-                <Route path="profile" element={<CoachProfile />} />
-              </Route>
-              <Route path="*" element={<Navigate to="/login" replace />} />
-            </Route>
-          </Routes>
-        </TooltipProvider>
-      </AuthProvider>
-    </BrowserRouter>
-  </QueryClientProvider>
-);
+            </Routes>
+          </TooltipProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
