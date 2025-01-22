@@ -25,26 +25,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("Setting up auth state listener");
-    
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event);
-      
-      if (event === 'SIGNED_IN' && session?.user) {
-        console.log("User signed in, fetching profile...");
-        await fetchAndSetUserProfile(session.user.id);
+      if (session?.user) {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching profile:', error);
+          await logout();
+          return;
+        }
+
+        if (!profile) {
+          console.error('No profile found');
+          await logout();
+          return;
+        }
+
+        setUser({
+          id: profile.id,
+          name: `${profile.first_name} ${profile.last_name}`,
+          email: profile.email || '',
+          role: profile.role as UserRole,
+        });
+
+        if (event === 'SIGNED_IN') {
+          navigate(`/${profile.role}/home`);
+        }
       } else if (event === 'SIGNED_OUT') {
-        console.log("User signed out");
         setUser(null);
         navigate('/login');
       }
     });
 
-    // Check initial session
+    // Vérification de la session initiale
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        console.log("Initial session found, fetching profile...");
-        fetchAndSetUserProfile(session.user.id);
+      if (!session) {
+        navigate('/login');
       }
     });
 
@@ -53,79 +73,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [navigate]);
 
-  const fetchAndSetUserProfile = async (userId: string) => {
-    try {
-      console.log("Fetching profile for user:", userId);
-      
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-        throw error;
-      }
-
-      if (!profile) {
-        console.error('No profile found');
-        throw new Error('No profile found');
-      }
-
-      console.log("Profile found:", profile);
-
-      setUser({
-        id: profile.id,
-        name: `${profile.first_name} ${profile.last_name}`,
-        email: profile.email || '',
-        role: profile.role as UserRole,
-      });
-
-      if (profile.role === 'athlete' || profile.role === 'coach') {
-        const route = `/${profile.role}/home`;
-        console.log("Navigating to:", route);
-        navigate(route);
-      } else {
-        console.error('Invalid role:', profile.role);
-        throw new Error('Invalid role');
-      }
-    } catch (error) {
-      console.error('Error in fetchAndSetUserProfile:', error);
-      await logout();
-    }
-  };
-
   const login = async (email: string, password: string, role: UserRole) => {
-    try {
-      console.log("Attempting login for:", email, "with role:", role);
-      
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-      if (error) {
-        console.error('Login error:', error);
-        throw error;
-      }
-
-      console.log("Login successful, session established");
-      
-    } catch (error) {
-      console.error('Login process failed:', error);
+    if (error) {
       throw error;
     }
   };
 
   const logout = async () => {
-    try {
-      await supabase.auth.signOut();
-      setUser(null);
-      navigate('/login');
-    } catch (error) {
-      console.error('Error logging out:', error);
-    }
+    await supabase.auth.signOut();
+    setUser(null);
+    navigate('/login');
   };
 
   return (

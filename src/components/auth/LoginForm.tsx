@@ -29,11 +29,6 @@ export const LoginForm = () => {
 
     try {
       await login(email, password, role);
-      
-      toast({
-        title: "Connexion réussie",
-        description: "Vous allez être redirigé vers votre tableau de bord",
-      });
     } catch (error: any) {
       console.error("Erreur de connexion:", error);
       
