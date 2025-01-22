@@ -16,14 +16,48 @@ export const SignUpForm = () => {
   const [role, setRole] = useState<UserRole>("athlete");
   const { toast } = useToast();
 
+  const checkUserExists = async (email: string) => {
+    try {
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (profileError) {
+        console.error("Erreur lors de la vérification du profil:", profileError);
+        return true;
+      }
+
+      return profiles !== null;
+    } catch (error) {
+      console.error("Erreur lors de la vérification de l'utilisateur:", error);
+      return true;
+    }
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     try {
       if (!email || !password || !firstName || !lastName) {
         toast({
           variant: "destructive",
           title: "Erreur d'inscription",
           description: "Veuillez remplir tous les champs",
+        });
+        return;
+      }
+
+      console.log("Vérification de l'existence de l'utilisateur...");
+      const userExists = await checkUserExists(email);
+      
+      if (userExists) {
+        console.log("Un compte existe déjà avec cet email");
+        toast({
+          variant: "destructive",
+          title: "Erreur d'inscription",
+          description: "Un compte existe déjà avec cet email. Veuillez vous connecter.",
         });
         return;
       }
@@ -43,7 +77,7 @@ export const SignUpForm = () => {
       });
 
       if (signUpError) {
-        console.error("Erreur détaillée:", signUpError);
+        console.error("Erreur lors de l'inscription:", signUpError);
         
         let errorMessage = "Une erreur est survenue lors de la création du compte";
         
