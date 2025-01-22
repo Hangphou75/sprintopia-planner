@@ -35,6 +35,16 @@ const Login = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // Vérifier que tous les champs sont remplis
+      if (!email || !password || !firstName || !lastName) {
+        toast({
+          variant: "destructive",
+          title: "Erreur d'inscription",
+          description: "Veuillez remplir tous les champs",
+        });
+        return;
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -47,7 +57,18 @@ const Login = () => {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message === "User already registered") {
+          toast({
+            variant: "destructive",
+            title: "Erreur d'inscription",
+            description: "Un compte existe déjà avec cet email. Veuillez vous connecter.",
+          });
+        } else {
+          throw error;
+        }
+        return;
+      }
 
       if (data) {
         toast({
