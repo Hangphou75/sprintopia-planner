@@ -28,7 +28,6 @@ export const LoginForm = () => {
     }
 
     try {
-      console.log("Tentative de connexion...", { email, role });
       await login(email, password, role);
       
       toast({

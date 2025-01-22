@@ -25,22 +25,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("Setting up auth listeners...");
+    
     // Initial session check
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        console.log("Session found, fetching profile...");
+        console.log("Initial session found, fetching profile...");
         fetchAndSetUserProfile(session.user.id);
+      } else {
+        console.log("No initial session found");
+        navigate('/login');
       }
     });
 
     // Auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event);
+      
       if (event === 'SIGNED_IN' && session?.user) {
-        console.log("User signed in, fetching profile...");
+        console.log("Sign in event detected, fetching profile...");
         await fetchAndSetUserProfile(session.user.id);
       } else if (event === 'SIGNED_OUT') {
-        console.log("User signed out");
+        console.log("Sign out event detected");
         setUser(null);
         navigate('/login');
       }
@@ -54,6 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchAndSetUserProfile = async (userId: string) => {
     try {
       console.log("Fetching profile for user:", userId);
+      
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
@@ -67,6 +74,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (profile) {
         console.log("Profile found:", profile);
+        
+        // Set user state with profile data
         setUser({
           id: profile.id,
           name: `${profile.first_name} ${profile.last_name}`,
@@ -74,13 +83,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           role: profile.role as UserRole,
         });
 
-        // Only navigate if we have a valid role
-        if (profile.role) {
-          console.log("Navigating to:", `/${profile.role}/home`);
-          navigate(`/${profile.role}/home`);
+        // Navigate based on role
+        if (profile.role === 'athlete' || profile.role === 'coach') {
+          const route = `/${profile.role}/home`;
+          console.log("Navigating to:", route);
+          navigate(route);
         } else {
-          console.error('No role found in profile');
-          throw new Error('No role found in profile');
+          console.error('Invalid role:', profile.role);
+          throw new Error('Invalid role');
         }
       } else {
         console.error('No profile found');
