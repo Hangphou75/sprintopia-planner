@@ -25,30 +25,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("Setting up auth listeners...");
+    console.log("Setting up auth state listener");
     
-    // Initial session check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        console.log("Initial session found, fetching profile...");
-        fetchAndSetUserProfile(session.user.id);
-      } else {
-        console.log("No initial session found");
-        navigate('/login');
-      }
-    });
-
-    // Auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event);
       
       if (event === 'SIGNED_IN' && session?.user) {
-        console.log("Sign in event detected, fetching profile...");
+        console.log("User signed in, fetching profile...");
         await fetchAndSetUserProfile(session.user.id);
       } else if (event === 'SIGNED_OUT') {
-        console.log("Sign out event detected");
+        console.log("User signed out");
         setUser(null);
         navigate('/login');
+      }
+    });
+
+    // Check initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        console.log("Initial session found, fetching profile...");
+        fetchAndSetUserProfile(session.user.id);
       }
     });
 
@@ -65,36 +61,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .maybeSingle();
+        .single();
 
       if (error) {
         console.error('Error fetching profile:', error);
         throw error;
       }
 
-      if (profile) {
-        console.log("Profile found:", profile);
-        
-        // Set user state with profile data
-        setUser({
-          id: profile.id,
-          name: `${profile.first_name} ${profile.last_name}`,
-          email: profile.email || '',
-          role: profile.role as UserRole,
-        });
-
-        // Navigate based on role
-        if (profile.role === 'athlete' || profile.role === 'coach') {
-          const route = `/${profile.role}/home`;
-          console.log("Navigating to:", route);
-          navigate(route);
-        } else {
-          console.error('Invalid role:', profile.role);
-          throw new Error('Invalid role');
-        }
-      } else {
+      if (!profile) {
         console.error('No profile found');
         throw new Error('No profile found');
+      }
+
+      console.log("Profile found:", profile);
+
+      setUser({
+        id: profile.id,
+        name: `${profile.first_name} ${profile.last_name}`,
+        email: profile.email || '',
+        role: profile.role as UserRole,
+      });
+
+      if (profile.role === 'athlete' || profile.role === 'coach') {
+        const route = `/${profile.role}/home`;
+        console.log("Navigating to:", route);
+        navigate(route);
+      } else {
+        console.error('Invalid role:', profile.role);
+        throw new Error('Invalid role');
       }
     } catch (error) {
       console.error('Error in fetchAndSetUserProfile:', error);
@@ -104,7 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string, role: UserRole) => {
     try {
-      console.log("Starting login process for:", email);
+      console.log("Attempting login for:", email, "with role:", role);
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -116,13 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw error;
       }
 
-      if (!data.user) {
-        console.error('No user data returned');
-        throw new Error('No user data returned');
-      }
-
-      // The profile fetch and navigation will be handled by the onAuthStateChange listener
-      console.log("Login successful");
+      console.log("Login successful, session established");
       
     } catch (error) {
       console.error('Login process failed:', error);
