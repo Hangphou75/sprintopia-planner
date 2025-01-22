@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 type UserRole = "athlete" | "coach";
 
@@ -15,6 +16,7 @@ export const SignUpForm = () => {
   const [lastName, setLastName] = useState("");
   const [role, setRole] = useState<UserRole>("athlete");
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,8 +33,7 @@ export const SignUpForm = () => {
 
       console.log("Tentative d'inscription avec:", { email, role, firstName, lastName });
 
-      // Vérifions d'abord si l'utilisateur existe déjà
-      const { data: existingUser } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -44,27 +45,38 @@ export const SignUpForm = () => {
         },
       });
 
-      if (existingUser) {
-        console.log("Compte créé avec succès:", existingUser);
+      if (error) {
+        console.error("Erreur lors de l'inscription:", error);
+        
+        let errorMessage = "Une erreur est survenue lors de la création du compte";
+        
+        if (error.message?.includes("already registered") || error.message?.includes("user_already_exists")) {
+          errorMessage = "Un compte existe déjà avec cet email. Veuillez vous connecter.";
+        }
+
+        toast({
+          variant: "destructive",
+          title: "Erreur d'inscription",
+          description: errorMessage,
+        });
+        return;
+      }
+
+      if (data.user) {
+        console.log("Inscription réussie, redirection...");
         toast({
           title: "Compte créé avec succès",
-          description: "Vous pouvez maintenant vous connecter",
+          description: "Vous allez être redirigé vers votre tableau de bord",
         });
+        // La redirection sera gérée automatiquement par AuthContext
       }
       
     } catch (error: any) {
       console.error("Erreur complète lors de l'inscription:", error);
-      
-      let errorMessage = "Une erreur est survenue lors de la création du compte";
-      
-      if (error.message?.includes("already registered") || error.message?.includes("user_already_exists")) {
-        errorMessage = "Un compte existe déjà avec cet email. Veuillez vous connecter.";
-      }
-
       toast({
         variant: "destructive",
         title: "Erreur d'inscription",
-        description: errorMessage,
+        description: "Une erreur est survenue lors de la création du compte",
       });
     }
   };
