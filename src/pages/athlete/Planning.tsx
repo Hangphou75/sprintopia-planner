@@ -50,19 +50,25 @@ const AthletePlanning = () => {
         throw new Error("Utilisateur non authentifié");
       }
 
-      const programData = {
-        name: data.name,
-        duration: parseInt(data.duration.toString()),
-        objectives: data.objectives || null,
-        start_date: new Date(data.start_date).toISOString(),
+      console.log("Creating program with data:", {
+        ...data,
         user_id: user.id
-      };
+      });
 
       const { error } = await supabase
         .from('programs')
-        .insert(programData);
+        .insert({
+          name: data.name,
+          duration: data.duration,
+          objectives: data.objectives || null,
+          start_date: new Date(data.start_date).toISOString(),
+          user_id: user.id
+        });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
 
       toast({
         title: "Succès",
@@ -121,7 +127,12 @@ const AthletePlanning = () => {
                     <FormItem>
                       <FormLabel>Durée (semaines)</FormLabel>
                       <FormControl>
-                        <Input type="number" min="1" {...field} />
+                        <Input 
+                          type="number" 
+                          min="1" 
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value))}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
