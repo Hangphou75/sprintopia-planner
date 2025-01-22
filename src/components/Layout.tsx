@@ -1,6 +1,5 @@
 import { Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import Navbar from "./Navbar";
 import { Sidebar, SidebarContent, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Home, Calendar, User } from "lucide-react";
