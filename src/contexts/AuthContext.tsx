@@ -26,12 +26,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session);
+      
       if (session?.user) {
         const { data: profile, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
           .single();
+
+        console.log("Profile fetch result:", { profile, error });
 
         if (error) {
           console.error('Error fetching profile:', error);
@@ -45,24 +49,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        setUser({
+        const userData = {
           id: profile.id,
           name: `${profile.first_name} ${profile.last_name}`,
           email: profile.email || '',
           role: profile.role as UserRole,
-        });
+        };
+
+        console.log("Setting user data:", userData);
+        setUser(userData);
 
         if (event === 'SIGNED_IN') {
-          navigate(`/${profile.role}/home`);
+          const redirectPath = `/${profile.role}/home`;
+          console.log("Redirecting to:", redirectPath);
+          navigate(redirectPath);
         }
       } else if (event === 'SIGNED_OUT') {
+        console.log("User signed out");
         setUser(null);
         navigate('/login');
       }
     });
 
-    // Vérification de la session initiale
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("Initial session check:", session);
       if (!session) {
         navigate('/login');
       }
@@ -74,10 +84,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [navigate]);
 
   const login = async (email: string, password: string, role: UserRole) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    console.log("Attempting login with:", { email, role });
+    
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+
+    console.log("Login response:", { data, error });
 
     if (error) {
       throw error;
@@ -85,6 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
+    console.log("Logging out");
     await supabase.auth.signOut();
     setUser(null);
     navigate('/login');

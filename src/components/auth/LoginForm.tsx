@@ -4,39 +4,31 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 type UserRole = "athlete" | "coach";
 
 export const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<UserRole>("athlete");
+  const [role, setRole] = useState<UserRole>("coach");
   const { login } = useAuth();
-  const { toast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Tentative de connexion avec:", { email, password, role });
     
     if (!email || !password) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Veuillez remplir tous les champs",
-      });
+      toast.error("Veuillez remplir tous les champs");
       return;
     }
 
     try {
       await login(email, password, role);
+      console.log("Login réussi");
     } catch (error: any) {
       console.error("Erreur de connexion:", error);
-      
-      toast({
-        variant: "destructive",
-        title: "Erreur de connexion",
-        description: "Email ou mot de passe incorrect",
-      });
+      toast.error("Erreur de connexion: " + (error.message || "Email ou mot de passe incorrect"));
     }
   };
 
