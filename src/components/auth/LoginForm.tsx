@@ -26,11 +26,21 @@ export const LoginForm = () => {
         .from('profiles')
         .select('id, role, email')
         .eq('email', email)
-        .single();
+        .maybeSingle();
 
       console.log("Profil trouvé:", profile);
 
-      if (profileError || !profile) {
+      if (profileError) {
+        console.error("Erreur lors de la recherche du profil:", profileError);
+        toast({
+          variant: "destructive",
+          title: "Erreur de connexion",
+          description: "Une erreur est survenue lors de la connexion",
+        });
+        return;
+      }
+
+      if (!profile) {
         console.log("Aucun profil trouvé pour cet email");
         toast({
           variant: "destructive",
@@ -50,13 +60,33 @@ export const LoginForm = () => {
         return;
       }
 
-      await login(email, password, role);
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        console.error("Erreur lors de la connexion:", signInError);
+        toast({
+          variant: "destructive",
+          title: "Erreur de connexion",
+          description: "Email ou mot de passe incorrect",
+        });
+        return;
+      }
+
+      // La redirection sera gérée par AuthContext via le listener onAuthStateChange
+      toast({
+        title: "Connexion réussie",
+        description: "Vous allez être redirigé vers votre tableau de bord",
+      });
+
     } catch (error) {
       console.error("Erreur détaillée lors de la connexion:", error);
       toast({
         variant: "destructive",
         title: "Erreur de connexion",
-        description: "Email ou mot de passe incorrect",
+        description: "Une erreur est survenue lors de la connexion",
       });
     }
   };
