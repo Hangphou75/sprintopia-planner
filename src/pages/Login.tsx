@@ -45,6 +45,8 @@ const Login = () => {
         return;
       }
 
+      console.log("Tentative d'inscription avec:", { email, role, firstName, lastName });
+
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -58,16 +60,16 @@ const Login = () => {
       });
 
       if (signUpError) {
+        console.error("Erreur détaillée:", signUpError);
+        
         // Vérifier spécifiquement l'erreur "user already exists"
-        const errorBody = JSON.parse((signUpError as any).body || "{}");
-        if (errorBody.code === "user_already_exists" || signUpError.message.includes("already registered")) {
+        if (signUpError.message.includes("already registered")) {
           toast({
             variant: "destructive",
             title: "Erreur d'inscription",
             description: "Un compte existe déjà avec cet email. Veuillez vous connecter.",
           });
         } else {
-          console.error("Signup error:", signUpError);
           toast({
             variant: "destructive",
             title: "Erreur d'inscription",
@@ -78,13 +80,14 @@ const Login = () => {
       }
 
       if (data) {
+        console.log("Inscription réussie:", data);
         toast({
           title: "Compte créé avec succès",
           description: "Vous pouvez maintenant vous connecter",
         });
       }
     } catch (error) {
-      console.error("Signup failed:", error);
+      console.error("Erreur complète lors de l'inscription:", error);
       toast({
         variant: "destructive",
         title: "Erreur lors de l'inscription",
