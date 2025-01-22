@@ -55,17 +55,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchAndSetUserProfile = async (userId: string) => {
     try {
+      console.log("Fetching profile for user:", userId);
+      
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
-      if (error || !profile) {
+      console.log("Profile fetch result:", { profile, error });
+
+      if (error) {
         console.error('Error fetching profile:', error);
         setUser(null);
         navigate('/login');
         toast.error("Erreur lors de la récupération du profil");
+        return;
+      }
+
+      if (!profile) {
+        console.error('No profile found for user:', userId);
+        setUser(null);
+        navigate('/login');
+        toast.error("Profil utilisateur non trouvé");
         return;
       }
 
@@ -76,8 +88,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         role: profile.role as UserRole,
       };
 
+      console.log("Setting user data:", userData);
       setUser(userData);
-      navigate(`/${profile.role}/home`);
+      
+      // Only navigate if we're not already on the correct route
+      const targetRoute = `/${profile.role}/home`;
+      if (window.location.pathname !== targetRoute) {
+        navigate(targetRoute);
+      }
     } catch (error) {
       console.error('Error in fetchAndSetUserProfile:', error);
       setUser(null);
@@ -88,6 +106,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string, role: UserRole) => {
     try {
+      console.log("Attempting login with:", { email, role });
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
