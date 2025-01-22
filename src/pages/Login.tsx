@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -58,14 +58,20 @@ const Login = () => {
       });
 
       if (error) {
-        if (error.message === "User already registered") {
+        // Check for the specific error code instead of the message
+        if (error.message.includes("already registered") || (error as any).code === "user_already_exists") {
           toast({
             variant: "destructive",
             title: "Erreur d'inscription",
             description: "Un compte existe déjà avec cet email. Veuillez vous connecter.",
           });
         } else {
-          throw error;
+          console.error("Signup error:", error);
+          toast({
+            variant: "destructive",
+            title: "Erreur d'inscription",
+            description: "Une erreur est survenue lors de la création du compte",
+          });
         }
         return;
       }
