@@ -121,6 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       console.log("Login successful:", data);
+      // La redirection sera gérée par onAuthStateChange
     } catch (error) {
       console.error("Login error:", error);
       toast.error("Erreur lors de la connexion");
