@@ -25,16 +25,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         fetchAndSetUserProfile(session.user.id);
       }
     });
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session?.user?.id);
+      console.log("Auth state changed:", event);
       
       if (event === 'SIGNED_IN' && session?.user) {
         await fetchAndSetUserProfile(session.user.id);
@@ -51,6 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchAndSetUserProfile = async (userId: string) => {
     try {
+      console.log("Fetching profile for user:", userId);
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
@@ -71,10 +70,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           role: profile.role as UserRole,
         });
         navigate(`/${profile.role}/home`);
-      } else {
-        console.error('No profile found');
-        await supabase.auth.signOut();
-        navigate('/login');
       }
     } catch (error) {
       console.error('Error in fetchAndSetUserProfile:', error);
@@ -85,30 +80,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string, role: UserRole) => {
     try {
-      // First check if user exists with the correct role
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('email', email)
-        .single();
-
-      if (profileError) {
-        console.error('Error checking profile:', profileError);
-        throw new Error('Invalid login credentials');
-      }
-
-      if (profile.role !== role) {
-        throw new Error('Invalid role');
-      }
-
-      // If role is correct, proceed with login
+      console.log("Starting login process for:", email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
-        console.error('Error signing in:', error);
+        console.error('Login error:', error);
         throw error;
       }
 
@@ -116,9 +96,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('No user data returned');
       }
 
-      // fetchAndSetUserProfile will handle the profile fetching and navigation
+      console.log("Login successful, fetching profile...");
+      await fetchAndSetUserProfile(data.user.id);
+      
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Login process failed:', error);
       throw error;
     }
   };

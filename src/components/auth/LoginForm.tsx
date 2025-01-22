@@ -18,17 +18,8 @@ export const LoginForm = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
-      toast({
-        variant: "destructive",
-        title: "Erreur de connexion",
-        description: "Veuillez remplir tous les champs",
-      });
-      return;
-    }
-
     try {
-      console.log("Tentative de connexion avec:", { email, role });
+      console.log("Tentative de connexion...", { email, role });
       await login(email, password, role);
       
       toast({
@@ -36,19 +27,12 @@ export const LoginForm = () => {
         description: "Vous allez être redirigé vers votre tableau de bord",
       });
     } catch (error: any) {
-      console.error("Erreur lors de la connexion:", error);
-      let errorMessage = "Email ou mot de passe incorrect";
+      console.error("Erreur de connexion:", error);
       
-      if (error.message?.includes("Invalid login credentials")) {
-        errorMessage = "Email ou mot de passe incorrect";
-      } else if (error.message?.includes("Invalid role")) {
-        errorMessage = "Le rôle sélectionné ne correspond pas à votre compte";
-      }
-
       toast({
         variant: "destructive",
         title: "Erreur de connexion",
-        description: errorMessage,
+        description: "Email ou mot de passe incorrect",
       });
     }
   };
@@ -62,6 +46,7 @@ export const LoginForm = () => {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          placeholder="votre@email.com"
           required
         />
       </div>
@@ -72,6 +57,7 @@ export const LoginForm = () => {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          placeholder="••••••••"
           required
         />
       </div>
@@ -88,7 +74,9 @@ export const LoginForm = () => {
           </div>
         </RadioGroup>
       </div>
-      <Button type="submit" className="w-full">Se connecter</Button>
+      <Button type="submit" className="w-full">
+        Se connecter
+      </Button>
     </form>
   );
 };
