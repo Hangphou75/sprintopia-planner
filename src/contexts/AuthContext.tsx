@@ -49,6 +49,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return null;
       }
 
+      console.log("Profile found:", profile);
+
       const userData = {
         id: profile.id,
         name: `${profile.first_name} ${profile.last_name}`,
@@ -71,6 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Initial session check
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
+        console.log("Initial session found, fetching profile...");
         fetchAndSetUserProfile(session.user.id);
       }
     });
@@ -80,13 +83,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("Auth state changed:", event, session);
       
       if (event === 'SIGNED_IN' && session?.user) {
+        console.log("User signed in, fetching profile...");
         const userData = await fetchAndSetUserProfile(session.user.id);
         if (userData) {
           const targetRoute = `/${userData.role}/home`;
-          console.log("Redirecting to:", targetRoute);
+          console.log("Profile fetched successfully, redirecting to:", targetRoute);
           navigate(targetRoute, { replace: true });
+        } else {
+          console.log("Failed to fetch profile, redirecting to login");
+          navigate('/login', { replace: true });
         }
       } else if (event === 'SIGNED_OUT') {
+        console.log("User signed out, redirecting to login");
         setUser(null);
         navigate('/login', { replace: true });
       }
