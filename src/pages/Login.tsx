@@ -35,7 +35,6 @@ const Login = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // Vérifier que tous les champs sont remplis
       if (!email || !password || !firstName || !lastName) {
         toast({
           variant: "destructive",
@@ -62,14 +61,27 @@ const Login = () => {
       if (signUpError) {
         console.error("Erreur détaillée:", signUpError);
         
-        // Vérifier spécifiquement l'erreur "user already exists"
-        if (signUpError.message.includes("already registered")) {
-          toast({
-            variant: "destructive",
-            title: "Erreur d'inscription",
-            description: "Un compte existe déjà avec cet email. Veuillez vous connecter.",
-          });
-        } else {
+        try {
+          // Parse the error body if it's a string
+          const errorBody = typeof signUpError.message === 'string' && signUpError.message.includes('{') 
+            ? JSON.parse(signUpError.message)
+            : null;
+
+          if (errorBody?.code === "user_already_exists" || signUpError.message.includes("already registered")) {
+            toast({
+              variant: "destructive",
+              title: "Erreur d'inscription",
+              description: "Un compte existe déjà avec cet email. Veuillez vous connecter.",
+            });
+          } else {
+            toast({
+              variant: "destructive",
+              title: "Erreur d'inscription",
+              description: "Une erreur est survenue lors de la création du compte",
+            });
+          }
+        } catch (parseError) {
+          console.error("Erreur lors du parsing de l'erreur:", parseError);
           toast({
             variant: "destructive",
             title: "Erreur d'inscription",
