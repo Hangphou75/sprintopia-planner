@@ -4,6 +4,7 @@ import { Sidebar, SidebarContent, SidebarProvider, SidebarTrigger } from "@/comp
 import { Button } from "@/components/ui/button";
 import { Home, Calendar, User, LogOut } from "lucide-react";
 import { Link, useLocation, Navigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const Layout = () => {
   const { user, logout } = useAuth();
@@ -15,6 +16,16 @@ const Layout = () => {
 
   const baseRoute = `/${user.role}`;
   const isActive = (path: string) => location.pathname === `${baseRoute}/${path}`;
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success("Déconnexion réussie");
+    } catch (error) {
+      console.error("Erreur lors de la déconnexion:", error);
+      toast.error("Erreur lors de la déconnexion");
+    }
+  };
 
   return (
     <SidebarProvider>
@@ -61,7 +72,7 @@ const Layout = () => {
                 <Button
                   variant="ghost"
                   className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
-                  onClick={logout}
+                  onClick={handleLogout}
                 >
                   <LogOut className="mr-2 h-4 w-4" />
                   Déconnexion
