@@ -21,9 +21,40 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      console.log("Tentative de connexion avec:", { email, role });
+      
+      // Vérifions d'abord si l'utilisateur existe
+      const { data: userExists } = await supabase
+        .from('profiles')
+        .select('id, role')
+        .eq('email', email)
+        .single();
+
+      console.log("Profil trouvé:", userExists);
+
+      if (!userExists) {
+        console.log("Aucun profil trouvé pour cet email");
+        toast({
+          variant: "destructive",
+          title: "Erreur de connexion",
+          description: "Aucun compte trouvé avec cet email",
+        });
+        return;
+      }
+
+      if (userExists.role !== role) {
+        console.log("Le rôle ne correspond pas:", { demandé: role, actuel: userExists.role });
+        toast({
+          variant: "destructive",
+          title: "Erreur de connexion",
+          description: "Le rôle sélectionné ne correspond pas à votre compte",
+        });
+        return;
+      }
+
       await login(email, password, role);
     } catch (error) {
-      console.error("Login failed:", error);
+      console.error("Erreur détaillée lors de la connexion:", error);
       toast({
         variant: "destructive",
         title: "Erreur de connexion",
@@ -61,16 +92,13 @@ const Login = () => {
       if (signUpError) {
         console.error("Erreur détaillée:", signUpError);
         
-        // Parse the error response body
         let errorMessage = "Une erreur est survenue lors de la création du compte";
         
         try {
-          // The error might be in signUpError.message or in the body property
           const errorBody = signUpError.message && typeof signUpError.message === 'string'
             ? JSON.parse(signUpError.message)
             : null;
 
-          // Check both the parsed error body and the original error
           if (errorBody?.code === "user_already_exists" || 
               signUpError.message?.includes("already registered")) {
             errorMessage = "Un compte existe déjà avec cet email. Veuillez vous connecter.";
