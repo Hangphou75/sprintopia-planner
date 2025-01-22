@@ -30,9 +30,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         fetchAndSetUserProfile(session.user.id);
-      } else {
-        setUser(null);
-        navigate('/login');
       }
     });
 
@@ -68,7 +65,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         console.error('Error fetching profile:', error);
         setUser(null);
-        navigate('/login');
         toast.error("Erreur lors de la récupération du profil");
         return;
       }
@@ -76,7 +72,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!profile) {
         console.error('No profile found for user:', userId);
         setUser(null);
-        navigate('/login');
         toast.error("Profil utilisateur non trouvé");
         return;
       }
@@ -91,15 +86,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("Setting user data:", userData);
       setUser(userData);
       
-      // Only navigate if we're not already on the correct route
+      // Ensure we're redirecting to the correct route
       const targetRoute = `/${profile.role}/home`;
-      if (window.location.pathname !== targetRoute) {
-        navigate(targetRoute);
-      }
+      console.log("Redirecting to:", targetRoute);
+      navigate(targetRoute, { replace: true });
     } catch (error) {
       console.error('Error in fetchAndSetUserProfile:', error);
       setUser(null);
-      navigate('/login');
       toast.error("Erreur lors de la récupération du profil");
     }
   };
