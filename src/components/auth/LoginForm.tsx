@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 type UserRole = "athlete" | "coach";
 
@@ -20,73 +19,18 @@ export const LoginForm = () => {
     e.preventDefault();
     try {
       console.log("Tentative de connexion avec:", { email, role });
+      await login(email, password, role);
       
-      // Vérifions d'abord si l'utilisateur existe et a le bon rôle
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id, role, email')
-        .eq('email', email)
-        .maybeSingle();
-
-      console.log("Profil trouvé:", profile);
-
-      if (profileError) {
-        console.error("Erreur lors de la recherche du profil:", profileError);
-        toast({
-          variant: "destructive",
-          title: "Erreur de connexion",
-          description: "Une erreur est survenue lors de la connexion",
-        });
-        return;
-      }
-
-      if (!profile) {
-        console.log("Aucun profil trouvé pour cet email");
-        toast({
-          variant: "destructive",
-          title: "Erreur de connexion",
-          description: "Email ou mot de passe incorrect",
-        });
-        return;
-      }
-
-      if (profile.role !== role) {
-        console.log("Le rôle ne correspond pas:", { demandé: role, actuel: profile.role });
-        toast({
-          variant: "destructive",
-          title: "Erreur de connexion",
-          description: "Le rôle sélectionné ne correspond pas à votre compte",
-        });
-        return;
-      }
-
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (signInError) {
-        console.error("Erreur lors de la connexion:", signInError);
-        toast({
-          variant: "destructive",
-          title: "Erreur de connexion",
-          description: "Email ou mot de passe incorrect",
-        });
-        return;
-      }
-
-      // La redirection sera gérée par AuthContext via le listener onAuthStateChange
       toast({
         title: "Connexion réussie",
         description: "Vous allez être redirigé vers votre tableau de bord",
       });
-
     } catch (error) {
-      console.error("Erreur détaillée lors de la connexion:", error);
+      console.error("Erreur lors de la connexion:", error);
       toast({
         variant: "destructive",
         title: "Erreur de connexion",
-        description: "Une erreur est survenue lors de la connexion",
+        description: "Email ou mot de passe incorrect",
       });
     }
   };
