@@ -17,6 +17,16 @@ export const LoginForm = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email || !password) {
+      toast({
+        variant: "destructive",
+        title: "Erreur de connexion",
+        description: "Veuillez remplir tous les champs",
+      });
+      return;
+    }
+
     try {
       console.log("Tentative de connexion avec:", { email, role });
       await login(email, password, role);
@@ -25,12 +35,20 @@ export const LoginForm = () => {
         title: "Connexion réussie",
         description: "Vous allez être redirigé vers votre tableau de bord",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erreur lors de la connexion:", error);
+      let errorMessage = "Email ou mot de passe incorrect";
+      
+      if (error.message?.includes("Invalid login credentials")) {
+        errorMessage = "Email ou mot de passe incorrect";
+      } else if (error.message?.includes("Invalid role")) {
+        errorMessage = "Le rôle sélectionné ne correspond pas à votre compte";
+      }
+
       toast({
         variant: "destructive",
         title: "Erreur de connexion",
-        description: "Email ou mot de passe incorrect",
+        description: errorMessage,
       });
     }
   };
