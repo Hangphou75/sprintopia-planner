@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 type UserRole = "athlete" | "coach";
 
@@ -24,31 +25,100 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check for stored user data
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
+    // Check the current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        // Fetch the user's profile
+        supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+          .then(({ data: profile, error }) => {
+            if (error) {
+              console.error('Error fetching profile:', error);
+              return;
+            }
+            if (profile) {
+              setUser({
+                id: profile.id,
+                name: `${profile.first_name} ${profile.last_name}`,
+                email: profile.email || '',
+                role: profile.role as UserRole || 'athlete',
+              });
+            }
+          });
+      }
+    });
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile) {
+          setUser({
+            id: profile.id,
+            name: `${profile.first_name} ${profile.last_name}`,
+            email: profile.email || '',
+            role: profile.role as UserRole || 'athlete',
+          });
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        navigate('/login');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   const login = async (email: string, password: string, role: UserRole) => {
-    // Mock login - replace with real authentication
-    const mockUser: User = {
-      id: "123e4567-e89b-12d3-a456-426614174000", // UUID valide
-      name: "John Doe",
-      email,
-      role,
-    };
-    
-    setUser(mockUser);
-    localStorage.setItem("user", JSON.stringify(mockUser));
-    navigate(`/${role}/home`);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+
+        if (profile) {
+          setUser({
+            id: profile.id,
+            name: `${profile.first_name} ${profile.last_name}`,
+            email: profile.email || '',
+            role: profile.role as UserRole || 'athlete',
+          });
+          navigate(`/${profile.role}/home`);
+        }
+      }
+    } catch (error) {
+      console.error('Error logging in:', error);
+      throw error;
+    }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("user");
-    navigate("/login");
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      navigate('/login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
   };
 
   return (
