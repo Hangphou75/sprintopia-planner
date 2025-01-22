@@ -46,15 +46,21 @@ const AthletePlanning = () => {
 
   const onSubmit = async (data: NewProgramForm) => {
     try {
+      if (!user?.id) {
+        throw new Error("Utilisateur non authentifié");
+      }
+
+      const programData = {
+        name: data.name,
+        duration: parseInt(data.duration.toString()),
+        objectives: data.objectives || null,
+        start_date: new Date(data.start_date).toISOString(),
+        user_id: user.id
+      };
+
       const { error } = await supabase
         .from('programs')
-        .insert({
-          name: data.name,
-          duration: parseInt(data.duration.toString()), // Assure que duration est un nombre
-          objectives: data.objectives || null,
-          start_date: new Date(data.start_date).toISOString(),
-          user_id: user?.id
-        });
+        .insert(programData);
 
       if (error) throw error;
 
