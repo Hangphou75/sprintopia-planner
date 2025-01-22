@@ -2,11 +2,11 @@ import { Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Sidebar, SidebarContent, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Home, Calendar, User } from "lucide-react";
+import { Home, Calendar, User, LogOut } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 const Layout = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const location = useLocation();
 
   if (!user) {
@@ -55,6 +55,16 @@ const Layout = () => {
                   </Button>
                 </Link>
               </nav>
+              <div className="px-2 mt-auto">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
+                  onClick={logout}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Déconnexion
+                </Button>
+              </div>
             </div>
           </SidebarContent>
         </Sidebar>
