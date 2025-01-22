@@ -19,30 +19,24 @@ export const LoginForm = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email || !password) {
+      toast.error("Veuillez remplir tous les champs");
+      return;
+    }
+
     setIsLoading(true);
     
     try {
       console.log("Tentative de connexion avec:", { email, password, role });
-      
-      if (!email || !password) {
-        toast.error("Veuillez remplir tous les champs");
-        return;
-      }
-
       await login(email, password, role);
-      console.log("Login réussi, redirection...");
       
-      // Redirection vers la page d'accueil appropriée
-      const targetRoute = `/${role}/home`;
-      console.log("Redirection vers:", targetRoute);
-      navigate(targetRoute, { replace: true });
-      
+      // On ne fait plus la redirection ici car elle est gérée dans AuthContext
       toast.success("Connexion réussie");
     } catch (error: any) {
       console.error("Erreur de connexion:", error);
       toast.error("Erreur de connexion: " + (error.message || "Email ou mot de passe incorrect"));
-    } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Important: réinitialiser isLoading en cas d'erreur
     }
   };
 
