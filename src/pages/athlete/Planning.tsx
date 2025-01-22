@@ -9,6 +9,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
@@ -49,26 +50,26 @@ const AthletePlanning = () => {
         .from('programs')
         .insert({
           name: data.name,
-          duration: data.duration,
-          objectives: data.objectives,
-          start_date: data.start_date,
+          duration: parseInt(data.duration.toString()), // Assure que duration est un nombre
+          objectives: data.objectives || null,
+          start_date: new Date(data.start_date).toISOString(),
           user_id: user?.id
         });
 
       if (error) throw error;
 
       toast({
-        title: "Success",
-        description: "Program created successfully",
+        title: "Succès",
+        description: "Programme créé avec succès",
       });
       
       setOpen(false);
       form.reset();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating program:', error);
       toast({
-        title: "Error",
-        description: "Failed to create program",
+        title: "Erreur",
+        description: error.message || "Impossible de créer le programme",
         variant: "destructive",
       });
     }
@@ -77,17 +78,20 @@ const AthletePlanning = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Training Programs</h1>
+        <h1 className="text-3xl font-bold">Programmes d'entraînement</h1>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              New Program
+              Nouveau Programme
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create New Training Program</DialogTitle>
+              <DialogTitle>Créer un nouveau programme</DialogTitle>
+              <DialogDescription>
+                Remplissez les informations pour créer votre programme d'entraînement
+              </DialogDescription>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -96,9 +100,9 @@ const AthletePlanning = () => {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Program Name</FormLabel>
+                      <FormLabel>Nom du programme</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter program name" {...field} />
+                        <Input placeholder="Entrez le nom du programme" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -109,7 +113,7 @@ const AthletePlanning = () => {
                   name="duration"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Duration (weeks)</FormLabel>
+                      <FormLabel>Durée (semaines)</FormLabel>
                       <FormControl>
                         <Input type="number" min="1" {...field} />
                       </FormControl>
@@ -122,7 +126,7 @@ const AthletePlanning = () => {
                   name="start_date"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Start Date</FormLabel>
+                      <FormLabel>Date de début</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} />
                       </FormControl>
@@ -135,21 +139,21 @@ const AthletePlanning = () => {
                   name="objectives"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Objectives (optional)</FormLabel>
+                      <FormLabel>Objectifs (optionnel)</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter program objectives" {...field} />
+                        <Input placeholder="Entrez les objectifs du programme" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full">Create Program</Button>
+                <Button type="submit" className="w-full">Créer le programme</Button>
               </form>
             </Form>
           </DialogContent>
         </Dialog>
       </div>
-      <p className="text-gray-500">No training programs available</p>
+      <p className="text-gray-500">Aucun programme d'entraînement disponible</p>
     </div>
   );
 };
