@@ -61,33 +61,29 @@ const Login = () => {
       if (signUpError) {
         console.error("Erreur détaillée:", signUpError);
         
+        // Parse the error response body
+        let errorMessage = "Une erreur est survenue lors de la création du compte";
+        
         try {
-          // Parse the error body if it's a string
-          const errorBody = typeof signUpError.message === 'string' && signUpError.message.includes('{') 
+          // The error might be in signUpError.message or in the body property
+          const errorBody = signUpError.message && typeof signUpError.message === 'string'
             ? JSON.parse(signUpError.message)
             : null;
 
-          if (errorBody?.code === "user_already_exists" || signUpError.message.includes("already registered")) {
-            toast({
-              variant: "destructive",
-              title: "Erreur d'inscription",
-              description: "Un compte existe déjà avec cet email. Veuillez vous connecter.",
-            });
-          } else {
-            toast({
-              variant: "destructive",
-              title: "Erreur d'inscription",
-              description: "Une erreur est survenue lors de la création du compte",
-            });
+          // Check both the parsed error body and the original error
+          if (errorBody?.code === "user_already_exists" || 
+              signUpError.message?.includes("already registered")) {
+            errorMessage = "Un compte existe déjà avec cet email. Veuillez vous connecter.";
           }
         } catch (parseError) {
           console.error("Erreur lors du parsing de l'erreur:", parseError);
-          toast({
-            variant: "destructive",
-            title: "Erreur d'inscription",
-            description: "Une erreur est survenue lors de la création du compte",
-          });
         }
+
+        toast({
+          variant: "destructive",
+          title: "Erreur d'inscription",
+          description: errorMessage,
+        });
         return;
       }
 
