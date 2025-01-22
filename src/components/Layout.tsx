@@ -3,14 +3,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Sidebar, SidebarContent, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Home, Calendar, User, LogOut } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, Navigate } from "react-router-dom";
 
 const Layout = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
 
   if (!user) {
-    return null;
+    return <Navigate to="/login" replace />;
   }
 
   const baseRoute = `/${user.role}`;
@@ -18,13 +18,15 @@ const Layout = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="flex h-screen w-full bg-background">
         <Sidebar>
           <SidebarContent>
             <div className="space-y-4 py-4">
               <div className="px-4 py-2">
                 <h2 className="text-lg font-semibold tracking-tight">Sprintopia</h2>
-                <p className="text-sm text-gray-500">{user.role === "athlete" ? "Athlete" : "Coach"} Dashboard</p>
+                <p className="text-sm text-muted-foreground">
+                  {user.role === "athlete" ? "Athlete" : "Coach"} Dashboard
+                </p>
               </div>
               <nav className="space-y-2 px-2">
                 <Link to={`${baseRoute}/home`}>
@@ -68,9 +70,10 @@ const Layout = () => {
             </div>
           </SidebarContent>
         </Sidebar>
-        <main className="flex-1 p-8">
-          <SidebarTrigger />
-          <Outlet />
+        <main className="flex-1 overflow-auto">
+          <div className="container mx-auto py-6">
+            <Outlet />
+          </div>
         </main>
       </div>
     </SidebarProvider>
