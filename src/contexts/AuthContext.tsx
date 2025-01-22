@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 type UserRole = "athlete" | "coach";
 
@@ -25,63 +26,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Vérifier la session initiale
+    // Initial session check
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log("Initial session check:", session);
-      if (!session) {
+      if (session?.user) {
+        fetchAndSetUserProfile(session.user.id);
+      } else {
         setUser(null);
         navigate('/login');
       }
     });
 
-    // Écouter les changements d'état d'authentification
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session);
       
-      if (session?.user) {
-        try {
-          const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-
-          console.log("Profile fetch result:", { profile, error });
-
-          if (error) {
-            console.error('Error fetching profile:', error);
-            setUser(null);
-            navigate('/login');
-            return;
-          }
-
-          if (!profile) {
-            console.error('No profile found');
-            setUser(null);
-            navigate('/login');
-            return;
-          }
-
-          const userData = {
-            id: profile.id,
-            name: `${profile.first_name} ${profile.last_name}`,
-            email: profile.email || '',
-            role: profile.role as UserRole,
-          };
-
-          console.log("Setting user data:", userData);
-          setUser(userData);
-
-          if (event === 'SIGNED_IN') {
-            navigate(`/${profile.role}/home`);
-          }
-        } catch (error) {
-          console.error('Error in auth state change:', error);
-          setUser(null);
-          navigate('/login');
-        }
-      } else {
-        console.log("No session, clearing user");
+      if (event === 'SIGNED_IN' && session?.user) {
+        await fetchAndSetUserProfile(session.user.id);
+      } else if (event === 'SIGNED_OUT') {
         setUser(null);
         navigate('/login');
       }
@@ -92,30 +53,69 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [navigate]);
 
-  const login = async (email: string, password: string, role: UserRole) => {
-    console.log("Attempting login with:", { email, role });
-    
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+  const fetchAndSetUserProfile = async (userId: string) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
 
-    if (error) {
+      if (error || !profile) {
+        console.error('Error fetching profile:', error);
+        setUser(null);
+        navigate('/login');
+        toast.error("Erreur lors de la récupération du profil");
+        return;
+      }
+
+      const userData = {
+        id: profile.id,
+        name: `${profile.first_name} ${profile.last_name}`,
+        email: profile.email || '',
+        role: profile.role as UserRole,
+      };
+
+      setUser(userData);
+      navigate(`/${profile.role}/home`);
+    } catch (error) {
+      console.error('Error in fetchAndSetUserProfile:', error);
+      setUser(null);
+      navigate('/login');
+      toast.error("Erreur lors de la récupération du profil");
+    }
+  };
+
+  const login = async (email: string, password: string, role: UserRole) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        console.error("Login error:", error);
+        toast.error("Erreur de connexion: " + error.message);
+        throw error;
+      }
+
+      console.log("Login successful:", data);
+    } catch (error) {
       console.error("Login error:", error);
+      toast.error("Erreur lors de la connexion");
       throw error;
     }
-
-    console.log("Login successful:", data);
   };
 
   const logout = async () => {
-    console.log("Logging out");
     try {
       await supabase.auth.signOut();
       setUser(null);
       navigate('/login');
+      toast.success("Déconnexion réussie");
     } catch (error) {
       console.error("Logout error:", error);
+      toast.error("Erreur lors de la déconnexion");
       throw error;
     }
   };
