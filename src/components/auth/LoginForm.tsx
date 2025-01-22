@@ -18,6 +18,15 @@ export const LoginForm = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!email || !password) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs",
+      });
+      return;
+    }
+
     try {
       console.log("Tentative de connexion...", { email, role });
       await login(email, password, role);
@@ -40,9 +49,9 @@ export const LoginForm = () => {
   return (
     <form onSubmit={handleLogin} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="login-email">Email</Label>
+        <Label htmlFor="email">Email</Label>
         <Input
-          id="login-email"
+          id="email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -51,9 +60,9 @@ export const LoginForm = () => {
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="login-password">Mot de passe</Label>
+        <Label htmlFor="password">Mot de passe</Label>
         <Input
-          id="login-password"
+          id="password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -65,12 +74,12 @@ export const LoginForm = () => {
         <Label>Rôle</Label>
         <RadioGroup value={role} onValueChange={(value: UserRole) => setRole(value)}>
           <div className="flex items-center space-x-2">
-            <RadioGroupItem value="athlete" id="login-athlete" />
-            <Label htmlFor="login-athlete">Athlète</Label>
+            <RadioGroupItem value="athlete" id="athlete" />
+            <Label htmlFor="athlete">Athlète</Label>
           </div>
           <div className="flex items-center space-x-2">
-            <RadioGroupItem value="coach" id="login-coach" />
-            <Label htmlFor="login-coach">Coach</Label>
+            <RadioGroupItem value="coach" id="coach" />
+            <Label htmlFor="coach">Coach</Label>
           </div>
         </RadioGroup>
       </div>

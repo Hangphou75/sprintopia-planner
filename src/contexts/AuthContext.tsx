@@ -25,18 +25,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Initial session check
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
+        console.log("Session found, fetching profile...");
         fetchAndSetUserProfile(session.user.id);
       }
     });
 
+    // Auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event);
-      
       if (event === 'SIGNED_IN' && session?.user) {
+        console.log("User signed in, fetching profile...");
         await fetchAndSetUserProfile(session.user.id);
       } else if (event === 'SIGNED_OUT') {
+        console.log("User signed out");
         setUser(null);
         navigate('/login');
       }
@@ -54,7 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching profile:', error);
@@ -69,12 +73,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: profile.email || '',
           role: profile.role as UserRole,
         });
-        navigate(`/${profile.role}/home`);
+
+        // Only navigate if we have a valid role
+        if (profile.role) {
+          console.log("Navigating to:", `/${profile.role}/home`);
+          navigate(`/${profile.role}/home`);
+        } else {
+          console.error('No role found in profile');
+          throw new Error('No role found in profile');
+        }
+      } else {
+        console.error('No profile found');
+        throw new Error('No profile found');
       }
     } catch (error) {
       console.error('Error in fetchAndSetUserProfile:', error);
-      await supabase.auth.signOut();
-      navigate('/login');
+      await logout();
     }
   };
 
@@ -93,11 +107,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (!data.user) {
+        console.error('No user data returned');
         throw new Error('No user data returned');
       }
 
-      console.log("Login successful, fetching profile...");
-      await fetchAndSetUserProfile(data.user.id);
+      // The profile fetch and navigation will be handled by the onAuthStateChange listener
+      console.log("Login successful");
       
     } catch (error) {
       console.error('Login process failed:', error);
