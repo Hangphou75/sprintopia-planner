@@ -33,8 +33,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string, role: UserRole) => {
     // Mock login - replace with real authentication
+    // Using a proper UUID format for the mock user ID
     const mockUser: User = {
-      id: "1",
+      id: "123e4567-e89b-12d3-a456-426614174000", // Mock UUID format
       name: "John Doe",
       email,
       role,
