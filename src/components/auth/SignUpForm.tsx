@@ -31,7 +31,7 @@ export const SignUpForm = () => {
 
       console.log("Tentative d'inscription avec:", { email, role, firstName, lastName });
 
-      const { data, error: signUpError } = await supabase.auth.signUp({
+      const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -48,7 +48,7 @@ export const SignUpForm = () => {
         
         let errorMessage = "Une erreur est survenue lors de la création du compte";
         
-        if (signUpError.message?.includes("already registered")) {
+        if (signUpError.message?.includes("already registered") || signUpError.message?.includes("user_already_exists")) {
           errorMessage = "Un compte existe déjà avec cet email. Veuillez vous connecter.";
         }
 
@@ -60,13 +60,11 @@ export const SignUpForm = () => {
         return;
       }
 
-      if (data) {
-        console.log("Inscription réussie:", data);
-        toast({
-          title: "Compte créé avec succès",
-          description: "Vous pouvez maintenant vous connecter",
-        });
-      }
+      toast({
+        title: "Compte créé avec succès",
+        description: "Vous pouvez maintenant vous connecter",
+      });
+      
     } catch (error) {
       console.error("Erreur complète lors de l'inscription:", error);
       toast({
