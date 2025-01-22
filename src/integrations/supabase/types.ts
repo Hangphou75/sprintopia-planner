@@ -258,6 +258,7 @@ export type Database = {
       }
       workouts: {
         Row: {
+          color: string | null
           created_at: string
           date: string | null
           description: string | null
@@ -270,12 +271,13 @@ export type Database = {
           phase: Database["public"]["Enums"]["training_phase"] | null
           program_id: string | null
           recovery: string | null
-          theme: Database["public"]["Enums"]["workout_theme"] | null
+          theme: string | null
           title: string
           type: Database["public"]["Enums"]["workout_type"] | null
           updated_at: string
         }
         Insert: {
+          color?: string | null
           created_at?: string
           date?: string | null
           description?: string | null
@@ -288,12 +290,13 @@ export type Database = {
           phase?: Database["public"]["Enums"]["training_phase"] | null
           program_id?: string | null
           recovery?: string | null
-          theme?: Database["public"]["Enums"]["workout_theme"] | null
+          theme?: string | null
           title: string
           type?: Database["public"]["Enums"]["workout_type"] | null
           updated_at?: string
         }
         Update: {
+          color?: string | null
           created_at?: string
           date?: string | null
           description?: string | null
@@ -306,7 +309,7 @@ export type Database = {
           phase?: Database["public"]["Enums"]["training_phase"] | null
           program_id?: string | null
           recovery?: string | null
-          theme?: Database["public"]["Enums"]["workout_theme"] | null
+          theme?: string | null
           title?: string
           type?: Database["public"]["Enums"]["workout_type"] | null
           updated_at?: string
