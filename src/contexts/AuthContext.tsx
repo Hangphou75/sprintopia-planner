@@ -25,6 +25,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
 
+  const fetchAndSetUserProfile = async (userId: string) => {
+    try {
+      console.log("Fetching profile for user:", userId);
+      
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        setUser(null);
+        toast.error("Erreur lors de la récupération du profil");
+        return null;
+      }
+
+      if (!profile) {
+        console.error('No profile found for user:', userId);
+        setUser(null);
+        toast.error("Profil utilisateur non trouvé");
+        return null;
+      }
+
+      const userData = {
+        id: profile.id,
+        name: `${profile.first_name} ${profile.last_name}`,
+        email: profile.email || '',
+        role: profile.role as UserRole,
+      };
+
+      console.log("Setting user data:", userData);
+      setUser(userData);
+      return userData;
+    } catch (error) {
+      console.error('Error in fetchAndSetUserProfile:', error);
+      setUser(null);
+      toast.error("Erreur lors de la récupération du profil");
+      return null;
+    }
+  };
+
   useEffect(() => {
     // Initial session check
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -38,10 +80,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("Auth state changed:", event, session);
       
       if (event === 'SIGNED_IN' && session?.user) {
-        await fetchAndSetUserProfile(session.user.id);
+        const userData = await fetchAndSetUserProfile(session.user.id);
+        if (userData) {
+          const targetRoute = `/${userData.role}/home`;
+          console.log("Redirecting to:", targetRoute);
+          navigate(targetRoute, { replace: true });
+        }
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
-        navigate('/login');
+        navigate('/login', { replace: true });
       }
     });
 
@@ -49,53 +96,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       subscription.unsubscribe();
     };
   }, [navigate]);
-
-  const fetchAndSetUserProfile = async (userId: string) => {
-    try {
-      console.log("Fetching profile for user:", userId);
-      
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
-
-      console.log("Profile fetch result:", { profile, error });
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-        setUser(null);
-        toast.error("Erreur lors de la récupération du profil");
-        return;
-      }
-
-      if (!profile) {
-        console.error('No profile found for user:', userId);
-        setUser(null);
-        toast.error("Profil utilisateur non trouvé");
-        return;
-      }
-
-      const userData = {
-        id: profile.id,
-        name: `${profile.first_name} ${profile.last_name}`,
-        email: profile.email || '',
-        role: profile.role as UserRole,
-      };
-
-      console.log("Setting user data:", userData);
-      setUser(userData);
-      
-      // Ensure we're redirecting to the correct route
-      const targetRoute = `/${profile.role}/home`;
-      console.log("Redirecting to:", targetRoute);
-      navigate(targetRoute, { replace: true });
-    } catch (error) {
-      console.error('Error in fetchAndSetUserProfile:', error);
-      setUser(null);
-      toast.error("Erreur lors de la récupération du profil");
-    }
-  };
 
   const login = async (email: string, password: string, role: UserRole) => {
     try {
@@ -124,7 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await supabase.auth.signOut();
       setUser(null);
-      navigate('/login');
+      navigate('/login', { replace: true });
       toast.success("Déconnexion réussie");
     } catch (error) {
       console.error("Logout error:", error);
