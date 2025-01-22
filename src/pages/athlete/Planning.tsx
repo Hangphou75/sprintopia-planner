@@ -50,20 +50,24 @@ const AthletePlanning = () => {
         throw new Error("Utilisateur non authentifié");
       }
 
-      console.log("Creating program with data:", {
-        ...data,
+      // Validate user ID format
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(user.id)) {
+        throw new Error("Format d'identifiant utilisateur invalide");
+      }
+
+      const programData = {
+        name: data.name,
+        duration: Number(data.duration),
+        objectives: data.objectives || null,
+        start_date: new Date(data.start_date).toISOString(),
         user_id: user.id
-      });
+      };
+
+      console.log("Creating program with data:", programData);
 
       const { error } = await supabase
         .from('programs')
-        .insert({
-          name: data.name,
-          duration: data.duration,
-          objectives: data.objectives || null,
-          start_date: new Date(data.start_date).toISOString(),
-          user_id: user.id
-        });
+        .insert(programData);
 
       if (error) {
         console.error("Supabase error:", error);
