@@ -32,7 +32,7 @@ const Layout = () => {
   return (
     <SidebarProvider>
       <div className="flex h-screen">
-        <Sidebar>
+        <Sidebar className="border-r">
           <SidebarContent>
             <div className="flex flex-col h-full">
               <div className="space-y-4 py-4">
@@ -41,10 +41,11 @@ const Layout = () => {
                   <div className="space-y-1">
                     {navigation.map((item) => {
                       const Icon = item.icon;
+                      const isActive = location.pathname === item.href;
                       return (
                         <Link key={item.name} to={item.href}>
                           <Button
-                            variant={location.pathname === item.href ? "secondary" : "ghost"}
+                            variant={isActive ? "secondary" : "ghost"}
                             className="w-full justify-start"
                           >
                             <Icon className="mr-2 h-4 w-4" />
@@ -65,7 +66,7 @@ const Layout = () => {
             </div>
           </SidebarContent>
         </Sidebar>
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto p-6">
           <Outlet />
         </main>
       </div>

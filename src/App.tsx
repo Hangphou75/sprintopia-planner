@@ -29,11 +29,13 @@ const App = () => {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/athlete" element={<Layout />}>
+              <Route index element={<Navigate to="home" replace />} />
               <Route path="home" element={<AthleteHome />} />
               <Route path="planning" element={<AthletePlanning />} />
               <Route path="profile" element={<AthleteProfile />} />
             </Route>
             <Route path="/coach" element={<Layout />}>
+              <Route index element={<Navigate to="home" replace />} />
               <Route path="home" element={<CoachHome />} />
               <Route path="planning" element={<CoachPlanning />} />
               <Route path="profile" element={<CoachProfile />} />
