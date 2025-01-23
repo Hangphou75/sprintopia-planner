@@ -49,6 +49,7 @@ const CoachPlanning = () => {
   const { data: programs, refetch } = useQuery({
     queryKey: ["programs"],
     queryFn: async () => {
+      console.log("Fetching programs for user:", user?.id);
       const { data, error } = await supabase
         .from("programs")
         .select("*")
@@ -60,28 +61,46 @@ const CoachPlanning = () => {
         throw error;
       }
 
+      console.log("Programs fetched:", data);
       return data;
     },
   });
 
   const onSubmit = async (values: ProgramFormValues) => {
     try {
-      const { error } = await supabase.from("programs").insert({
-        name: values.name,
-        duration: values.duration,
-        objectives: values.objectives,
-        start_date: values.startDate.toISOString(),
-        user_id: user?.id,
-      });
+      console.log("Creating program with values:", values);
+      console.log("User ID:", user?.id);
 
-      if (error) throw error;
+      if (!user?.id) {
+        toast.error("Erreur: Utilisateur non connecté");
+        return;
+      }
 
+      const { data, error } = await supabase
+        .from("programs")
+        .insert({
+          name: values.name,
+          duration: values.duration,
+          objectives: values.objectives,
+          start_date: values.startDate.toISOString(),
+          user_id: user.id,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error creating program:", error);
+        toast.error("Erreur lors de la création du programme");
+        return;
+      }
+
+      console.log("Program created successfully:", data);
       toast.success("Programme créé avec succès");
       setOpen(false);
       form.reset();
       refetch();
     } catch (error) {
-      console.error("Error creating program:", error);
+      console.error("Error in onSubmit:", error);
       toast.error("Erreur lors de la création du programme");
     }
   };
