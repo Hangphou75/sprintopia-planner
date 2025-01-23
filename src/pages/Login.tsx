@@ -8,22 +8,25 @@ import { Navigate } from "react-router-dom";
 const Login = () => {
   const { user, isAuthenticated } = useAuth();
 
-  console.log("Login page - Auth state:", { isAuthenticated, user });
+  console.log("Login page rendering - Auth state:", { isAuthenticated, user });
 
   if (isAuthenticated && user) {
-    console.log("User is authenticated, redirecting to:", `/${user.role}/home`);
-    return <Navigate to={`/${user.role}/home`} replace />;
+    const redirectPath = `/${user.role}/home`;
+    console.log("User is authenticated, redirecting to:", redirectPath);
+    return <Navigate to={redirectPath} replace />;
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+    <div className="container mx-auto min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <Card className="w-[400px]">
-        <CardHeader>
-          <CardTitle>Bienvenue sur Sprintopia</CardTitle>
-          <CardDescription>Connectez-vous ou créez un compte pour continuer</CardDescription>
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl">Bienvenue sur Sprintopia</CardTitle>
+          <CardDescription>
+            Connectez-vous ou créez un compte pour continuer
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login">
+          <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Connexion</TabsTrigger>
               <TabsTrigger value="signup">Inscription</TabsTrigger>
