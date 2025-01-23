@@ -22,7 +22,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initializeAuth = async () => {
       const session = await authService.getCurrentSession();
       if (session?.user) {
-        await fetchProfile(session.user.id);
+        try {
+          const userProfile = await fetchProfile(session.user.id);
+          if (userProfile) {
+            console.log("Initial profile fetch successful:", userProfile);
+            navigate(`/${userProfile.role}/home`, { replace: true });
+          }
+        } catch (error) {
+          console.error("Error during initial profile fetch:", error);
+        }
       }
     };
 
@@ -38,23 +46,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.log("User profile fetched:", userProfile);
             const redirectPath = `/${userProfile.role}/home`;
             console.log("Redirecting to:", redirectPath);
-            navigate(redirectPath);
+            navigate(redirectPath, { replace: true });
           } else {
             console.error("No profile found after login");
             toast.error("Erreur lors de la récupération du profil");
             await authService.logout();
-            navigate('/login');
+            navigate('/login', { replace: true });
           }
         } catch (error) {
           console.error("Error fetching profile:", error);
           toast.error("Erreur lors de la récupération du profil");
           await authService.logout();
-          navigate('/login');
+          navigate('/login', { replace: true });
         }
       } else if (event === 'SIGNED_OUT') {
         console.log("User signed out");
         setProfile(null);
-        navigate('/login');
+        navigate('/login', { replace: true });
       }
     });
 
