@@ -17,8 +17,8 @@ const Login = () => {
   }
 
   return (
-    <div className="container mx-auto min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <Card className="w-[400px]">
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-50">
+      <Card className="w-[400px] shadow-lg">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl">Bienvenue sur Sprintopia</CardTitle>
           <CardDescription>
