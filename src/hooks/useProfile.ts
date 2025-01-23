@@ -18,7 +18,12 @@ export const useProfile = () => {
     try {
       console.log("Fetching profile for user:", userId);
       
-      const { data, error } = await supabase
+      if (!userId) {
+        console.error('No user ID provided to fetchProfile');
+        return null;
+      }
+
+      const { data: profileData, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
@@ -30,20 +35,22 @@ export const useProfile = () => {
         return null;
       }
 
-      if (!data) {
+      if (!profileData) {
         console.error('No profile found for user:', userId);
         toast.error("Profil utilisateur non trouvé");
         return null;
       }
 
+      console.log("Raw profile data:", profileData);
+
       const userProfile = {
-        id: data.id,
-        name: `${data.first_name} ${data.last_name}`,
-        email: data.email || '',
-        role: data.role as UserRole,
+        id: profileData.id,
+        name: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim(),
+        email: profileData.email || '',
+        role: (profileData.role as UserRole) || 'athlete',
       };
 
-      console.log("Profile fetched:", userProfile);
+      console.log("Processed profile:", userProfile);
       setProfile(userProfile);
       return userProfile;
     } catch (error) {
