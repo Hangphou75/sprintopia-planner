@@ -20,6 +20,7 @@ export const useProfile = () => {
       
       if (!userId) {
         console.error("No user ID provided");
+        toast.error("Erreur: ID utilisateur manquant");
         throw new Error('No user ID provided');
       }
 
@@ -27,15 +28,17 @@ export const useProfile = () => {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Error fetching profile:", error);
+        toast.error(`Erreur lors de la récupération du profil: ${error.message}`);
         throw error;
       }
 
       if (!profileData) {
         console.error("No profile found for user:", userId);
+        toast.error("Profil non trouvé");
         return null;
       }
 
@@ -53,6 +56,7 @@ export const useProfile = () => {
       return userProfile;
     } catch (error: any) {
       console.error('Error in fetchProfile:', error);
+      toast.error(`Erreur de connexion: ${error.message}`);
       return null;
     }
   };
