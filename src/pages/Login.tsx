@@ -8,7 +8,10 @@ import { Navigate } from "react-router-dom";
 const Login = () => {
   const { user, isAuthenticated } = useAuth();
 
+  console.log("Login page - Auth state:", { isAuthenticated, user });
+
   if (isAuthenticated && user) {
+    console.log("User is authenticated, redirecting to:", `/${user.role}/home`);
     return <Navigate to={`/${user.role}/home`} replace />;
   }
 

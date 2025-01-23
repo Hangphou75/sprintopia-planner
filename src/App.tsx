@@ -25,22 +25,22 @@ const App = () => {
             <Sonner />
             <Routes>
               <Route path="/login" element={<Login />} />
-              <Route path="/" element={<Layout />}>
-                <Route index element={<Navigate to="/login" replace />} />
+              <Route element={<Layout />}>
+                <Route path="/" element={<Navigate to="/login" replace />} />
                 <Route path="athlete">
-                  <Route index element={<Navigate to="home" replace />} />
                   <Route path="home" element={<AthleteHome />} />
                   <Route path="planning" element={<AthletePlanning />} />
                   <Route path="profile" element={<AthleteProfile />} />
+                  <Route index element={<Navigate to="home" replace />} />
                 </Route>
                 <Route path="coach">
-                  <Route index element={<Navigate to="home" replace />} />
                   <Route path="home" element={<CoachHome />} />
                   <Route path="planning" element={<CoachPlanning />} />
                   <Route path="profile" element={<CoachProfile />} />
+                  <Route index element={<Navigate to="home" replace />} />
                 </Route>
-                <Route path="*" element={<Navigate to="/login" replace />} />
               </Route>
+              <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
           </AuthProvider>
         </TooltipProvider>
