@@ -16,7 +16,10 @@ export const useProfile = () => {
 
   const fetchProfile = async (userId: string): Promise<UserProfile | null> => {
     try {
+      console.log("Fetching profile for user:", userId);
+      
       if (!userId) {
+        console.error("No user ID provided");
         throw new Error('No user ID provided');
       }
 
@@ -26,8 +29,17 @@ export const useProfile = () => {
         .eq('id', userId)
         .maybeSingle();
 
-      if (error) throw error;
-      if (!profileData) throw new Error('No profile found');
+      if (error) {
+        console.error("Error fetching profile:", error);
+        throw error;
+      }
+
+      if (!profileData) {
+        console.error("No profile found for user:", userId);
+        return null;
+      }
+
+      console.log("Profile data retrieved:", profileData);
 
       const userProfile: UserProfile = {
         id: profileData.id,
@@ -36,6 +48,7 @@ export const useProfile = () => {
         role: (profileData.role as UserRole) || 'athlete',
       };
 
+      console.log("Processed user profile:", userProfile);
       setProfile(userProfile);
       return userProfile;
     } catch (error: any) {

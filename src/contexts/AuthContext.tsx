@@ -29,15 +29,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session);
+      
       if (event === 'SIGNED_IN' && session?.user) {
-        const userProfile = await fetchProfile(session.user.id);
-        if (userProfile) {
-          navigate(`/${userProfile.role}/home`);
-          toast.success("Connexion réussie");
-        } else {
+        try {
+          const userProfile = await fetchProfile(session.user.id);
+          if (userProfile) {
+            console.log("User profile fetched:", userProfile);
+            const redirectPath = `/${userProfile.role}/home`;
+            console.log("Redirecting to:", redirectPath);
+            navigate(redirectPath);
+            toast.success("Connexion réussie");
+          } else {
+            console.error("No profile found after login");
+            toast.error("Erreur lors de la récupération du profil");
+          }
+        } catch (error) {
+          console.error("Error fetching profile:", error);
           toast.error("Erreur lors de la récupération du profil");
         }
       } else if (event === 'SIGNED_OUT') {
+        console.log("User signed out");
         setProfile(null);
         navigate('/login');
         toast.success("Déconnexion réussie");
@@ -51,8 +63,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string, role: string) => {
     try {
+      console.log("Attempting login with:", { email, role });
       await authService.login(email, password, role);
     } catch (error: any) {
+      console.error("Login error:", error);
       toast.error("Erreur de connexion: " + error.message);
       throw error;
     }
@@ -62,6 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await authService.logout();
     } catch (error) {
+      console.error("Logout error:", error);
       toast.error("Erreur lors de la déconnexion");
       throw error;
     }
