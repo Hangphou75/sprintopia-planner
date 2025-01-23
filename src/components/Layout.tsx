@@ -10,7 +10,7 @@ const Layout = () => {
   const location = useLocation();
 
   if (!user) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   const baseRoute = `/${user.role}`;
