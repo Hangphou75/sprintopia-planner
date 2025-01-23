@@ -9,7 +9,9 @@ const Layout = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
 
+  // Si pas d'utilisateur, rediriger vers login avec le chemin actuel
   if (!user) {
+    console.log("No user found, redirecting to login");
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
@@ -32,8 +34,6 @@ const Layout = () => {
   const isActiveRoute = (path: string) => {
     return location.pathname === path;
   };
-
-  console.log("Current location:", location.pathname);
 
   return (
     <SidebarProvider>
