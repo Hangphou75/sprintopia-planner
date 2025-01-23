@@ -30,8 +30,7 @@ const Layout = () => {
   ];
 
   const isActiveRoute = (path: string) => {
-    const currentPath = location.pathname;
-    return currentPath === path || currentPath.startsWith(path);
+    return location.pathname === path;
   };
 
   console.log("Current location:", location.pathname);
