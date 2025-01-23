@@ -2,7 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-type UserRole = "athlete" | "coach";
+export type UserRole = "athlete" | "coach";
 
 export interface UserProfile {
   id: string;
@@ -16,11 +16,8 @@ export const useProfile = () => {
 
   const fetchProfile = async (userId: string): Promise<UserProfile | null> => {
     try {
-      console.log("Fetching profile for user:", userId);
-      
       if (!userId) {
-        console.error('No user ID provided to fetchProfile');
-        return null;
+        throw new Error('No user ID provided');
       }
 
       const { data: profileData, error } = await supabase
@@ -29,19 +26,8 @@ export const useProfile = () => {
         .eq('id', userId)
         .maybeSingle();
 
-      if (error) {
-        console.error('Error fetching profile:', error);
-        toast.error("Erreur lors de la récupération du profil");
-        return null;
-      }
-
-      if (!profileData) {
-        console.error('No profile found for user:', userId);
-        toast.error("Profil utilisateur non trouvé");
-        return null;
-      }
-
-      console.log("Raw profile data:", profileData);
+      if (error) throw error;
+      if (!profileData) throw new Error('No profile found');
 
       const userProfile: UserProfile = {
         id: profileData.id,
@@ -50,12 +36,10 @@ export const useProfile = () => {
         role: (profileData.role as UserRole) || 'athlete',
       };
 
-      console.log("Processed profile:", userProfile);
       setProfile(userProfile);
       return userProfile;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in fetchProfile:', error);
-      toast.error("Erreur lors de la récupération du profil");
       return null;
     }
   };
