@@ -29,6 +29,13 @@ const Layout = () => {
     { name: "Profil", href: `/${user.role}/profile`, icon: User },
   ];
 
+  const isActiveRoute = (path: string) => {
+    const currentPath = location.pathname;
+    return currentPath === path || currentPath.startsWith(path);
+  };
+
+  console.log("Current location:", location.pathname);
+
   return (
     <SidebarProvider>
       <div className="flex h-screen">
@@ -41,7 +48,7 @@ const Layout = () => {
                   <div className="space-y-1">
                     {navigation.map((item) => {
                       const Icon = item.icon;
-                      const isActive = location.pathname === item.href;
+                      const isActive = isActiveRoute(item.href);
                       return (
                         <Link key={item.name} to={item.href}>
                           <Button
