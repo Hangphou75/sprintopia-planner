@@ -43,9 +43,9 @@ export const useProfile = () => {
 
       console.log("Raw profile data:", profileData);
 
-      const userProfile = {
+      const userProfile: UserProfile = {
         id: profileData.id,
-        name: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim(),
+        name: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || 'Utilisateur',
         email: profileData.email || '',
         role: (profileData.role as UserRole) || 'athlete',
       };

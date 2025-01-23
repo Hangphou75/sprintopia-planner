@@ -21,7 +21,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initializeAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        console.log("Initial session found:", session);
+        console.log("Session found, fetching profile for user:", session.user.id);
         await fetchProfile(session.user.id);
       }
     };
@@ -32,14 +32,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("Auth state changed:", event, session);
       
       if (event === 'SIGNED_IN' && session?.user) {
-        console.log("User signed in, fetching profile...");
+        console.log("User signed in, fetching profile for:", session.user.id);
         const userProfile = await fetchProfile(session.user.id);
         if (userProfile) {
+          console.log("Profile fetched successfully:", userProfile);
           navigate(`/${userProfile.role}/home`);
           toast.success("Connexion réussie");
+        } else {
+          console.error("Failed to fetch profile after sign in");
+          toast.error("Erreur lors de la récupération du profil");
         }
       } else if (event === 'SIGNED_OUT') {
-        console.log("User signed out");
+        console.log("User signed out, clearing profile");
         setProfile(null);
         navigate('/login');
         toast.success("Déconnexion réussie");
@@ -66,7 +70,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw error;
       }
 
-      console.log("Login successful:", data);
+      if (!data.user) {
+        console.error("No user data returned after login");
+        toast.error("Erreur de connexion: Aucune donnée utilisateur");
+        return;
+      }
+
+      console.log("Login successful, user:", data.user);
+      
+      // Profile fetching is handled by the auth state change listener
     } catch (error) {
       console.error("Login error:", error);
       toast.error("Erreur lors de la connexion");
