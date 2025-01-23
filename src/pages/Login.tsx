@@ -7,7 +7,7 @@ import { Navigate } from "react-router-dom";
 
 const Login = () => {
   const { user, isAuthenticated } = useAuth();
-
+  
   console.log("Login page rendering - Auth state:", { isAuthenticated, user });
 
   if (isAuthenticated && user) {
@@ -17,7 +17,7 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-50">
       <Card className="w-[400px] shadow-lg">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl">Bienvenue sur Sprintopia</CardTitle>
