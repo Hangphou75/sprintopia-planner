@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
 
 type UserRole = "athlete" | "coach";
 
@@ -15,7 +14,6 @@ export const LoginForm = () => {
   const [role, setRole] = useState<UserRole>("coach");
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
-  const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,13 +28,11 @@ export const LoginForm = () => {
     try {
       console.log("Tentative de connexion avec:", { email, password, role });
       await login(email, password, role);
-      
-      // On ne fait plus la redirection ici car elle est gérée dans AuthContext
       toast.success("Connexion réussie");
     } catch (error: any) {
       console.error("Erreur de connexion:", error);
       toast.error("Erreur de connexion: " + (error.message || "Email ou mot de passe incorrect"));
-      setIsLoading(false); // Important: réinitialiser isLoading en cas d'erreur
+      setIsLoading(false);
     }
   };
 
