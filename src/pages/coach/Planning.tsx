@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -35,7 +36,14 @@ type ProgramFormValues = {
 const CoachPlanning = () => {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
-  const form = useForm<ProgramFormValues>();
+  const form = useForm<ProgramFormValues>({
+    defaultValues: {
+      name: "",
+      duration: 12,
+      objectives: "",
+      startDate: new Date(),
+    },
+  });
 
   const { data: programs, refetch } = useQuery({
     queryKey: ["programs"],
@@ -78,8 +86,8 @@ const CoachPlanning = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="container mx-auto p-6 max-w-4xl">
+      <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Gestion des programmes</h1>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -88,12 +96,15 @@ const CoachPlanning = () => {
               Nouveau Programme
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>Créer un nouveau programme</DialogTitle>
+              <DialogDescription>
+                Remplissez les informations ci-dessous pour créer un nouveau programme d'entraînement.
+              </DialogDescription>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <FormField
                   control={form.control}
                   name="name"
@@ -135,6 +146,7 @@ const CoachPlanning = () => {
                       <FormControl>
                         <Textarea
                           placeholder="Décrivez les objectifs du programme"
+                          className="min-h-[100px]"
                           {...field}
                         />
                       </FormControl>
@@ -156,6 +168,7 @@ const CoachPlanning = () => {
                           date < new Date() || date < new Date("1900-01-01")
                         }
                         initialFocus
+                        className="rounded-md border"
                       />
                       <FormMessage />
                     </FormItem>
@@ -169,22 +182,24 @@ const CoachPlanning = () => {
           </DialogContent>
         </Dialog>
       </div>
-      <div className="grid gap-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {programs?.length === 0 ? (
-          <p className="text-muted-foreground">Aucun programme créé</p>
+          <p className="text-muted-foreground col-span-full text-center py-8">
+            Aucun programme créé
+          </p>
         ) : (
           programs?.map((program) => (
             <div
               key={program.id}
-              className="p-4 border rounded-lg hover:border-primary transition-colors"
+              className="p-6 border rounded-lg hover:border-primary transition-colors bg-card"
             >
-              <h3 className="font-semibold">{program.name}</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="font-semibold text-lg mb-2">{program.name}</h3>
+              <p className="text-sm text-muted-foreground mb-4">
                 {program.duration} semaines - Début le{" "}
                 {new Date(program.start_date).toLocaleDateString()}
               </p>
               {program.objectives && (
-                <p className="mt-2 text-sm">{program.objectives}</p>
+                <p className="text-sm text-card-foreground">{program.objectives}</p>
               )}
             </div>
           ))
