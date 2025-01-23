@@ -21,8 +21,6 @@ const App = () => {
       <BrowserRouter>
         <TooltipProvider>
           <AuthProvider>
-            <Toaster />
-            <Sonner />
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/" element={<Layout />}>
@@ -42,6 +40,8 @@ const App = () => {
                 <Route path="*" element={<Navigate to="/login" replace />} />
               </Route>
             </Routes>
+            <Toaster />
+            <Sonner />
           </AuthProvider>
         </TooltipProvider>
       </BrowserRouter>
