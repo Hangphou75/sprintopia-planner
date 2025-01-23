@@ -45,7 +45,7 @@ export const useProfile = () => {
         id: profileData.id,
         name: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || 'Utilisateur',
         email: profileData.email || '',
-        role: (profileData.role as UserRole) || 'athlete',
+        role: profileData.role as UserRole || 'athlete',
       };
 
       console.log("Processed user profile:", userProfile);
@@ -53,6 +53,7 @@ export const useProfile = () => {
       return userProfile;
     } catch (error: any) {
       console.error('Error in fetchProfile:', error);
+      toast.error("Erreur lors de la récupération du profil");
       return null;
     }
   };

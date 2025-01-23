@@ -38,21 +38,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.log("User profile fetched:", userProfile);
             const redirectPath = `/${userProfile.role}/home`;
             console.log("Redirecting to:", redirectPath);
-            navigate(redirectPath);
-            toast.success("Connexion réussie");
+            navigate(redirectPath, { replace: true });
           } else {
             console.error("No profile found after login");
             toast.error("Erreur lors de la récupération du profil");
+            await authService.logout();
           }
         } catch (error) {
           console.error("Error fetching profile:", error);
           toast.error("Erreur lors de la récupération du profil");
+          await authService.logout();
         }
       } else if (event === 'SIGNED_OUT') {
         console.log("User signed out");
         setProfile(null);
-        navigate('/login');
-        toast.success("Déconnexion réussie");
+        navigate('/login', { replace: true });
       }
     });
 
