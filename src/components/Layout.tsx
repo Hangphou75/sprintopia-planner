@@ -1,16 +1,16 @@
-import { Outlet, Navigate, useLocation, Link } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { Sidebar, SidebarContent, SidebarProvider } from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Home, Calendar, User, LogOut } from "lucide-react";
+import { Link, useLocation, Navigate } from "react-router-dom";
 
 const Layout = () => {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout } = useAuth();
   const location = useLocation();
 
-  if (!isAuthenticated || !user) {
-    console.log("Not authenticated, redirecting to login");
-    return <Navigate to="/login" replace />;
+  if (!user) {
+    return <Navigate to="/login" />;
   }
 
   const baseRoute = `/${user.role}`;
