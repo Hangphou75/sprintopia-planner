@@ -24,13 +24,11 @@ export const useProfile = () => {
         throw new Error('No user ID provided');
       }
 
-      // Correction de la requête Supabase
       const { data: profileData, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, first_name, last_name, email, role')
         .eq('id', userId)
-        .limit(1)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Error fetching profile:", error);
