@@ -70,7 +70,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // Initial session check
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         console.log("Initial session found, fetching profile...");
@@ -78,7 +77,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session);
       
@@ -88,15 +86,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (userData) {
           const targetRoute = `/${userData.role}/home`;
           console.log("Profile fetched successfully, redirecting to:", targetRoute);
-          navigate(targetRoute, { replace: true });
-        } else {
-          console.log("Failed to fetch profile, redirecting to login");
-          navigate('/login', { replace: true });
+          navigate(targetRoute);
         }
       } else if (event === 'SIGNED_OUT') {
         console.log("User signed out, redirecting to login");
         setUser(null);
-        navigate('/login', { replace: true });
+        navigate('/login');
       }
     });
 
@@ -121,7 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       console.log("Login successful:", data);
-      // La redirection sera gérée par onAuthStateChange
+      toast.success("Connexion réussie");
     } catch (error) {
       console.error("Login error:", error);
       toast.error("Erreur lors de la connexion");
@@ -133,7 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await supabase.auth.signOut();
       setUser(null);
-      navigate('/login', { replace: true });
+      navigate('/login');
       toast.success("Déconnexion réussie");
     } catch (error) {
       console.error("Logout error:", error);
