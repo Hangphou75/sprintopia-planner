@@ -1,4 +1,4 @@
-import { Outlet, Link, useLocation, Navigate } from "react-router-dom";
+import { Outlet, Navigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Sidebar, SidebarContent, SidebarProvider } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -13,9 +13,6 @@ const Layout = () => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  const baseRoute = `/${user.role}`;
-  const isActive = (path: string) => location.pathname === `${baseRoute}/${path}`;
-
   const handleLogout = async () => {
     try {
       await logout();
@@ -26,53 +23,41 @@ const Layout = () => {
     }
   };
 
+  const navigation = [
+    { name: "Accueil", href: `/${user.role}/home`, icon: Home },
+    { name: "Planning", href: `/${user.role}/planning`, icon: Calendar },
+    { name: "Profil", href: `/${user.role}/profile`, icon: User },
+  ];
+
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full bg-background">
+      <div className="flex h-screen">
         <Sidebar>
           <SidebarContent>
-            <div className="space-y-4 py-4">
-              <div className="px-4 py-2">
-                <h2 className="text-lg font-semibold tracking-tight">Sprintopia</h2>
-                <p className="text-sm text-muted-foreground">
-                  {user.role === "athlete" ? "Athlete" : "Coach"} Dashboard
-                </p>
+            <div className="flex flex-col h-full">
+              <div className="space-y-4 py-4">
+                <div className="px-3 py-2">
+                  <h2 className="mb-2 px-4 text-lg font-semibold">Navigation</h2>
+                  <div className="space-y-1">
+                    {navigation.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link key={item.name} to={item.href}>
+                          <Button
+                            variant={location.pathname === item.href ? "secondary" : "ghost"}
+                            className="w-full justify-start"
+                          >
+                            <Icon className="mr-2 h-4 w-4" />
+                            {item.name}
+                          </Button>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
-              <nav className="space-y-2 px-2">
-                <Link to={`${baseRoute}/home`}>
-                  <Button
-                    variant={isActive("home") ? "secondary" : "ghost"}
-                    className="w-full justify-start"
-                  >
-                    <Home className="mr-2 h-4 w-4" />
-                    Home
-                  </Button>
-                </Link>
-                <Link to={`${baseRoute}/planning`}>
-                  <Button
-                    variant={isActive("planning") ? "secondary" : "ghost"}
-                    className="w-full justify-start"
-                  >
-                    <Calendar className="mr-2 h-4 w-4" />
-                    Planning
-                  </Button>
-                </Link>
-                <Link to={`${baseRoute}/profile`}>
-                  <Button
-                    variant={isActive("profile") ? "secondary" : "ghost"}
-                    className="w-full justify-start"
-                  >
-                    <User className="mr-2 h-4 w-4" />
-                    Profile
-                  </Button>
-                </Link>
-              </nav>
-              <div className="px-2 mt-auto">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
-                  onClick={handleLogout}
-                >
+              <div className="mt-auto p-4">
+                <Button onClick={handleLogout} variant="ghost" className="w-full justify-start">
                   <LogOut className="mr-2 h-4 w-4" />
                   Déconnexion
                 </Button>
@@ -80,10 +65,8 @@ const Layout = () => {
             </div>
           </SidebarContent>
         </Sidebar>
-        <main className="flex-1 overflow-auto">
-          <div className="container mx-auto py-6">
-            <Outlet />
-          </div>
+        <main className="flex-1 overflow-y-auto">
+          <Outlet />
         </main>
       </div>
     </SidebarProvider>
