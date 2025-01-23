@@ -19,8 +19,8 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <AuthProvider>
-          <TooltipProvider>
+        <TooltipProvider>
+          <AuthProvider>
             <Toaster />
             <Sonner />
             <Routes>
@@ -42,8 +42,8 @@ const App = () => {
                 <Route path="*" element={<Navigate to="/login" replace />} />
               </Route>
             </Routes>
-          </TooltipProvider>
-        </AuthProvider>
+          </AuthProvider>
+        </TooltipProvider>
       </BrowserRouter>
     </QueryClientProvider>
   );
