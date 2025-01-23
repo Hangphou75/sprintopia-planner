@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -17,20 +17,48 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const { profile, fetchProfile, setProfile } = useProfile();
+  const [isLoading, setIsLoading] = useState(true);
+
+  const handleProfileFetch = async (userId: string) => {
+    try {
+      const userProfile = await fetchProfile(userId);
+      if (userProfile) {
+        console.log("Profile fetched successfully:", userProfile);
+        return userProfile;
+      }
+      console.error("No profile found for user:", userId);
+      return null;
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      return null;
+    }
+  };
+
+  const handleRedirect = (userProfile: UserProfile | null) => {
+    if (userProfile) {
+      const redirectPath = `/${userProfile.role}/home`;
+      console.log("Redirecting to:", redirectPath);
+      navigate(redirectPath, { replace: true });
+    } else {
+      console.log("No profile, redirecting to login");
+      navigate("/login", { replace: true });
+    }
+  };
 
   useEffect(() => {
     const initializeAuth = async () => {
-      const session = await authService.getCurrentSession();
-      if (session?.user) {
-        try {
-          const userProfile = await fetchProfile(session.user.id);
+      try {
+        const session = await authService.getCurrentSession();
+        if (session?.user) {
+          const userProfile = await handleProfileFetch(session.user.id);
           if (userProfile) {
-            console.log("Initial profile fetch successful:", userProfile);
-            navigate(`/${userProfile.role}/home`, { replace: true });
+            handleRedirect(userProfile);
           }
-        } catch (error) {
-          console.error("Error during initial profile fetch:", error);
         }
+      } catch (error) {
+        console.error("Error during auth initialization:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -40,29 +68,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("Auth state changed:", event, session);
       
       if (event === 'SIGNED_IN' && session?.user) {
-        try {
-          const userProfile = await fetchProfile(session.user.id);
-          if (userProfile) {
-            console.log("User profile fetched:", userProfile);
-            const redirectPath = `/${userProfile.role}/home`;
-            console.log("Redirecting to:", redirectPath);
-            navigate(redirectPath, { replace: true });
-          } else {
-            console.error("No profile found after login");
-            toast.error("Erreur lors de la récupération du profil");
-            await authService.logout();
-            navigate('/login', { replace: true });
-          }
-        } catch (error) {
-          console.error("Error fetching profile:", error);
+        const userProfile = await handleProfileFetch(session.user.id);
+        if (!userProfile) {
           toast.error("Erreur lors de la récupération du profil");
           await authService.logout();
-          navigate('/login', { replace: true });
         }
+        handleRedirect(userProfile);
       } else if (event === 'SIGNED_OUT') {
         console.log("User signed out");
         setProfile(null);
-        navigate('/login', { replace: true });
+        handleRedirect(null);
       }
     });
 
@@ -91,6 +106,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw error;
     }
   };
+
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <AuthContext.Provider 

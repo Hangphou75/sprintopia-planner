@@ -53,7 +53,6 @@ export const useProfile = () => {
       return userProfile;
     } catch (error: any) {
       console.error('Error in fetchProfile:', error);
-      toast.error("Erreur lors de la récupération du profil");
       return null;
     }
   };
