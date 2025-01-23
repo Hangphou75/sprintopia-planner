@@ -26,7 +26,7 @@ const App = () => {
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/" element={<Layout />}>
-                <Route index element={<Navigate to="/athlete/home" replace />} />
+                <Route index element={<Navigate to="/login" replace />} />
                 <Route path="athlete">
                   <Route index element={<Navigate to="home" replace />} />
                   <Route path="home" element={<AthleteHome />} />
