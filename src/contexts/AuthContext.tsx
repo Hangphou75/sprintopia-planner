@@ -86,8 +86,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log("User signed in, fetching profile...");
         const userData = await fetchAndSetUserProfile(session.user.id);
         if (userData) {
-          console.log("Profile fetched successfully, redirecting to:", `/${userData.role}/home`);
-          navigate(`/${userData.role}/home`, { replace: true });
+          const targetRoute = `/${userData.role}/home`;
+          console.log("Profile fetched successfully, redirecting to:", targetRoute);
+          navigate(targetRoute, { replace: true });
         } else {
           console.log("Failed to fetch profile, redirecting to login");
           navigate('/login', { replace: true });
@@ -120,6 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       console.log("Login successful:", data);
+      // La redirection sera gérée par onAuthStateChange
     } catch (error) {
       console.error("Login error:", error);
       toast.error("Erreur lors de la connexion");
@@ -132,6 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await supabase.auth.signOut();
       setUser(null);
       navigate('/login', { replace: true });
+      toast.success("Déconnexion réussie");
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Erreur lors de la déconnexion");
