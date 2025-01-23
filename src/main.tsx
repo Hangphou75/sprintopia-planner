@@ -1,23 +1,27 @@
 import { createRoot } from 'react-dom/client';
+import { StrictMode } from 'react';
 import App from './App';
 import './index.css';
 
-console.log("Initializing application...");
+console.log("🚀 Application initialization starting...");
 
-const rootElement = document.getElementById('root');
-if (!rootElement) {
-  console.error("Root element not found!");
+const container = document.getElementById('root');
+
+if (!container) {
+  console.error("❌ Root element not found! Check if index.html contains <div id='root'></div>");
   throw new Error('Failed to find the root element');
 }
 
-console.log("Root element found, creating React root...");
+console.log("✅ Root element found, creating React root...");
 
-const root = createRoot(rootElement);
+const root = createRoot(container);
 
-console.log("Rendering application...");
+console.log("✅ React root created, rendering application...");
 
 root.render(
-  <App />
+  <StrictMode>
+    <App />
+  </StrictMode>
 );
 
-console.log("Application rendered!");
+console.log("✅ Initial render complete!");
