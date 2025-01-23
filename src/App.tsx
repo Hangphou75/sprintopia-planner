@@ -13,7 +13,14 @@ import CoachHome from "./pages/coach/Home";
 import CoachPlanning from "./pages/coach/Planning";
 import CoachProfile from "./pages/coach/Profile";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => {
   return (
@@ -35,8 +42,8 @@ const App = () => {
                   <Route path="profile" element={<CoachProfile />} />
                 </Route>
                 <Route index element={<Navigate to="/login" replace />} />
-                <Route path="*" element={<Navigate to="/login" replace />} />
               </Route>
+              <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
             <Toaster />
             <Sonner />

@@ -1,9 +1,9 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, Link, useLocation, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { Sidebar, SidebarContent, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarProvider } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Home, Calendar, User, LogOut } from "lucide-react";
-import { Link, useLocation, Navigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const Layout = () => {
   const { user, logout } = useAuth();
@@ -19,8 +19,10 @@ const Layout = () => {
   const handleLogout = async () => {
     try {
       await logout();
+      toast.success("Déconnexion réussie");
     } catch (error) {
       console.error("Erreur lors de la déconnexion:", error);
+      toast.error("Erreur lors de la déconnexion");
     }
   };
 
