@@ -25,8 +25,8 @@ const App = () => {
             <Sonner />
             <Routes>
               <Route path="/login" element={<Login />} />
+              <Route path="/" element={<Navigate to="/login" replace />} />
               <Route element={<Layout />}>
-                <Route path="/" element={<Navigate to="/login" replace />} />
                 <Route path="athlete">
                   <Route path="home" element={<AthleteHome />} />
                   <Route path="planning" element={<AthletePlanning />} />
