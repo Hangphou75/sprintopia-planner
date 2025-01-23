@@ -5,7 +5,6 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
 
 type UserRole = "athlete" | "coach";
 
@@ -15,11 +14,12 @@ export const SignUpForm = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [role, setRole] = useState<UserRole>("athlete");
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
     try {
       if (!email || !password || !firstName || !lastName) {
@@ -28,6 +28,7 @@ export const SignUpForm = () => {
           title: "Erreur d'inscription",
           description: "Veuillez remplir tous les champs",
         });
+        setIsLoading(false);
         return;
       }
 
@@ -59,11 +60,12 @@ export const SignUpForm = () => {
           title: "Erreur d'inscription",
           description: errorMessage,
         });
+        setIsLoading(false);
         return;
       }
 
       if (data.user) {
-        console.log("Inscription réussie, redirection...");
+        console.log("Inscription réussie:", data.user);
         toast({
           title: "Compte créé avec succès",
           description: "Vous allez être redirigé vers votre tableau de bord",
@@ -78,6 +80,8 @@ export const SignUpForm = () => {
         title: "Erreur d'inscription",
         description: "Une erreur est survenue lors de la création du compte",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -136,7 +140,9 @@ export const SignUpForm = () => {
           </div>
         </RadioGroup>
       </div>
-      <Button type="submit" className="w-full">Créer un compte</Button>
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading ? "Création du compte..." : "Créer un compte"}
+      </Button>
     </form>
   );
 };
