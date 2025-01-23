@@ -17,7 +17,7 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 p-4">
+    <div className="flex min-h-screen w-full items-center justify-center bg-background p-4">
       <Card className="w-[400px] shadow-lg">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl">Bienvenue sur Sprintopia</CardTitle>
@@ -25,7 +25,7 @@ const Login = () => {
             Connectez-vous ou créez un compte pour continuer
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-6">
+        <CardContent>
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="login">Connexion</TabsTrigger>
