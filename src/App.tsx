@@ -27,19 +27,20 @@ const App = () => {
       <Router>
         <AuthProvider>
           <Routes>
+            {/* Route Login */}
             <Route path="/login" element={<Login />} />
-            
-            {/* Routes Athlete */}
+
+            {/* Routes Athlete avec Layout */}
             <Route path="/athlete" element={<Layout />}>
-              <Route index element={<Navigate to="home" replace />} />
+              <Route index element={<AthleteHome />} />
               <Route path="home" element={<AthleteHome />} />
               <Route path="planning" element={<AthletePlanning />} />
               <Route path="profile" element={<AthleteProfile />} />
             </Route>
 
-            {/* Routes Coach */}
+            {/* Routes Coach avec Layout */}
             <Route path="/coach" element={<Layout />}>
-              <Route index element={<Navigate to="home" replace />} />
+              <Route index element={<CoachHome />} />
               <Route path="home" element={<CoachHome />} />
               <Route path="planning" element={<CoachPlanning />} />
               <Route path="profile" element={<CoachProfile />} />
