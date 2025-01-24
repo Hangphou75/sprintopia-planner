@@ -22,7 +22,7 @@ import { ProgramFormValues } from "./ProgramForm";
 type CompetitionFormProps = {
   control: Control<ProgramFormValues>;
   isMain: boolean;
-  namePrefix: string;
+  namePrefix: "mainCompetition" | `otherCompetitions.${number}`;
   onRemove?: () => void;
 };
 
@@ -59,7 +59,7 @@ export const CompetitionForm = ({
 
       <FormField
         control={control}
-        name={`${namePrefix}.name`}
+        name={`${namePrefix}.name` as const}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Nom de la compétition</FormLabel>
@@ -74,11 +74,11 @@ export const CompetitionForm = ({
       <div className="grid grid-cols-2 gap-4">
         <FormField
           control={control}
-          name={`${namePrefix}.distance`}
+          name={`${namePrefix}.distance` as const}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Distance</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionnez une distance" />
@@ -98,11 +98,11 @@ export const CompetitionForm = ({
 
         <FormField
           control={control}
-          name={`${namePrefix}.level`}
+          name={`${namePrefix}.level` as const}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Niveau</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionnez un niveau" />
@@ -123,7 +123,7 @@ export const CompetitionForm = ({
 
       <FormField
         control={control}
-        name={`${namePrefix}.date`}
+        name={`${namePrefix}.date` as const}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Date</FormLabel>
@@ -143,7 +143,7 @@ export const CompetitionForm = ({
 
       <FormField
         control={control}
-        name={`${namePrefix}.location`}
+        name={`${namePrefix}.location` as const}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Lieu</FormLabel>
