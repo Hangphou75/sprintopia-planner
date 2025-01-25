@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { Plus, Columns2 } from "lucide-react";
+import { Plus, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { CompetitionForm } from "./CompetitionForm";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 type Competition = {
   name: string;
@@ -85,6 +84,7 @@ export const ProgramForm = ({ onSubmit, initialValues, mode = "create" }: Progra
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column - Program Details */}
           <div className="space-y-6">
+            <h3 className="text-lg font-semibold">Détails du programme</h3>
             <FormField
               control={form.control}
               name="name"
