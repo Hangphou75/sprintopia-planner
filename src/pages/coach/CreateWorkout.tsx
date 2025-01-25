@@ -11,20 +11,28 @@ export const CreateWorkout = () => {
     try {
       console.log("Creating workout with values:", values);
       
-      const { data, error } = await supabase.from("workouts").insert({
-        program_id: programId,
-        title: values.title,
-        description: values.description,
-        date: values.date.toISOString(),
-        time: values.time,
-        theme: values.theme,
-        recovery: values.recovery,
-        details: values.details,
-      }).select().single();
+      const { data, error } = await supabase
+        .from("workouts")
+        .insert({
+          program_id: programId,
+          title: values.title,
+          description: values.description,
+          date: values.date.toISOString(),
+          time: values.time,
+          theme: values.theme,
+          recovery: values.recovery,
+          details: values.details,
+          phase: values.phase,
+          type: values.type,
+          intensity: values.intensity,
+        })
+        .select()
+        .single();
 
       if (error) {
         console.error("Error creating workout:", error);
-        throw error;
+        toast.error("Erreur lors de la création de la séance");
+        return;
       }
 
       console.log("Workout created successfully:", data);
