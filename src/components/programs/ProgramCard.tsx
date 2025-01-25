@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { CalendarDays, Edit, Trash2 } from "lucide-react";
+import { CalendarDays, Edit, Trash2, UserPlus } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
@@ -21,9 +21,18 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CompetitionCard } from "./CompetitionCard";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
 
 type ProgramCardProps = {
   program: any;
@@ -33,6 +42,30 @@ type ProgramCardProps = {
 
 export const ProgramCard = ({ program, onDelete, readOnly = false }: ProgramCardProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Fetch athletes for the coach
+  const { data: athletes } = useQuery({
+    queryKey: ["coach-athletes", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("coach_athletes")
+        .select(`
+          id,
+          athlete:profiles!coach_athletes_athlete_id_fkey(
+            id,
+            first_name,
+            last_name,
+            email
+          )
+        `)
+        .eq("coach_id", user?.id);
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !readOnly && !!user?.id,
+  });
 
   const handleDeleteProgram = async () => {
     try {
@@ -68,6 +101,26 @@ export const ProgramCard = ({ program, onDelete, readOnly = false }: ProgramCard
     }
   };
 
+  const handleShareProgram = async (athleteId: string) => {
+    try {
+      const { error } = await supabase
+        .from("shared_programs")
+        .insert([{
+          program_id: program.id,
+          athlete_id: athleteId,
+          coach_id: user?.id,
+          status: 'active'
+        }]);
+
+      if (error) throw error;
+
+      toast.success("Programme partagé avec succès");
+    } catch (error) {
+      console.error("Error sharing program:", error);
+      toast.error("Erreur lors du partage du programme");
+    }
+  };
+
   const handleWorkoutsClick = () => {
     const path = readOnly ? `/athlete/programs/${program.id}/workouts` : `/coach/programs/${program.id}/workouts`;
     navigate(path);
@@ -97,6 +150,35 @@ export const ProgramCard = ({ program, onDelete, readOnly = false }: ProgramCard
             </Button>
             {!readOnly && (
               <>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <UserPlus className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Associer des athlètes</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      {athletes?.map((relation) => (
+                        <Button
+                          key={relation.athlete.id}
+                          variant="outline"
+                          className="w-full justify-start"
+                          onClick={() => handleShareProgram(relation.athlete.id)}
+                        >
+                          {relation.athlete.first_name} {relation.athlete.last_name}
+                        </Button>
+                      ))}
+                      {(!athletes || athletes.length === 0) && (
+                        <p className="text-center text-muted-foreground">
+                          Aucun athlète disponible
+                        </p>
+                      )}
+                    </div>
+                  </DialogContent>
+                </Dialog>
                 <Button
                   variant="ghost"
                   size="icon"
