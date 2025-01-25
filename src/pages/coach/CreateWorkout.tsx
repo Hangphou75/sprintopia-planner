@@ -9,7 +9,9 @@ export const CreateWorkout = () => {
 
   const handleSubmit = async (values: WorkoutFormValues) => {
     try {
-      const { error } = await supabase.from("workouts").insert({
+      console.log("Creating workout with values:", values);
+      
+      const { data, error } = await supabase.from("workouts").insert({
         program_id: programId,
         title: values.title,
         description: values.description,
@@ -18,10 +20,14 @@ export const CreateWorkout = () => {
         theme: values.theme,
         recovery: values.recovery,
         details: values.details,
-      });
+      }).select().single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error creating workout:", error);
+        throw error;
+      }
 
+      console.log("Workout created successfully:", data);
       toast.success("Séance créée avec succès");
       navigate(`/coach/programs/${programId}/workouts`);
     } catch (error) {
