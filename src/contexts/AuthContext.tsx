@@ -14,7 +14,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { profile } = useProfile();
+  const { profile, setProfile } = useProfile();
   const { isLoading } = useAuthState();
 
   const login = async (email: string, password: string, role: string) => {
@@ -31,6 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     try {
       await authService.logout();
+      setProfile(null);
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Erreur lors de la déconnexion");
@@ -39,18 +40,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   if (isLoading) {
-    return null;
+    return <div>Chargement...</div>;
   }
 
+  const value = {
+    user: profile,
+    login,
+    logout,
+    isAuthenticated: !!profile
+  };
+
   return (
-    <AuthContext.Provider 
-      value={{ 
-        user: profile, 
-        login, 
-        logout, 
-        isAuthenticated: !!profile 
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

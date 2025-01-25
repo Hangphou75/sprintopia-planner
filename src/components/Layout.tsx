@@ -10,7 +10,7 @@ const Layout = () => {
   const location = useLocation();
 
   if (!user) {
-    console.log("No user found, redirecting to login");
+    console.log("No user found in Layout, redirecting to login");
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 

@@ -13,9 +13,11 @@ export const useAuthState = () => {
 
   const handleProfileFetch = async (userId: string): Promise<UserProfile | null> => {
     try {
+      console.log("Fetching profile for user:", userId);
       const userProfile = await fetchProfile(userId);
       if (userProfile) {
         console.log("Profile fetched successfully:", userProfile);
+        setProfile(userProfile);
         return userProfile;
       }
       console.error("No profile found for user:", userId);
@@ -45,20 +47,31 @@ export const useAuthState = () => {
   };
 
   useEffect(() => {
+    let mounted = true;
+
     const initializeAuth = async () => {
       try {
         const session = await authService.getCurrentSession();
-        if (session?.user) {
+        if (session?.user && mounted) {
           const userProfile = await handleProfileFetch(session.user.id);
-          handleAuthRedirect(userProfile, navigate);
-        } else {
+          if (userProfile && mounted) {
+            handleAuthRedirect(userProfile, navigate);
+          } else {
+            setProfile(null);
+            navigate("/login", { replace: true });
+          }
+        } else if (mounted) {
           setProfile(null);
           navigate("/login", { replace: true });
         }
       } catch (error) {
-        await handleAuthError(error);
+        if (mounted) {
+          await handleAuthError(error);
+        }
       } finally {
-        setIsLoading(false);
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -67,20 +80,22 @@ export const useAuthState = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session);
       
-      if (event === 'SIGNED_IN' && session?.user) {
+      if (event === 'SIGNED_IN' && session?.user && mounted) {
         try {
           const userProfile = await handleProfileFetch(session.user.id);
-          if (!userProfile) {
+          if (!userProfile && mounted) {
             toast.error("Erreur lors de la récupération du profil");
             await authService.logout();
             navigate("/login", { replace: true });
-          } else {
+          } else if (mounted) {
             handleAuthRedirect(userProfile, navigate);
           }
         } catch (error) {
-          await handleAuthError(error);
+          if (mounted) {
+            await handleAuthError(error);
+          }
         }
-      } else if (event === 'SIGNED_OUT') {
+      } else if (event === 'SIGNED_OUT' && mounted) {
         console.log("User signed out");
         setProfile(null);
         navigate("/login", { replace: true });
@@ -88,6 +103,7 @@ export const useAuthState = () => {
     });
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, [navigate, fetchProfile, setProfile]);
