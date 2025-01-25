@@ -20,7 +20,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string, role: string) => {
     try {
       console.log("Attempting login with:", { email, role });
-      await authService.login(email, password, role);
+      const user = await authService.login(email, password, role);
+      console.log("Login successful:", user);
     } catch (error: any) {
       console.error("Login error:", error);
       toast.error("Erreur de connexion: " + error.message);
