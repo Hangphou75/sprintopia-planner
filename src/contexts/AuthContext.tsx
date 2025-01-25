@@ -38,10 +38,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (userProfile) {
       const redirectPath = `/${userProfile.role}/home`;
       console.log("Redirecting to:", redirectPath);
-      navigate(redirectPath);
+      navigate(redirectPath, { replace: true });
     } else {
       console.log("No profile, redirecting to login");
-      navigate("/login");
+      navigate("/login", { replace: true });
     }
   };
 
@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("Session invalid, clearing and redirecting to login");
       await authService.logout();
       setProfile(null);
-      navigate("/login");
+      navigate("/login", { replace: true });
       toast.error("Session expirée, veuillez vous reconnecter");
     } else {
       console.error("Unexpected auth error:", error);
@@ -96,17 +96,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (error) {
           await handleAuthError(error);
         }
-      } else if (event === 'SIGNED_OUT') {
-        console.log("User signed out");
+      } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+        console.log("User signed out or token refreshed");
         setProfile(null);
-        navigate("/login");
+        handleRedirect(null);
       }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate, fetchProfile, setProfile]);
 
   const login = async (email: string, password: string, role: string) => {
     try {
@@ -122,7 +122,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     try {
       await authService.logout();
-      navigate("/login");
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Erreur lors de la déconnexion");
