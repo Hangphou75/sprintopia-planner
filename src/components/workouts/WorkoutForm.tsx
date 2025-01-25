@@ -1,4 +1,5 @@
 import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -18,7 +19,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Timer,
   Zap,
@@ -27,9 +27,11 @@ import {
   Sparkles,
   Activity,
   ArrowUp,
+  ArrowLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export type WorkoutFormValues = {
   title: string;
@@ -57,7 +59,9 @@ const themes = [
 ];
 
 export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
+  const navigate = useNavigate();
   const [selectedTheme, setSelectedTheme] = useState(initialValues?.theme || themes[0].value);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<WorkoutFormValues>({
     defaultValues: {
@@ -74,16 +78,41 @@ export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
   const currentTheme = themes.find(t => t.value === selectedTheme);
   const ThemeIcon = currentTheme?.icon || Timer;
 
+  const handleSubmit = async (values: WorkoutFormValues) => {
+    try {
+      setIsSubmitting(true);
+      await onSubmit(values);
+      toast.success("Séance créée avec succès");
+    } catch (error) {
+      console.error("Error creating workout:", error);
+      toast.error("Erreur lors de la création de la séance");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <Form {...form}>
       <form 
-        onSubmit={form.handleSubmit(onSubmit)} 
+        onSubmit={form.handleSubmit(handleSubmit)} 
         className={cn(
-          "space-y-6 p-6 rounded-lg border transition-colors",
+          "space-y-4 p-6 rounded-lg border transition-colors grid grid-cols-2 gap-6",
           currentTheme && `border-${currentTheme.color}`
         )}
       >
-        <ScrollArea className="h-[calc(100vh-12rem)] px-1">
+        <div className="col-span-2 flex justify-between items-center">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Retour
+          </Button>
+        </div>
+
+        <div className="space-y-4">
           <FormField
             control={form.control}
             name="title"
@@ -107,44 +136,9 @@ export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
                 <FormControl>
                   <Textarea
                     placeholder="Description de la séance"
-                    className="min-h-[100px]"
+                    className="h-24"
                     {...field}
                   />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="date"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Date</FormLabel>
-                <Calendar
-                  mode="single"
-                  selected={field.value}
-                  onSelect={field.onChange}
-                  disabled={(date) =>
-                    date < new Date() || date < new Date("1900-01-01")
-                  }
-                  initialFocus
-                  className="rounded-md border"
-                />
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="time"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Heure</FormLabel>
-                <FormControl>
-                  <Input type="time" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -192,6 +186,43 @@ export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
               </FormItem>
             )}
           />
+        </div>
+
+        <div className="space-y-4">
+          <FormField
+            control={form.control}
+            name="date"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Date</FormLabel>
+                <Calendar
+                  mode="single"
+                  selected={field.value}
+                  onSelect={field.onChange}
+                  disabled={(date) =>
+                    date < new Date() || date < new Date("1900-01-01")
+                  }
+                  initialFocus
+                  className="rounded-md border"
+                />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="time"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Heure</FormLabel>
+                <FormControl>
+                  <Input type="time" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <FormField
             control={form.control}
@@ -206,7 +237,9 @@ export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
               </FormItem>
             )}
           />
+        </div>
 
+        <div className="col-span-2">
           <FormField
             control={form.control}
             name="details"
@@ -216,7 +249,7 @@ export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
                 <FormControl>
                   <Textarea
                     placeholder="Détaillez le contenu de la séance"
-                    className="min-h-[150px]"
+                    className="h-32"
                     {...field}
                   />
                 </FormControl>
@@ -224,12 +257,25 @@ export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
               </FormItem>
             )}
           />
+        </div>
 
-          <Button type="submit" className="w-full mt-6">
-            <ThemeIcon className="mr-2 h-4 w-4" />
-            Enregistrer la séance
+        <div className="col-span-2 flex justify-end gap-4">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={() => navigate(-1)}
+          >
+            Annuler
           </Button>
-        </ScrollArea>
+          <Button 
+            type="submit" 
+            disabled={isSubmitting}
+            className="min-w-32"
+          >
+            <ThemeIcon className="mr-2 h-4 w-4" />
+            {isSubmitting ? "Création..." : "Créer la séance"}
+          </Button>
+        </div>
       </form>
     </Form>
   );
