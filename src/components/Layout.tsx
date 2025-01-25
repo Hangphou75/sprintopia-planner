@@ -1,4 +1,4 @@
-import { Outlet, Navigate, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Sidebar, SidebarContent, SidebarProvider } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -10,8 +10,7 @@ const Layout = () => {
   const location = useLocation();
 
   if (!user) {
-    console.log("No user found in Layout, redirecting to login");
-    return <Navigate to="/login" state={{ from: location.pathname }} />;
+    return null;
   }
 
   const handleLogout = async () => {

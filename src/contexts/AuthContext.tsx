@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useProfile, UserProfile } from "@/hooks/useProfile";
 import { authService } from "@/services/auth.service";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -13,32 +14,53 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { profile, setProfile } = useProfile();
+  const { profile, setProfile, fetchProfile } = useProfile();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     const initAuth = async () => {
       try {
-        const session = await authService.getCurrentSession();
-        if (!session?.user) {
-          setProfile(null);
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user && mounted) {
+          const userProfile = await fetchProfile(session.user.id);
+          if (mounted) {
+            setProfile(userProfile);
+          }
         }
       } catch (error) {
         console.error("Auth initialization error:", error);
-        setProfile(null);
       } finally {
-        setIsLoading(false);
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     initAuth();
-  }, [setProfile]);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user && mounted) {
+        const userProfile = await fetchProfile(session.user.id);
+        if (mounted) {
+          setProfile(userProfile);
+        }
+      } else if (event === 'SIGNED_OUT' && mounted) {
+        setProfile(null);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [fetchProfile, setProfile]);
 
   const login = async (email: string, password: string, role: string) => {
     try {
-      console.log("Attempting login with:", { email, role });
       await authService.login(email, password, role);
-      console.log("Login successful");
     } catch (error: any) {
       console.error("Login error:", error);
       toast.error("Erreur de connexion: " + error.message);

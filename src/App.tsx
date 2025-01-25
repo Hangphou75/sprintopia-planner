@@ -19,10 +19,19 @@ import { useAuth } from "@/contexts/AuthContext";
 const queryClient = new QueryClient();
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" />;
+  }
+
+  // Ensure user is accessing routes for their role
+  const currentPath = window.location.pathname;
+  const userRole = user?.role;
+  const isCorrectRole = currentPath.startsWith(`/${userRole}`);
+
+  if (!isCorrectRole) {
+    return <Navigate to={`/${userRole}/home`} />;
   }
   
   return <>{children}</>;
@@ -46,7 +55,7 @@ function App() {
                 </PrivateRoute>
               }
             >
-              <Route index element={<Navigate to="/athlete/home" replace />} />
+              <Route index element={<Navigate to="/athlete/home" />} />
               <Route path="home" element={<AthleteHome />} />
               <Route path="planning" element={<AthletePlanning />} />
               <Route path="profile" element={<AthleteProfile />} />
@@ -61,7 +70,7 @@ function App() {
                 </PrivateRoute>
               }
             >
-              <Route index element={<Navigate to="/coach/home" replace />} />
+              <Route index element={<Navigate to="/coach/home" />} />
               <Route path="home" element={<CoachHome />} />
               <Route path="planning" element={<CoachPlanning />} />
               <Route path="programs/:programId">
@@ -74,8 +83,8 @@ function App() {
             </Route>
 
             {/* Default Redirects */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            <Route path="*" element={<Navigate to="/login" replace />} />
+            <Route path="/" element={<Navigate to="/login" />} />
+            <Route path="*" element={<Navigate to="/login" />} />
           </Routes>
           <Toaster />
         </AuthProvider>
