@@ -68,6 +68,11 @@ export const ProgramCard = ({ program, onDelete, readOnly = false }: ProgramCard
     }
   };
 
+  const handleWorkoutsClick = () => {
+    const path = readOnly ? `/athlete/programs/${program.id}/workouts` : `/coach/programs/${program.id}/workouts`;
+    navigate(path);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -86,7 +91,7 @@ export const ProgramCard = ({ program, onDelete, readOnly = false }: ProgramCard
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate(`/${readOnly ? 'athlete' : 'coach'}/programs/${program.id}/workouts`)}
+              onClick={handleWorkoutsClick}
             >
               <CalendarDays className="h-4 w-4" />
             </Button>
