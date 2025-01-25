@@ -41,6 +41,9 @@ export type WorkoutFormValues = {
   theme: string;
   recovery: string;
   details: string;
+  phase?: "preparation" | "specific" | "competition";
+  type?: "resistance" | "speed" | "endurance" | "mobility" | "technical";
+  intensity?: string;
 };
 
 type WorkoutFormProps = {
@@ -72,6 +75,9 @@ export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
       theme: initialValues?.theme || themes[0].value,
       recovery: initialValues?.recovery || "",
       details: initialValues?.details || "",
+      phase: initialValues?.phase || undefined,
+      type: initialValues?.type || undefined,
+      intensity: initialValues?.intensity || undefined,
     },
   });
 

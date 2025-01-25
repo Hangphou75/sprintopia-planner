@@ -26,7 +26,6 @@ export const EditProgram = () => {
     try {
       console.log("Updating program with values:", values);
 
-      // Mise à jour du programme
       const { error: programError } = await supabase
         .from("programs")
         .update({
@@ -43,7 +42,6 @@ export const EditProgram = () => {
         return;
       }
 
-      // Mise à jour de la compétition principale
       const { error: mainCompError } = await supabase
         .from("competitions")
         .upsert({
@@ -64,9 +62,7 @@ export const EditProgram = () => {
         return;
       }
 
-      // Mise à jour des compétitions intermédiaires
       if (values.otherCompetitions.length > 0) {
-        // Suppression des anciennes compétitions intermédiaires
         const { error: deleteError } = await supabase
           .from("competitions")
           .delete()
@@ -79,7 +75,6 @@ export const EditProgram = () => {
           return;
         }
 
-        // Ajout des nouvelles compétitions intermédiaires
         const { error: otherCompError } = await supabase
           .from("competitions")
           .insert(
@@ -117,20 +112,38 @@ export const EditProgram = () => {
     return <div>Programme non trouvé</div>;
   }
 
-  // Préparation des données initiales pour le formulaire
-  const initialValues = {
+  const initialValues: Partial<ProgramFormValues> = {
     name: program.name,
     duration: program.duration,
     objectives: program.objectives || "",
     startDate: new Date(program.start_date),
-    mainCompetition: program.competitions?.find((c: any) => c.is_main) || {
-      name: "",
-      date: new Date(),
-      distance: "100",
-      level: "regional",
-      is_main: true,
-    },
-    otherCompetitions: program.competitions?.filter((c: any) => !c.is_main) || [],
+    mainCompetition: program.competitions?.find((c: any) => c.is_main) 
+      ? {
+          name: program.competitions.find((c: any) => c.is_main).name,
+          date: new Date(program.competitions.find((c: any) => c.is_main).date),
+          distance: program.competitions.find((c: any) => c.is_main).distance,
+          level: program.competitions.find((c: any) => c.is_main).level,
+          is_main: true,
+          location: program.competitions.find((c: any) => c.is_main).location || "",
+        }
+      : {
+          name: "",
+          date: new Date(),
+          distance: "100",
+          level: "regional",
+          is_main: true,
+          location: "",
+        },
+    otherCompetitions: program.competitions
+      ?.filter((c: any) => !c.is_main)
+      .map((comp: any) => ({
+        name: comp.name,
+        date: new Date(comp.date),
+        distance: comp.distance,
+        level: comp.level,
+        is_main: false,
+        location: comp.location || "",
+      })) || [],
   };
 
   return (

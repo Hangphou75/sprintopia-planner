@@ -22,9 +22,9 @@ export const CreateWorkout = () => {
           theme: values.theme,
           recovery: values.recovery,
           details: values.details,
-          phase: values.phase,
-          type: values.type,
-          intensity: values.intensity,
+          phase: values.phase || null,
+          type: values.type || null,
+          intensity: values.intensity || null,
         })
         .select()
         .single();
