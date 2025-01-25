@@ -8,6 +8,7 @@ import { EventList } from "./calendar/EventList";
 import { Event, ThemeOption } from "./types";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 type ProgramWorkoutCalendarProps = {
   workouts: any[];
@@ -32,6 +33,7 @@ export const ProgramWorkoutCalendar = ({
 }: ProgramWorkoutCalendarProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
@@ -80,18 +82,6 @@ export const ProgramWorkoutCalendar = ({
     currentPage * itemsPerPage
   );
 
-  const handleEventClick = (event: Event) => {
-    if (event.type === "workout") {
-      navigate(`/coach/programs/${programId}/workouts/${event.id}/edit`);
-    } else {
-      navigate(`/coach/programs/${programId}/competitions/${event.id}/edit`);
-    }
-  };
-
-  const handleViewAllWorkouts = () => {
-    navigate(`/coach/programs/${programId}/workouts`);
-  };
-
   const handleDuplicateWorkout = async (event: Event) => {
     if (event.type !== "workout") return;
     
@@ -112,13 +102,13 @@ export const ProgramWorkoutCalendar = ({
 
       if (error) throw error;
 
+      // Invalider le cache pour forcer un rechargement des données
+      await queryClient.invalidateQueries({ queryKey: ["workouts", programId] });
+
       toast({
         title: "Séance dupliquée",
         description: "La séance a été dupliquée avec succès.",
       });
-
-      // Refresh the page to show the new workout
-      window.location.reload();
     } catch (error) {
       console.error("Error duplicating workout:", error);
       toast({
@@ -140,13 +130,13 @@ export const ProgramWorkoutCalendar = ({
 
       if (error) throw error;
 
+      // Invalider le cache pour forcer un rechargement des données
+      await queryClient.invalidateQueries({ queryKey: ["workouts", programId] });
+
       toast({
         title: "Séance supprimée",
         description: "La séance a été supprimée avec succès.",
       });
-
-      // Refresh the page to show the updated list
-      window.location.reload();
     } catch (error) {
       console.error("Error deleting workout:", error);
       toast({
@@ -155,6 +145,18 @@ export const ProgramWorkoutCalendar = ({
         variant: "destructive",
       });
     }
+  };
+
+  const handleEventClick = (event: Event) => {
+    if (event.type === "workout") {
+      navigate(`/coach/programs/${programId}/workouts/${event.id}/edit`);
+    } else {
+      navigate(`/coach/programs/${programId}/competitions/${event.id}/edit`);
+    }
+  };
+
+  const handleViewAllWorkouts = () => {
+    navigate(`/coach/programs/${programId}/workouts`);
   };
 
   return (
