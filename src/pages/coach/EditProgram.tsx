@@ -16,7 +16,7 @@ export const EditProgram = () => {
         .from("programs")
         .select("*, competitions(*)")
         .eq("id", programId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Error fetching program:", error);
