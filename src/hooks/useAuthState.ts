@@ -10,6 +10,7 @@ export const useAuthState = () => {
   const navigate = useNavigate();
   const { profile, fetchProfile, setProfile } = useProfile();
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const handleProfileFetch = async (userId: string): Promise<UserProfile | null> => {
     try {
@@ -45,30 +46,33 @@ export const useAuthState = () => {
           if (userProfile && mounted) {
             console.log("Profile found, redirecting...");
             handleAuthRedirect(userProfile, navigate);
-          } else {
+          } else if (mounted) {
             console.log("No profile found, redirecting to login");
             setProfile(null);
-            navigate("/login", { replace: true });
+            navigate("/login");
           }
-        } else {
+        } else if (mounted) {
           console.log("No session found, redirecting to login");
           setProfile(null);
-          navigate("/login", { replace: true });
+          navigate("/login");
         }
       } catch (error) {
         console.error("Auth initialization error:", error);
         if (mounted) {
           setProfile(null);
-          navigate("/login", { replace: true });
+          navigate("/login");
         }
       } finally {
         if (mounted) {
           setIsLoading(false);
+          setIsInitialized(true);
         }
       }
     };
 
-    initializeAuth();
+    if (!isInitialized) {
+      initializeAuth();
+    }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session);
@@ -80,15 +84,15 @@ export const useAuthState = () => {
         if (userProfile && mounted) {
           console.log("Profile found after sign in, redirecting...");
           handleAuthRedirect(userProfile, navigate);
-        } else {
+        } else if (mounted) {
           console.log("No profile found after sign in");
           setProfile(null);
-          navigate("/login", { replace: true });
+          navigate("/login");
         }
       } else if (event === 'SIGNED_OUT' && mounted) {
         console.log("User signed out");
         setProfile(null);
-        navigate("/login", { replace: true });
+        navigate("/login");
       }
     });
 
@@ -96,7 +100,7 @@ export const useAuthState = () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [navigate, fetchProfile, setProfile]);
+  }, [navigate, fetchProfile, setProfile, isInitialized]);
 
   return { isLoading };
 };

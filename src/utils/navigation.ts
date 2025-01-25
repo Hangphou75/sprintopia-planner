@@ -8,9 +8,9 @@ export const handleAuthRedirect = (
   if (userProfile) {
     const redirectPath = `/${userProfile.role}/home`;
     console.log("Redirecting to:", redirectPath);
-    navigate(redirectPath, { replace: true });
+    navigate(redirectPath);
   } else {
     console.log("No profile, redirecting to login");
-    navigate("/login", { replace: true });
+    navigate("/login");
   }
 };
