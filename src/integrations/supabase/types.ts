@@ -272,6 +272,7 @@ export type Database = {
           program_id: string | null
           recovery: string | null
           theme: string | null
+          time: string | null
           title: string
           type: Database["public"]["Enums"]["workout_type"] | null
           updated_at: string
@@ -291,6 +292,7 @@ export type Database = {
           program_id?: string | null
           recovery?: string | null
           theme?: string | null
+          time?: string | null
           title: string
           type?: Database["public"]["Enums"]["workout_type"] | null
           updated_at?: string
@@ -310,6 +312,7 @@ export type Database = {
           program_id?: string | null
           recovery?: string | null
           theme?: string | null
+          time?: string | null
           title?: string
           type?: Database["public"]["Enums"]["workout_type"] | null
           updated_at?: string
