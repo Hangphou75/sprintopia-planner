@@ -39,6 +39,7 @@ type ProgramFormProps = {
 };
 
 export const ProgramForm = ({ onSubmit, initialValues, mode = "create" }: ProgramFormProps) => {
+  const formId = "program-form";
   const form = useForm<ProgramFormValues>({
     defaultValues: {
       name: initialValues?.name || "",
@@ -90,9 +91,9 @@ export const ProgramForm = ({ onSubmit, initialValues, mode = "create" }: Progra
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel htmlFor="program-name">Nom du programme</FormLabel>
+                  <FormLabel htmlFor={`${formId}-name`}>Nom du programme</FormLabel>
                   <FormControl>
-                    <Input id="program-name" placeholder="Ex: Préparation 100m" {...field} />
+                    <Input id={`${formId}-name`} placeholder="Ex: Préparation 100m" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -103,10 +104,10 @@ export const ProgramForm = ({ onSubmit, initialValues, mode = "create" }: Progra
               name="duration"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel htmlFor="program-duration">Durée (semaines)</FormLabel>
+                  <FormLabel htmlFor={`${formId}-duration`}>Durée (semaines)</FormLabel>
                   <FormControl>
                     <Input
-                      id="program-duration"
+                      id={`${formId}-duration`}
                       type="number"
                       min={1}
                       placeholder="Ex: 12"
@@ -123,10 +124,10 @@ export const ProgramForm = ({ onSubmit, initialValues, mode = "create" }: Progra
               name="objectives"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel htmlFor="program-objectives">Objectifs</FormLabel>
+                  <FormLabel htmlFor={`${formId}-objectives`}>Objectifs</FormLabel>
                   <FormControl>
                     <Textarea
-                      id="program-objectives"
+                      id={`${formId}-objectives`}
                       placeholder="Décrivez les objectifs du programme"
                       className="min-h-[100px]"
                       {...field}
@@ -141,7 +142,7 @@ export const ProgramForm = ({ onSubmit, initialValues, mode = "create" }: Progra
               name="startDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel htmlFor="program-start-date">Date de début</FormLabel>
+                  <FormLabel htmlFor={`${formId}-start-date`}>Date de début</FormLabel>
                   <Calendar
                     mode="single"
                     selected={field.value}
