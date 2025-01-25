@@ -2,17 +2,17 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, Trophy, Running, Zap, Flame, Dumbbell, Sparkles, Yoga, ArrowUp } from "lucide-react";
+import { Plus, Trophy, Timer, Zap, Flame, Dumbbell, Sparkles, Stretch, ArrowUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 const themeIcons = {
-  aerobic: Running,
+  aerobic: Timer,
   "anaerobic-alactic": Zap,
   "anaerobic-lactic": Flame,
   strength: Dumbbell,
   technical: Sparkles,
-  mobility: Yoga,
+  mobility: Stretch,
   plyometric: ArrowUp,
 };
 
@@ -50,7 +50,7 @@ export const ProgramWorkouts = () => {
 
       <div className="grid gap-4">
         {workouts?.map((workout) => {
-          const Icon = workout.theme ? themeIcons[workout.theme as keyof typeof themeIcons] : Running;
+          const Icon = workout.theme ? themeIcons[workout.theme as keyof typeof themeIcons] : Timer;
           return (
             <div
               key={workout.id}

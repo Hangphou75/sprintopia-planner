@@ -20,12 +20,12 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  Running,
+  Timer,
   Zap,
   Flame,
   Dumbbell,
   Sparkles,
-  Yoga,
+  Stretch,
   ArrowUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -47,12 +47,12 @@ type WorkoutFormProps = {
 };
 
 const themes = [
-  { name: "Aérobie", value: "aerobic", icon: Running, color: "theme-aerobic" },
+  { name: "Aérobie", value: "aerobic", icon: Timer, color: "theme-aerobic" },
   { name: "Anaérobie Alactique", value: "anaerobic-alactic", icon: Zap, color: "theme-anaerobic-alactic" },
   { name: "Anaérobie lactique", value: "anaerobic-lactic", icon: Flame, color: "theme-anaerobic-lactic" },
   { name: "Renforcement musculaire", value: "strength", icon: Dumbbell, color: "theme-strength" },
   { name: "Travail technique", value: "technical", icon: Sparkles, color: "theme-technical" },
-  { name: "Mobilité", value: "mobility", icon: Yoga, color: "theme-mobility" },
+  { name: "Mobilité", value: "mobility", icon: Stretch, color: "theme-mobility" },
   { name: "Plyométrie", value: "plyometric", icon: ArrowUp, color: "theme-plyometric" },
 ];
 
@@ -72,7 +72,7 @@ export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
   });
 
   const currentTheme = themes.find(t => t.value === selectedTheme);
-  const ThemeIcon = currentTheme?.icon || Running;
+  const ThemeIcon = currentTheme?.icon || Timer;
 
   return (
     <Form {...form}>
