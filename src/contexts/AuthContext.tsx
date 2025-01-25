@@ -47,8 +47,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isAuthenticated: !!profile
   };
 
-  console.log("AuthProvider rendering with profile:", profile);
-
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">Chargement...</div>;
   }

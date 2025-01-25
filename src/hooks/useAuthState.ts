@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { useProfile, UserProfile } from "@/hooks/useProfile";
 import { authService } from "@/services/auth.service";
 import { handleAuthRedirect } from "@/utils/navigation";
@@ -10,9 +9,8 @@ export const useAuthState = () => {
   const navigate = useNavigate();
   const { profile, fetchProfile, setProfile } = useProfile();
   const [isLoading, setIsLoading] = useState(true);
-  const [isInitialized, setIsInitialized] = useState(false);
 
-  const handleProfileFetch = async (userId: string): Promise<UserProfile | null> => {
+  const handleProfileFetch = useCallback(async (userId: string): Promise<UserProfile | null> => {
     try {
       console.log("Fetching profile for user:", userId);
       const userProfile = await fetchProfile(userId);
@@ -29,7 +27,7 @@ export const useAuthState = () => {
       console.error("Error fetching profile:", error);
       return null;
     }
-  };
+  }, [fetchProfile, setProfile]);
 
   useEffect(() => {
     let mounted = true;
@@ -65,14 +63,11 @@ export const useAuthState = () => {
       } finally {
         if (mounted) {
           setIsLoading(false);
-          setIsInitialized(true);
         }
       }
     };
 
-    if (!isInitialized) {
-      initializeAuth();
-    }
+    initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session);
@@ -100,7 +95,7 @@ export const useAuthState = () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [navigate, fetchProfile, setProfile, isInitialized]);
+  }, [navigate, handleProfileFetch, setProfile]);
 
   return { isLoading };
 };
