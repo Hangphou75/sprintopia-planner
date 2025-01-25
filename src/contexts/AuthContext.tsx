@@ -47,12 +47,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const handleAuthError = async (error: any) => {
     console.error("Auth error:", error);
-    if (error.message?.includes('refresh_token_not_found')) {
-      console.log("Invalid refresh token, clearing session");
+    const errorMessage = error?.message?.toLowerCase() || '';
+    
+    if (errorMessage.includes('refresh_token_not_found') || 
+        errorMessage.includes('invalid token') || 
+        errorMessage.includes('jwt expired')) {
+      console.log("Session invalid, clearing and redirecting to login");
       await authService.logout();
       setProfile(null);
       navigate("/login", { replace: true });
       toast.error("Session expirée, veuillez vous reconnecter");
+    } else {
+      console.error("Unexpected auth error:", error);
+      toast.error("Une erreur est survenue, veuillez réessayer");
     }
   };
 
