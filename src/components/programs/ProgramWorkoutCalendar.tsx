@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Trophy } from "lucide-react";
+import { Trophy, Timer } from "lucide-react";
 import { CalendarView } from "./calendar/CalendarView";
 import { EventDetails } from "./calendar/EventDetails";
 import { EventFilters } from "./calendar/EventFilters";
@@ -173,32 +173,29 @@ export const ProgramWorkoutCalendar = ({
         />
       </div>
 
-      <div className="space-y-8">
-        {/* Liste des séances */}
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">Liste des séances</h2>
-            <EventFilters
-              selectedTheme={selectedTheme}
-              sortOrder={sortOrder}
-              themeOptions={themeOptions}
-              onThemeChange={setSelectedTheme}
-              onSortOrderChange={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-            />
-          </div>
-
-          <EventList
-            events={paginatedWorkouts}
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold">Liste des séances</h2>
+          <EventFilters
+            selectedTheme={selectedTheme}
+            sortOrder={sortOrder}
             themeOptions={themeOptions}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onEventClick={handleEventClick}
-            onPageChange={setCurrentPage}
-            onViewAllClick={handleViewAllWorkouts}
-            onDuplicateEvent={handleDuplicateWorkout}
-            onDeleteEvent={handleDeleteWorkout}
+            onThemeChange={setSelectedTheme}
+            onSortOrderChange={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
           />
         </div>
+
+        <EventList
+          events={paginatedWorkouts}
+          themeOptions={themeOptions}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onEventClick={handleEventClick}
+          onPageChange={setCurrentPage}
+          onViewAllClick={handleViewAllWorkouts}
+          onDuplicateEvent={handleDuplicateWorkout}
+          onDeleteEvent={handleDeleteWorkout}
+        />
       </div>
     </div>
   );
