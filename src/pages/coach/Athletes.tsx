@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Trash2, Share } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -37,8 +37,6 @@ const Athletes = () => {
   const queryClient = useQueryClient();
   const [inviteEmail, setInviteEmail] = useState("");
   const [showInviteDialog, setShowInviteDialog] = useState(false);
-  const [showShareDialog, setShowShareDialog] = useState(false);
-  const [selectedAthleteId, setSelectedAthleteId] = useState<string | null>(null);
 
   // Fetch athletes
   const { data: athletes } = useQuery({
@@ -85,21 +83,16 @@ const Athletes = () => {
 
       if (error) throw error;
 
-      // Appel à la fonction Edge pour envoyer l'email d'invitation
-      const response = await fetch("/api/send-invitation", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      // Call the Edge function to send the invitation email
+      const { data, error: functionError } = await supabase.functions.invoke("send-invitation", {
+        body: {
           email,
-          coachName: `${user?.first_name} ${user?.last_name}`,
-        }),
+          coachName: user?.name || "Votre coach",
+        },
       });
 
-      if (!response.ok) {
-        throw new Error("Erreur lors de l'envoi de l'email d'invitation");
-      }
+      if (functionError) throw functionError;
+      return data;
     },
     onSuccess: () => {
       toast.success("Invitation envoyée avec succès");
