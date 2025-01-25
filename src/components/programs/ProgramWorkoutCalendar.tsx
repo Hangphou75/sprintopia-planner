@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Trophy } from "lucide-react";
 import { CalendarView } from "./calendar/CalendarView";
 import { EventDetails } from "./calendar/EventDetails";
 import { EventFilters } from "./calendar/EventFilters";
@@ -70,7 +71,7 @@ export const ProgramWorkoutCalendar = ({
     return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
   });
 
-  const competitions = events.filter(event => event.type === "competition");
+  const filteredCompetitions = events.filter(event => event.type === "competition");
 
   // Pagination
   const totalPages = Math.ceil(filteredWorkouts.length / itemsPerPage);
@@ -201,7 +202,7 @@ export const ProgramWorkoutCalendar = ({
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Liste des compétitions</h2>
           <div className="grid gap-4">
-            {competitions.map((competition) => (
+            {filteredCompetitions.map((competition) => (
               <div
                 key={competition.id}
                 className="p-4 border rounded-lg hover:border-primary transition-colors cursor-pointer"
@@ -218,7 +219,7 @@ export const ProgramWorkoutCalendar = ({
                 </div>
               </div>
             ))}
-            {competitions.length === 0 && (
+            {filteredCompetitions.length === 0 && (
               <p className="text-center text-muted-foreground">Aucune compétition créée</p>
             )}
           </div>
