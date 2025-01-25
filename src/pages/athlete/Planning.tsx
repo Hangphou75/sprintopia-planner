@@ -1,180 +1,64 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-
-interface NewProgramForm {
-  name: string;
-  duration: number;
-  objectives?: string;
-  start_date: string;
-}
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ProgramCard } from "@/components/programs/ProgramCard";
+import { Program } from "@/types/program";
 
 const AthletePlanning = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const [open, setOpen] = useState(false);
-  
-  const form = useForm<NewProgramForm>({
-    defaultValues: {
-      name: "",
-      duration: 12,
-      objectives: "",
-      start_date: new Date().toISOString().split('T')[0]
-    }
+
+  // Fetch shared programs
+  const { data: sharedPrograms } = useQuery({
+    queryKey: ["shared-programs", user?.id],
+    queryFn: async () => {
+      const { data: sharedProgramsData, error: sharedError } = await supabase
+        .from("shared_programs")
+        .select(`
+          program:programs(
+            *,
+            coach:profiles!programs_user_id_fkey(
+              first_name,
+              last_name
+            )
+          )
+        `)
+        .eq("athlete_id", user?.id)
+        .eq("status", "active");
+
+      if (sharedError) throw sharedError;
+
+      // Transform the data to match the Program type
+      return sharedProgramsData.map((sp: any) => ({
+        ...sp.program,
+        coachName: `${sp.program.coach.first_name} ${sp.program.coach.last_name}`,
+      })) as Program[];
+    },
   });
 
-  const onSubmit = async (data: NewProgramForm) => {
-    try {
-      if (!user?.id) {
-        throw new Error("Utilisateur non authentifié");
-      }
-
-      // Validate user ID format
-      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(user.id)) {
-        throw new Error("Format d'identifiant utilisateur invalide");
-      }
-
-      const programData = {
-        name: data.name,
-        duration: Number(data.duration),
-        objectives: data.objectives || null,
-        start_date: new Date(data.start_date).toISOString(),
-        user_id: user.id
-      };
-
-      console.log("Creating program with data:", programData);
-
-      const { error } = await supabase
-        .from('programs')
-        .insert(programData);
-
-      if (error) {
-        console.error("Supabase error:", error);
-        throw error;
-      }
-
-      toast({
-        title: "Succès",
-        description: "Programme créé avec succès",
-      });
-      
-      setOpen(false);
-      form.reset();
-    } catch (error: any) {
-      console.error('Error creating program:', error);
-      toast({
-        title: "Erreur",
-        description: error.message || "Impossible de créer le programme",
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Programmes d'entraînement</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Nouveau Programme
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Créer un nouveau programme</DialogTitle>
-              <DialogDescription>
-                Remplissez les informations pour créer votre programme d'entraînement
-              </DialogDescription>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nom du programme</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Entrez le nom du programme" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="duration"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Durée (semaines)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          min="1" 
-                          {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="start_date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Date de début</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="objectives"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Objectifs (optionnel)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Entrez les objectifs du programme" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" className="w-full">Créer le programme</Button>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+    <div className="container mx-auto py-6 px-4 max-w-5xl h-[calc(100vh-4rem)] flex flex-col">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Mes programmes</h1>
       </div>
-      <p className="text-gray-500">Aucun programme d'entraînement disponible</p>
+      <ScrollArea className="flex-1 px-1">
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          {!sharedPrograms || sharedPrograms.length === 0 ? (
+            <p className="text-muted-foreground col-span-full text-center py-8">
+              Aucun programme partagé
+            </p>
+          ) : (
+            sharedPrograms.map((program) => (
+              <ProgramCard 
+                key={program.id} 
+                program={program}
+                readOnly={true}
+              />
+            ))
+          )}
+        </div>
+      </ScrollArea>
     </div>
   );
 };

@@ -10,6 +10,7 @@ import AthleteProfile from "@/pages/athlete/Profile";
 import CoachHome from "@/pages/coach/Home";
 import CoachPlanning from "@/pages/coach/Planning";
 import CoachProfile from "@/pages/coach/Profile";
+import CoachAthletes from "@/pages/coach/Athletes";
 import { ProgramWorkouts } from "@/pages/coach/ProgramWorkouts";
 import { CreateWorkout } from "@/pages/coach/CreateWorkout";
 import { EditWorkout } from "@/pages/coach/EditWorkout";
@@ -69,6 +70,7 @@ function App() {
               <Route index element={<Navigate to="/coach/home" />} />
               <Route path="home" element={<CoachHome />} />
               <Route path="planning" element={<CoachPlanning />} />
+              <Route path="athletes" element={<CoachAthletes />} />
               <Route path="programs/create" element={<CreateProgram />} />
               <Route path="programs/:programId">
                 <Route path="workouts" element={<ProgramWorkouts />} />

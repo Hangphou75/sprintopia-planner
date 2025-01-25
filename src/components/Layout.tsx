@@ -2,7 +2,7 @@ import { Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Sidebar, SidebarContent, SidebarProvider } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Home, Calendar, User, LogOut } from "lucide-react";
+import { Home, Calendar, User, Users, LogOut } from "lucide-react";
 import { toast } from "sonner";
 
 const Layout = () => {
@@ -26,6 +26,7 @@ const Layout = () => {
   const navigation = [
     { name: "Accueil", href: `/${user.role}/home`, icon: Home },
     { name: "Planning", href: `/${user.role}/planning`, icon: Calendar },
+    ...(user.role === "coach" ? [{ name: "Athlètes", href: "/coach/athletes", icon: Users }] : []),
     { name: "Profil", href: `/${user.role}/profile`, icon: User },
   ];
 
