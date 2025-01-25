@@ -1,4 +1,4 @@
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Sidebar, SidebarContent, SidebarProvider } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { toast } from "sonner";
 const Layout = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   if (!user) {
     return null;
@@ -16,6 +17,7 @@ const Layout = () => {
   const handleLogout = async () => {
     try {
       await logout();
+      navigate("/login");
       toast.success("Déconnexion réussie");
     } catch (error) {
       console.error("Erreur lors de la déconnexion:", error);
