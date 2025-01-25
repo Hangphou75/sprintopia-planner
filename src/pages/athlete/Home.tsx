@@ -1,9 +1,9 @@
-import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
+import { InvitationsList } from "@/components/athlete/InvitationsList";
 
 const AthleteHome = () => {
   const { user } = useAuth();
@@ -24,6 +24,8 @@ const AthleteHome = () => {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Tableau de bord</h1>
+      
+      <InvitationsList />
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
