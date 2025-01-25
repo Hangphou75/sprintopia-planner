@@ -32,6 +32,8 @@ export const CompetitionForm = ({
   namePrefix,
   onRemove,
 }: CompetitionFormProps) => {
+  const formId = isMain ? "main-competition" : `competition-${namePrefix.split(".")[1]}`;
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -62,9 +64,9 @@ export const CompetitionForm = ({
         name={`${namePrefix}.name` as const}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Nom de la compétition</FormLabel>
+            <FormLabel htmlFor={`${formId}-name`}>Nom de la compétition</FormLabel>
             <FormControl>
-              <Input placeholder="Ex: Championnats de France" {...field} />
+              <Input id={`${formId}-name`} placeholder="Ex: Championnats de France" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -77,10 +79,10 @@ export const CompetitionForm = ({
           name={`${namePrefix}.distance` as const}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Distance</FormLabel>
+              <FormLabel htmlFor={`${formId}-distance`}>Distance</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger id={`${formId}-distance`}>
                     <SelectValue placeholder="Sélectionnez une distance" />
                   </SelectTrigger>
                 </FormControl>
@@ -101,10 +103,10 @@ export const CompetitionForm = ({
           name={`${namePrefix}.level` as const}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Niveau</FormLabel>
+              <FormLabel htmlFor={`${formId}-level`}>Niveau</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger id={`${formId}-level`}>
                     <SelectValue placeholder="Sélectionnez un niveau" />
                   </SelectTrigger>
                 </FormControl>
@@ -126,7 +128,7 @@ export const CompetitionForm = ({
         name={`${namePrefix}.date` as const}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Date</FormLabel>
+            <FormLabel htmlFor={`${formId}-date`}>Date</FormLabel>
             <Calendar
               mode="single"
               selected={field.value}
@@ -146,9 +148,9 @@ export const CompetitionForm = ({
         name={`${namePrefix}.location` as const}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Lieu</FormLabel>
+            <FormLabel htmlFor={`${formId}-location`}>Lieu</FormLabel>
             <FormControl>
-              <Input placeholder="Ex: Stade Charléty" {...field} />
+              <Input id={`${formId}-location`} placeholder="Ex: Stade Charléty" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>

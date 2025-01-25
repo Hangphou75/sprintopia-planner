@@ -90,9 +90,9 @@ export const ProgramForm = ({ onSubmit, initialValues, mode = "create" }: Progra
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nom du programme</FormLabel>
+                  <FormLabel htmlFor="program-name">Nom du programme</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ex: Préparation 100m" {...field} />
+                    <Input id="program-name" placeholder="Ex: Préparation 100m" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -103,9 +103,10 @@ export const ProgramForm = ({ onSubmit, initialValues, mode = "create" }: Progra
               name="duration"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Durée (semaines)</FormLabel>
+                  <FormLabel htmlFor="program-duration">Durée (semaines)</FormLabel>
                   <FormControl>
                     <Input
+                      id="program-duration"
                       type="number"
                       min={1}
                       placeholder="Ex: 12"
@@ -122,9 +123,10 @@ export const ProgramForm = ({ onSubmit, initialValues, mode = "create" }: Progra
               name="objectives"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Objectifs</FormLabel>
+                  <FormLabel htmlFor="program-objectives">Objectifs</FormLabel>
                   <FormControl>
                     <Textarea
+                      id="program-objectives"
                       placeholder="Décrivez les objectifs du programme"
                       className="min-h-[100px]"
                       {...field}
@@ -139,7 +141,7 @@ export const ProgramForm = ({ onSubmit, initialValues, mode = "create" }: Progra
               name="startDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Date de début</FormLabel>
+                  <FormLabel htmlFor="program-start-date">Date de début</FormLabel>
                   <Calendar
                     mode="single"
                     selected={field.value}
