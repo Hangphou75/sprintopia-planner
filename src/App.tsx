@@ -14,6 +14,7 @@ import { ProgramWorkouts } from "@/pages/coach/ProgramWorkouts";
 import { CreateWorkout } from "@/pages/coach/CreateWorkout";
 import { EditWorkout } from "@/pages/coach/EditWorkout";
 import { EditProgram } from "@/pages/coach/EditProgram";
+import CreateProgram from "@/pages/coach/CreateProgram";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +69,7 @@ function App() {
               <Route index element={<Navigate to="/coach/home" />} />
               <Route path="home" element={<CoachHome />} />
               <Route path="planning" element={<CoachPlanning />} />
+              <Route path="programs/create" element={<CreateProgram />} />
               <Route path="programs/:programId">
                 <Route path="workouts" element={<ProgramWorkouts />} />
                 <Route path="workouts/new" element={<CreateWorkout />} />
