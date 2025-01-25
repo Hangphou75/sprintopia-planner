@@ -80,7 +80,7 @@ export const CompetitionForm = ({
           render={({ field }) => (
             <FormItem>
               <FormLabel htmlFor={`${formId}-distance`}>Distance</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select onValueChange={field.onChange} value={field.value || "100"}>
                 <FormControl>
                   <SelectTrigger id={`${formId}-distance`}>
                     <SelectValue placeholder="Sélectionnez une distance" />
@@ -104,7 +104,7 @@ export const CompetitionForm = ({
           render={({ field }) => (
             <FormItem>
               <FormLabel htmlFor={`${formId}-level`}>Niveau</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select onValueChange={field.onChange} value={field.value || "regional"}>
                 <FormControl>
                   <SelectTrigger id={`${formId}-level`}>
                     <SelectValue placeholder="Sélectionnez un niveau" />
