@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Layout from "@/components/Layout";
 import Login from "@/pages/Login";
 import AthleteHome from "@/pages/athlete/Home";
@@ -14,7 +14,6 @@ import { ProgramWorkouts } from "@/pages/coach/ProgramWorkouts";
 import { CreateWorkout } from "@/pages/coach/CreateWorkout";
 import { EditWorkout } from "@/pages/coach/EditWorkout";
 import { EditProgram } from "@/pages/coach/EditProgram";
-import { useAuth } from "@/contexts/AuthContext";
 
 const queryClient = new QueryClient();
 
@@ -25,7 +24,6 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" />;
   }
 
-  // Ensure user is accessing routes for their role
   const currentPath = window.location.pathname;
   const userRole = user?.role;
   const isCorrectRole = currentPath.startsWith(`/${userRole}`);
@@ -43,10 +41,8 @@ function App() {
       <Router>
         <AuthProvider>
           <Routes>
-            {/* Public Routes */}
             <Route path="/login" element={<Login />} />
 
-            {/* Protected Athlete Routes */}
             <Route
               path="/athlete"
               element={
@@ -61,7 +57,6 @@ function App() {
               <Route path="profile" element={<AthleteProfile />} />
             </Route>
 
-            {/* Protected Coach Routes */}
             <Route
               path="/coach"
               element={
@@ -82,7 +77,6 @@ function App() {
               <Route path="profile" element={<CoachProfile />} />
             </Route>
 
-            {/* Default Redirects */}
             <Route path="/" element={<Navigate to="/login" />} />
             <Route path="*" element={<Navigate to="/login" />} />
           </Routes>

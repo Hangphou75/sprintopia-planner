@@ -14,46 +14,36 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { profile, setProfile, fetchProfile } = useProfile();
   const [isLoading, setIsLoading] = useState(true);
+  const { profile, setProfile, fetchProfile } = useProfile();
 
   useEffect(() => {
-    let mounted = true;
-
     const initAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session?.user && mounted) {
+        if (session?.user) {
           const userProfile = await fetchProfile(session.user.id);
-          if (mounted) {
-            setProfile(userProfile);
-          }
+          setProfile(userProfile);
         }
       } catch (error) {
         console.error("Auth initialization error:", error);
       } finally {
-        if (mounted) {
-          setIsLoading(false);
-        }
+        setIsLoading(false);
       }
     };
 
     initAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user && mounted) {
+      if (event === 'SIGNED_IN' && session?.user) {
         const userProfile = await fetchProfile(session.user.id);
-        if (mounted) {
-          setProfile(userProfile);
-        }
-      } else if (event === 'SIGNED_OUT' && mounted) {
+        setProfile(userProfile);
+      } else if (event === 'SIGNED_OUT') {
         setProfile(null);
       }
     });
 
     return () => {
-      mounted = false;
       subscription.unsubscribe();
     };
   }, [fetchProfile, setProfile]);
@@ -61,6 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string, role: string) => {
     try {
       await authService.login(email, password, role);
+      toast.success("Connexion réussie");
     } catch (error: any) {
       console.error("Login error:", error);
       toast.error("Erreur de connexion: " + error.message);
@@ -72,6 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await authService.logout();
       setProfile(null);
+      toast.success("Déconnexion réussie");
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Erreur lors de la déconnexion");
@@ -79,19 +71,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const value = {
-    user: profile,
-    login,
-    logout,
-    isAuthenticated: !!profile && !isLoading
-  };
-
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">Chargement...</div>;
   }
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{
+      user: profile,
+      login,
+      logout,
+      isAuthenticated: !!profile
+    }}>
       {children}
     </AuthContext.Provider>
   );

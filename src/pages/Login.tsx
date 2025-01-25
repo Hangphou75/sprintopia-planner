@@ -3,13 +3,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { SignUpForm } from "@/components/auth/SignUpForm";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 
 const Login = () => {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const location = useLocation();
 
-  if (user) {
-    return <Navigate to={`/${user.role}/home`} replace />;
+  if (isAuthenticated && user) {
+    const from = location.state?.from?.pathname || `/${user.role}/home`;
+    return <Navigate to={from} replace />;
   }
 
   return (
