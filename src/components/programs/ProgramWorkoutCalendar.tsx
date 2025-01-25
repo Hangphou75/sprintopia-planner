@@ -5,6 +5,8 @@ import { EventDetails } from "./calendar/EventDetails";
 import { EventFilters } from "./calendar/EventFilters";
 import { EventList } from "./calendar/EventList";
 import { Event, ThemeOption } from "./types";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 type ProgramWorkoutCalendarProps = {
   workouts: any[];
@@ -28,6 +30,7 @@ export const ProgramWorkoutCalendar = ({
   programId,
 }: ProgramWorkoutCalendarProps) => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
@@ -56,20 +59,22 @@ export const ProgramWorkoutCalendar = ({
   ];
 
   // Filter and sort events for the list
-  let filteredEvents = [...events];
+  let filteredWorkouts = events.filter(event => event.type === "workout");
   if (selectedTheme) {
-    filteredEvents = filteredEvents.filter((event) => event.theme === selectedTheme);
+    filteredWorkouts = filteredWorkouts.filter((event) => event.theme === selectedTheme);
   }
 
-  filteredEvents.sort((a, b) => {
+  filteredWorkouts.sort((a, b) => {
     const dateA = new Date(a.date).getTime();
     const dateB = new Date(b.date).getTime();
     return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
   });
 
+  const competitions = events.filter(event => event.type === "competition");
+
   // Pagination
-  const totalPages = Math.ceil(filteredEvents.length / itemsPerPage);
-  const paginatedEvents = filteredEvents.slice(
+  const totalPages = Math.ceil(filteredWorkouts.length / itemsPerPage);
+  const paginatedWorkouts = filteredWorkouts.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -86,8 +91,71 @@ export const ProgramWorkoutCalendar = ({
     navigate(`/coach/programs/${programId}/workouts`);
   };
 
+  const handleDuplicateWorkout = async (event: Event) => {
+    if (event.type !== "workout") return;
+    
+    const { id, ...workoutData } = event;
+    try {
+      const { data, error } = await supabase
+        .from("workouts")
+        .insert([{ 
+          ...workoutData,
+          program_id: programId,
+          title: `${workoutData.title} (copie)`,
+          date: workoutData.date.toISOString(),
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Séance dupliquée",
+        description: "La séance a été dupliquée avec succès.",
+      });
+
+      // Refresh the page to show the new workout
+      window.location.reload();
+    } catch (error) {
+      console.error("Error duplicating workout:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la duplication de la séance.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteWorkout = async (event: Event) => {
+    if (event.type !== "workout") return;
+    
+    try {
+      const { error } = await supabase
+        .from("workouts")
+        .delete()
+        .eq("id", event.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Séance supprimée",
+        description: "La séance a été supprimée avec succès.",
+      });
+
+      // Refresh the page to show the updated list
+      window.location.reload();
+    } catch (error) {
+      console.error("Error deleting workout:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la suppression de la séance.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
       <div className="grid md:grid-cols-2 gap-4">
         <CalendarView
           events={events}
@@ -102,27 +170,59 @@ export const ProgramWorkoutCalendar = ({
         />
       </div>
 
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold">Liste des séances</h2>
-          <EventFilters
-            selectedTheme={selectedTheme}
-            sortOrder={sortOrder}
+      <div className="space-y-8">
+        {/* Liste des séances */}
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold">Liste des séances</h2>
+            <EventFilters
+              selectedTheme={selectedTheme}
+              sortOrder={sortOrder}
+              themeOptions={themeOptions}
+              onThemeChange={setSelectedTheme}
+              onSortOrderChange={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+            />
+          </div>
+
+          <EventList
+            events={paginatedWorkouts}
             themeOptions={themeOptions}
-            onThemeChange={setSelectedTheme}
-            onSortOrderChange={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onEventClick={handleEventClick}
+            onPageChange={setCurrentPage}
+            onViewAllClick={handleViewAllWorkouts}
+            onDuplicateEvent={handleDuplicateWorkout}
+            onDeleteEvent={handleDeleteWorkout}
           />
         </div>
 
-        <EventList
-          events={paginatedEvents}
-          themeOptions={themeOptions}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onEventClick={handleEventClick}
-          onPageChange={setCurrentPage}
-          onViewAllClick={handleViewAllWorkouts}
-        />
+        {/* Liste des compétitions */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">Liste des compétitions</h2>
+          <div className="grid gap-4">
+            {competitions.map((competition) => (
+              <div
+                key={competition.id}
+                className="p-4 border rounded-lg hover:border-primary transition-colors cursor-pointer"
+                onClick={() => handleEventClick(competition)}
+              >
+                <div className="flex items-center gap-2">
+                  <Trophy className="h-5 w-5 text-yellow-500" />
+                  <div>
+                    <h3 className="font-semibold">{competition.title}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(competition.date).toLocaleDateString()} à {competition.time || "Non défini"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {competitions.length === 0 && (
+              <p className="text-center text-muted-foreground">Aucune compétition créée</p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

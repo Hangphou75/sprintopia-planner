@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Timer, Trophy, Eye } from "lucide-react";
+import { Timer, Trophy, Eye, Copy, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Event, ThemeOption } from "../types";
 import {
@@ -10,6 +10,17 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type EventListProps = {
   events: Event[];
@@ -19,6 +30,8 @@ type EventListProps = {
   onEventClick: (event: Event) => void;
   onPageChange: (page: number) => void;
   onViewAllClick: () => void;
+  onDuplicateEvent?: (event: Event) => void;
+  onDeleteEvent?: (event: Event) => void;
 };
 
 export const EventList = ({
@@ -29,6 +42,8 @@ export const EventList = ({
   onEventClick,
   onPageChange,
   onViewAllClick,
+  onDuplicateEvent,
+  onDeleteEvent,
 }: EventListProps) => {
   return (
     <div className="space-y-4">
@@ -47,26 +62,74 @@ export const EventList = ({
             <div
               key={event.id}
               className={cn(
-                "p-4 border rounded-lg hover:border-primary transition-colors cursor-pointer",
+                "p-4 border rounded-lg hover:border-primary transition-colors",
                 event.type === "workout" && event.theme && `border-theme-${event.theme}`
               )}
-              onClick={() => onEventClick(event)}
             >
-              <div className="flex items-center gap-2">
-                <Icon className={cn(
-                  "h-5 w-5",
-                  event.type === "workout" && event.theme && `text-theme-${event.theme}`
-                )} />
-                <h3 className="font-semibold">{event.title}</h3>
+              <div className="flex items-center justify-between">
+                <div 
+                  className="flex items-center gap-2 cursor-pointer"
+                  onClick={() => onEventClick(event)}
+                >
+                  <Icon className={cn(
+                    "h-5 w-5",
+                    event.type === "workout" && event.theme && `text-theme-${event.theme}`
+                  )} />
+                  <div>
+                    <h3 className="font-semibold">{event.title}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(event.date).toLocaleDateString()} à {event.time || "Non défini"}
+                    </p>
+                    {event.type === "workout" && event.theme && (
+                      <p className="text-sm">
+                        {themeOptions.find(t => t.value === event.theme)?.label}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {event.type === "workout" && (
+                  <div className="flex gap-2">
+                    {onDuplicateEvent && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onDuplicateEvent(event)}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {onDeleteEvent && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Cette action est irréversible. La séance sera définitivement supprimée.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => onDeleteEvent(event)}
+                            >
+                              Supprimer
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+                  </div>
+                )}
               </div>
-              <p className="text-sm text-muted-foreground">
-                {new Date(event.date).toLocaleDateString()} à {event.time || "Non défini"}
-              </p>
-              {event.type === "workout" && (
-                <p className="text-sm">
-                  {themeOptions.find(t => t.value === event.theme)?.label}
-                </p>
-              )}
             </div>
           );
         })}
