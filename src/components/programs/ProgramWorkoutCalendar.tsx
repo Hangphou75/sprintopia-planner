@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Timer, Trophy, Dumbbell, Activity, Run, Zap, Flame } from "lucide-react";
+import { Timer, Trophy, Dumbbell, Activity, Running, Zap, Flame } from "lucide-react";
 import { CalendarView } from "./calendar/CalendarView";
 import { EventDetails } from "./calendar/EventDetails";
 import { EventFilters } from "./calendar/EventFilters";
@@ -26,7 +26,7 @@ const themeOptions: ThemeOption[] = [
 ];
 
 const themeIcons: { [key: string]: any } = {
-  "aerobic": Run,
+  "aerobic": Running,
   "anaerobic-alactic": Zap,
   "anaerobic-lactic": Flame,
   "strength": Dumbbell,
