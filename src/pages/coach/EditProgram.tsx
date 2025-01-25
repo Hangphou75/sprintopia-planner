@@ -24,8 +24,7 @@ export const EditProgram = () => {
 
   const handleSubmit = async (values: ProgramFormValues) => {
     try {
-      console.log("Updating program with values:", values);
-
+      // Update program
       const { error: programError } = await supabase
         .from("programs")
         .update({
@@ -33,6 +32,7 @@ export const EditProgram = () => {
           duration: values.duration,
           objectives: values.objectives,
           start_date: values.startDate.toISOString(),
+          updated_at: new Date().toISOString(),
         })
         .eq("id", programId);
 
@@ -42,6 +42,7 @@ export const EditProgram = () => {
         return;
       }
 
+      // Update main competition
       const { error: mainCompError } = await supabase
         .from("competitions")
         .upsert({
@@ -62,19 +63,21 @@ export const EditProgram = () => {
         return;
       }
 
-      if (values.otherCompetitions.length > 0) {
-        const { error: deleteError } = await supabase
-          .from("competitions")
-          .delete()
-          .eq("program_id", programId)
-          .eq("is_main", false);
+      // Delete existing other competitions
+      const { error: deleteError } = await supabase
+        .from("competitions")
+        .delete()
+        .eq("program_id", programId)
+        .eq("is_main", false);
 
-        if (deleteError) {
-          console.error("Error deleting old competitions:", deleteError);
-          toast.error("Erreur lors de la mise à jour des compétitions intermédiaires");
-          return;
-        }
+      if (deleteError) {
+        console.error("Error deleting old competitions:", deleteError);
+        toast.error("Erreur lors de la mise à jour des compétitions intermédiaires");
+        return;
+      }
 
+      // Insert new other competitions if any exist
+      if (values.otherCompetitions && values.otherCompetitions.length > 0) {
         const { error: otherCompError } = await supabase
           .from("competitions")
           .insert(
@@ -117,7 +120,7 @@ export const EditProgram = () => {
     duration: program.duration,
     objectives: program.objectives || "",
     startDate: new Date(program.start_date),
-    mainCompetition: program.competitions?.find((c: any) => c.is_main) 
+    mainCompetition: program.competitions?.find((c: any) => c.is_main)
       ? {
           name: program.competitions.find((c: any) => c.is_main).name,
           date: new Date(program.competitions.find((c: any) => c.is_main).date),
@@ -126,14 +129,7 @@ export const EditProgram = () => {
           is_main: true,
           location: program.competitions.find((c: any) => c.is_main).location || "",
         }
-      : {
-          name: "",
-          date: new Date(),
-          distance: "100",
-          level: "regional",
-          is_main: true,
-          location: "",
-        },
+      : undefined,
     otherCompetitions: program.competitions
       ?.filter((c: any) => !c.is_main)
       .map((comp: any) => ({
