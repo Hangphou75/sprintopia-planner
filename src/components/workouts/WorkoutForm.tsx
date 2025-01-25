@@ -19,6 +19,17 @@ import {
 } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Running,
+  Zap,
+  Flame,
+  Dumbbell,
+  Sparkles,
+  Yoga,
+  ArrowUp,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 export type WorkoutFormValues = {
   title: string;
@@ -36,31 +47,42 @@ type WorkoutFormProps = {
 };
 
 const themes = [
-  "Aérobie",
-  "Anaérobie Alactique",
-  "Anaérobie lactique",
-  "Renforcement musculaire",
-  "Travail technique",
-  "Mobilité",
-  "Plyométrie",
+  { name: "Aérobie", value: "aerobic", icon: Running, color: "theme-aerobic" },
+  { name: "Anaérobie Alactique", value: "anaerobic-alactic", icon: Zap, color: "theme-anaerobic-alactic" },
+  { name: "Anaérobie lactique", value: "anaerobic-lactic", icon: Flame, color: "theme-anaerobic-lactic" },
+  { name: "Renforcement musculaire", value: "strength", icon: Dumbbell, color: "theme-strength" },
+  { name: "Travail technique", value: "technical", icon: Sparkles, color: "theme-technical" },
+  { name: "Mobilité", value: "mobility", icon: Yoga, color: "theme-mobility" },
+  { name: "Plyométrie", value: "plyometric", icon: ArrowUp, color: "theme-plyometric" },
 ];
 
 export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
+  const [selectedTheme, setSelectedTheme] = useState(initialValues?.theme || themes[0].value);
+  
   const form = useForm<WorkoutFormValues>({
     defaultValues: {
       title: initialValues?.title || "",
       description: initialValues?.description || "",
       date: initialValues?.date || new Date(),
       time: initialValues?.time || "09:00",
-      theme: initialValues?.theme || themes[0],
+      theme: initialValues?.theme || themes[0].value,
       recovery: initialValues?.recovery || "",
       details: initialValues?.details || "",
     },
   });
 
+  const currentTheme = themes.find(t => t.value === selectedTheme);
+  const ThemeIcon = currentTheme?.icon || Running;
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form 
+        onSubmit={form.handleSubmit(onSubmit)} 
+        className={cn(
+          "space-y-6 p-6 rounded-lg border transition-colors",
+          currentTheme && `border-${currentTheme.color}`
+        )}
+      >
         <ScrollArea className="h-[calc(100vh-12rem)] px-1">
           <FormField
             control={form.control}
@@ -135,18 +157,35 @@ export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Thème</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select 
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    setSelectedTheme(value);
+                  }} 
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionnez un thème" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {themes.map((theme) => (
-                      <SelectItem key={theme} value={theme}>
-                        {theme}
-                      </SelectItem>
-                    ))}
+                    {themes.map((theme) => {
+                      const Icon = theme.icon;
+                      return (
+                        <SelectItem 
+                          key={theme.value} 
+                          value={theme.value}
+                          className={cn(
+                            "flex items-center gap-2",
+                            `text-${theme.color}`
+                          )}
+                        >
+                          <Icon className="h-4 w-4" />
+                          {theme.name}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -187,6 +226,7 @@ export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
           />
 
           <Button type="submit" className="w-full mt-6">
+            <ThemeIcon className="mr-2 h-4 w-4" />
             Enregistrer la séance
           </Button>
         </ScrollArea>
