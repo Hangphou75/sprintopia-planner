@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Plus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,7 +52,11 @@ const CoachPlanning = () => {
             </p>
           ) : (
             programs.map((program) => (
-              <ProgramCard key={program.id} program={program} />
+              <ProgramCard 
+                key={program.id} 
+                program={program} 
+                onDelete={refetch}
+              />
             ))
           )}
         </div>
