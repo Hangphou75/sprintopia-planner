@@ -16,7 +16,7 @@ export const EditProgram = () => {
         .from("programs")
         .select("*, competitions(*)")
         .eq("id", programId)
-        .maybeSingle();
+        .single();
 
       if (error) {
         console.error("Error fetching program:", error);
@@ -33,7 +33,7 @@ export const EditProgram = () => {
       console.log("Starting program update with values:", values);
       
       // Update program
-      const { data: updatedProgram, error: programError } = await supabase
+      const { error: programError } = await supabase
         .from("programs")
         .update({
           name: values.name,
@@ -42,9 +42,7 @@ export const EditProgram = () => {
           start_date: values.startDate.toISOString(),
           updated_at: new Date().toISOString(),
         })
-        .eq("id", programId)
-        .select()
-        .single();
+        .eq("id", programId);
 
       if (programError) {
         console.error("Error updating program:", programError);
@@ -52,7 +50,7 @@ export const EditProgram = () => {
         return;
       }
 
-      console.log("Program updated successfully:", updatedProgram);
+      console.log("Program updated successfully");
 
       // Update main competition
       if (values.mainCompetition) {
