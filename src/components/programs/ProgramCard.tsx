@@ -19,36 +19,40 @@ export const ProgramCard = ({ program }: ProgramCardProps) => {
   const navigate = useNavigate();
 
   return (
-    <Card className="hover:border-primary transition-colors">
-      <CardHeader>
-        <CardTitle>{program.name}</CardTitle>
-        <CardDescription>
+    <Card className="w-full hover:border-primary transition-colors">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-2xl font-bold text-left">{program.name}</CardTitle>
+        <CardDescription className="text-left text-base">
           {program.duration} semaines - Début le{" "}
           {new Date(program.start_date).toLocaleDateString()}
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pb-4">
         {program.objectives && (
-          <p className="text-sm text-card-foreground">{program.objectives}</p>
+          <p className="text-base text-left text-muted-foreground">
+            {program.objectives}
+          </p>
         )}
       </CardContent>
-      <CardFooter className="flex justify-end gap-2">
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => navigate(`/coach/programs/${program.id}/edit`)}
-        >
-          <Edit className="h-4 w-4 mr-2" />
-          Modifier
-        </Button>
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => navigate(`/coach/programs/${program.id}/workouts`)}
-        >
-          <CalendarDays className="h-4 w-4 mr-2" />
-          Séances
-        </Button>
+      <CardFooter className="flex justify-between gap-2 pt-2 border-t">
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => navigate(`/coach/programs/${program.id}/edit`)}
+          >
+            <Edit className="h-4 w-4 mr-2" />
+            Modifier
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => navigate(`/coach/programs/${program.id}/workouts`)}
+          >
+            <CalendarDays className="h-4 w-4 mr-2" />
+            Séances
+          </Button>
+        </div>
         <Button 
           size="sm"
           onClick={() => navigate(`/coach/programs/${program.id}/workouts/new`)}
