@@ -95,16 +95,18 @@ export const ProgramWorkoutCalendar = ({
   const handleDuplicateWorkout = async (event: Event) => {
     if (event.type !== "workout") return;
     
-    const { id, ...workoutData } = event;
     try {
       const { data, error } = await supabase
         .from("workouts")
-        .insert([{ 
-          ...workoutData,
+        .insert({
           program_id: programId,
-          title: `${workoutData.title} (copie)`,
-          date: workoutData.date.toISOString(),
-        }])
+          title: `${event.title} (copie)`,
+          description: event.description,
+          date: event.date.toISOString(),
+          time: event.time,
+          theme: event.theme,
+          details: event.details,
+        })
         .select()
         .single();
 
