@@ -2,7 +2,6 @@ import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Sidebar, SidebarContent, SidebarProvider } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Home, Calendar, User, Users, LogOut } from "lucide-react";
 import { toast } from "sonner";
 
 const Layout = () => {
@@ -25,53 +24,76 @@ const Layout = () => {
     }
   };
 
-  const navigation = [
-    { name: "Accueil", href: `/${user.role}/home`, icon: Home },
-    { name: "Planning", href: `/${user.role}/planning`, icon: Calendar },
-    ...(user.role === "coach" ? [{ name: "Athlètes", href: "/coach/athletes", icon: Users }] : []),
-    { name: "Profil", href: `/${user.role}/profile`, icon: User },
-  ];
-
-  const isActiveRoute = (path: string) => location.pathname === path;
+  const isCoach = user.role === "coach";
 
   return (
     <SidebarProvider>
       <div className="flex h-screen">
-        <Sidebar className="border-r">
-          <SidebarContent>
-            <div className="flex flex-col h-full">
-              <div className="space-y-4 py-4">
-                <div className="px-3 py-2">
-                  <h2 className="mb-2 px-4 text-lg font-semibold">Navigation</h2>
-                  <div className="space-y-1">
-                    {navigation.map((item) => {
-                      const Icon = item.icon;
-                      const isActive = isActiveRoute(item.href);
-                      return (
-                        <Link key={item.name} to={item.href}>
-                          <Button
-                            variant={isActive ? "secondary" : "ghost"}
-                            className="w-full justify-start"
-                          >
-                            <Icon className="mr-2 h-4 w-4" />
-                            {item.name}
-                          </Button>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-              <div className="mt-auto p-4">
-                <Button onClick={handleLogout} variant="ghost" className="w-full justify-start">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Déconnexion
-                </Button>
-              </div>
+        <Sidebar>
+          <SidebarContent className="flex flex-col h-full">
+            <div className="flex-1 py-6 space-y-4">
+              <nav className="grid gap-2 px-2">
+                {isCoach ? (
+                  <>
+                    <Link
+                      to="/coach"
+                      className={`flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 ${
+                        location.pathname === "/coach" ? "bg-gray-100" : ""
+                      }`}
+                    >
+                      Accueil
+                    </Link>
+                    <Link
+                      to="/coach/athletes"
+                      className={`flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 ${
+                        location.pathname === "/coach/athletes" ? "bg-gray-100" : ""
+                      }`}
+                    >
+                      Mes athlètes
+                    </Link>
+                    <Link
+                      to="/coach/planning"
+                      className={`flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 ${
+                        location.pathname === "/coach/planning"
+                          ? "bg-gray-100"
+                          : ""
+                      }`}
+                    >
+                      Planning
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/athlete"
+                      className={`flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 ${
+                        location.pathname === "/athlete" ? "bg-gray-100" : ""
+                      }`}
+                    >
+                      Accueil
+                    </Link>
+                    <Link
+                      to="/athlete/planning"
+                      className={`flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 ${
+                        location.pathname === "/athlete/planning"
+                          ? "bg-gray-100"
+                          : ""
+                      }`}
+                    >
+                      Planning
+                    </Link>
+                  </>
+                )}
+              </nav>
+            </div>
+            <div className="p-4">
+              <Button onClick={handleLogout} variant="outline" className="w-full">
+                Déconnexion
+              </Button>
             </div>
           </SidebarContent>
         </Sidebar>
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-8">
           <Outlet />
         </main>
       </div>
