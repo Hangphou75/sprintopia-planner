@@ -45,6 +45,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const handleAuthError = async (error: any) => {
+    console.error("Auth error:", error);
+    if (error.message?.includes('refresh_token_not_found')) {
+      console.log("Invalid refresh token, clearing session");
+      await authService.logout();
+      setProfile(null);
+      navigate("/login", { replace: true });
+      toast.error("Session expirée, veuillez vous reconnecter");
+    }
+  };
+
   useEffect(() => {
     const initializeAuth = async () => {
       try {
@@ -56,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
       } catch (error) {
-        console.error("Error during auth initialization:", error);
+        await handleAuthError(error);
       } finally {
         setIsLoading(false);
       }
@@ -68,14 +79,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("Auth state changed:", event, session);
       
       if (event === 'SIGNED_IN' && session?.user) {
-        const userProfile = await handleProfileFetch(session.user.id);
-        if (!userProfile) {
-          toast.error("Erreur lors de la récupération du profil");
-          await authService.logout();
+        try {
+          const userProfile = await handleProfileFetch(session.user.id);
+          if (!userProfile) {
+            toast.error("Erreur lors de la récupération du profil");
+            await authService.logout();
+          }
+          handleRedirect(userProfile);
+        } catch (error) {
+          await handleAuthError(error);
         }
-        handleRedirect(userProfile);
-      } else if (event === 'SIGNED_OUT') {
-        console.log("User signed out");
+      } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+        console.log("User signed out or token refreshed");
         setProfile(null);
         handleRedirect(null);
       }
