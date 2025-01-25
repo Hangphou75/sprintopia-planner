@@ -199,33 +199,6 @@ export const ProgramWorkoutCalendar = ({
             onDeleteEvent={handleDeleteWorkout}
           />
         </div>
-
-        {/* Liste des compétitions */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Liste des compétitions</h2>
-          <div className="grid gap-4">
-            {filteredCompetitions.map((competition) => (
-              <div
-                key={competition.id}
-                className="p-4 border rounded-lg hover:border-primary transition-colors cursor-pointer"
-                onClick={() => handleEventClick(competition)}
-              >
-                <div className="flex items-center gap-2">
-                  <Trophy className="h-5 w-5 text-yellow-500" />
-                  <div>
-                    <h3 className="font-semibold">{competition.title}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(competition.date).toLocaleDateString()} à {competition.time || "Non défini"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-            {filteredCompetitions.length === 0 && (
-              <p className="text-center text-muted-foreground">Aucune compétition créée</p>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );
