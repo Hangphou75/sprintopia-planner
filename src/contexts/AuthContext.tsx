@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   if (isLoading) {
-    return <div>Chargement...</div>;
+    return <div className="flex items-center justify-center h-screen">Chargement...</div>;
   }
 
   const value = {
@@ -50,6 +50,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout,
     isAuthenticated: !!profile
   };
+
+  console.log("AuthProvider rendering with profile:", profile);
 
   return (
     <AuthContext.Provider value={value}>

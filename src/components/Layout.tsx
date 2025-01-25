@@ -11,8 +11,10 @@ const Layout = () => {
 
   if (!user) {
     console.log("No user found in Layout, redirecting to login");
-    return <Navigate to="/login" replace state={{ from: location }} />;
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
+
+  console.log("User found in Layout, rendering with user:", user);
 
   const handleLogout = async () => {
     try {
