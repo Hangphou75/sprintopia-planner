@@ -19,43 +19,44 @@ export const ProgramCard = ({ program }: ProgramCardProps) => {
   const navigate = useNavigate();
 
   return (
-    <Card className="w-full hover:border-primary transition-colors">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-2xl font-bold text-left">{program.name}</CardTitle>
-        <CardDescription className="text-left text-base">
+    <Card className="w-full max-w-md hover:border-primary transition-colors">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-2xl font-bold">{program.name}</CardTitle>
+        <CardDescription className="text-base">
           {program.duration} semaines - Début le{" "}
           {new Date(program.start_date).toLocaleDateString()}
         </CardDescription>
       </CardHeader>
-      <CardContent className="pb-4">
+      <CardContent className="pb-3">
         {program.objectives && (
-          <p className="text-base text-left text-muted-foreground">
+          <p className="text-base text-muted-foreground">
             {program.objectives}
           </p>
         )}
       </CardContent>
-      <CardFooter className="flex justify-between gap-2 pt-2 border-t">
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => navigate(`/coach/programs/${program.id}/edit`)}
-          >
-            <Edit className="h-4 w-4 mr-2" />
-            Modifier
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => navigate(`/coach/programs/${program.id}/workouts`)}
-          >
-            <CalendarDays className="h-4 w-4 mr-2" />
-            Séances
-          </Button>
-        </div>
+      <CardFooter className="flex flex-wrap gap-2 pt-3 border-t">
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => navigate(`/coach/programs/${program.id}/edit`)}
+          className="flex-1"
+        >
+          <Edit className="h-4 w-4 mr-2" />
+          Modifier
+        </Button>
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => navigate(`/coach/programs/${program.id}/workouts`)}
+          className="flex-1"
+        >
+          <CalendarDays className="h-4 w-4 mr-2" />
+          Séances
+        </Button>
         <Button 
           size="sm"
           onClick={() => navigate(`/coach/programs/${program.id}/workouts/new`)}
+          className="w-full mt-2"
         >
           <Plus className="h-4 w-4 mr-2" />
           Ajouter une séance

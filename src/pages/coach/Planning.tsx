@@ -124,12 +124,12 @@ const CoachPlanning = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl h-[calc(100vh-4rem)] flex flex-col">
+    <div className="container mx-auto py-6 px-4 max-w-5xl h-[calc(100vh-4rem)] flex flex-col">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Gestion des programmes</h1>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="bg-[#0F172A] text-white hover:bg-[#1E293B]">
               <Plus className="mr-2 h-4 w-4" />
               Nouveau Programme
             </Button>
@@ -145,8 +145,8 @@ const CoachPlanning = () => {
           </DialogContent>
         </Dialog>
       </div>
-      <ScrollArea className="flex-1">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <ScrollArea className="flex-1 px-1">
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {!programs || programs.length === 0 ? (
             <p className="text-muted-foreground col-span-full text-center py-8">
               Aucun programme créé
