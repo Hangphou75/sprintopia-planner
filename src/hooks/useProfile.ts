@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Database } from "@/integrations/supabase/types";
 
 export type UserRole = "athlete" | "coach";
 
 export interface UserProfile {
   id: string;
-  name: string;
-  email: string;
+  email: string | null;
+  first_name: string | null;
+  last_name: string | null;
   role: UserRole;
 }
 
@@ -26,7 +28,7 @@ export const useProfile = () => {
 
       const { data: profileData, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select()
         .eq('id', userId)
         .single();
 
@@ -46,9 +48,10 @@ export const useProfile = () => {
 
       const userProfile: UserProfile = {
         id: profileData.id,
-        name: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || 'Utilisateur',
-        email: profileData.email || '',
-        role: profileData.role as UserRole || 'athlete',
+        first_name: profileData.first_name,
+        last_name: profileData.last_name,
+        email: profileData.email,
+        role: (profileData.role as UserRole) || 'athlete',
       };
 
       console.log("Processed user profile:", userProfile);
