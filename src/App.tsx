@@ -27,26 +27,26 @@ const App = () => {
       <Router>
         <AuthProvider>
           <Routes>
-            {/* Route Login */}
+            {/* Public Routes */}
             <Route path="/login" element={<Login />} />
 
-            {/* Routes Athlete avec Layout */}
+            {/* Protected Athlete Routes */}
             <Route path="/athlete" element={<Layout />}>
-              <Route index element={<AthleteHome />} />
+              <Route index element={<Navigate to="/athlete/home" replace />} />
               <Route path="home" element={<AthleteHome />} />
               <Route path="planning" element={<AthletePlanning />} />
               <Route path="profile" element={<AthleteProfile />} />
             </Route>
 
-            {/* Routes Coach avec Layout */}
+            {/* Protected Coach Routes */}
             <Route path="/coach" element={<Layout />}>
-              <Route index element={<CoachHome />} />
+              <Route index element={<Navigate to="/coach/home" replace />} />
               <Route path="home" element={<CoachHome />} />
               <Route path="planning" element={<CoachPlanning />} />
               <Route path="profile" element={<CoachProfile />} />
             </Route>
 
-            {/* Redirections par défaut */}
+            {/* Default Redirects */}
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
