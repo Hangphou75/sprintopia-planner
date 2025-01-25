@@ -67,7 +67,7 @@ export const EditWorkout = () => {
           time: workout.time || "09:00",
           theme: workout.theme || "",
           recovery: workout.recovery || "",
-          details: workout.details || "",
+          details: workout.details?.toString() || "",
         }}
       />
     </div>

@@ -41,16 +41,19 @@ export const ProgramWorkouts = () => {
         {workouts?.map((workout) => (
           <div
             key={workout.id}
-            className="p-4 border rounded-lg hover:border-primary transition-colors"
+            className="p-4 border rounded-lg hover:border-primary transition-colors cursor-pointer"
             onClick={() => navigate(`/coach/programs/${programId}/workouts/${workout.id}/edit`)}
           >
             <h3 className="font-semibold">{workout.title}</h3>
             <p className="text-sm text-muted-foreground">
-              {new Date(workout.date).toLocaleDateString()} à {workout.time}
+              {new Date(workout.date).toLocaleDateString()} à {workout.time || "Non défini"}
             </p>
             <p className="text-sm">{workout.theme}</p>
           </div>
         ))}
+        {(!workouts || workouts.length === 0) && (
+          <p className="text-center text-muted-foreground">Aucune séance créée</p>
+        )}
       </div>
     </div>
   );

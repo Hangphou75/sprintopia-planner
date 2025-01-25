@@ -2,14 +2,18 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { Toaster } from "@/components/ui/toaster";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { Layout } from "@/components/Layout";
-import { Login } from "@/pages/Login";
-import { AthleteHome } from "@/pages/athlete/Home";
-import { AthletePlanning } from "@/pages/athlete/Planning";
-import { AthleteProfile } from "@/pages/athlete/Profile";
-import { CoachHome } from "@/pages/coach/Home";
-import { CoachPlanning } from "@/pages/coach/Planning";
-import { CoachProfile } from "@/pages/coach/Profile";
+import Layout from "@/components/Layout";
+import Login from "@/pages/Login";
+import AthleteHome from "@/pages/athlete/Home";
+import AthletePlanning from "@/pages/athlete/Planning";
+import AthleteProfile from "@/pages/athlete/Profile";
+import CoachHome from "@/pages/coach/Home";
+import CoachPlanning from "@/pages/coach/Planning";
+import CoachProfile from "@/pages/coach/Profile";
+import { ProgramWorkouts } from "@/pages/coach/ProgramWorkouts";
+import { CreateWorkout } from "@/pages/coach/CreateWorkout";
+import { EditWorkout } from "@/pages/coach/EditWorkout";
+import { EditProgram } from "@/pages/coach/EditProgram";
 
 const queryClient = new QueryClient();
 
