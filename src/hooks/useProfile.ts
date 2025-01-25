@@ -26,9 +26,9 @@ export const useProfile = () => {
 
       const { data: profileData, error } = await supabase
         .from('profiles')
-        .select('id, first_name, last_name, email, role')
+        .select('*')
         .eq('id', userId)
-        .maybeSingle();
+        .single();
 
       if (error) {
         console.error("Error fetching profile:", error);

@@ -15,34 +15,18 @@ export const useAuthState = () => {
     try {
       console.log("Fetching profile for user:", userId);
       const userProfile = await fetchProfile(userId);
+      
       if (userProfile) {
         console.log("Profile fetched successfully:", userProfile);
         setProfile(userProfile);
         return userProfile;
       }
+      
       console.error("No profile found for user:", userId);
       return null;
     } catch (error) {
       console.error("Error fetching profile:", error);
       return null;
-    }
-  };
-
-  const handleAuthError = async (error: any) => {
-    console.error("Auth error:", error);
-    const errorMessage = error?.message?.toLowerCase() || '';
-    
-    if (errorMessage.includes('refresh_token_not_found') || 
-        errorMessage.includes('invalid token') || 
-        errorMessage.includes('jwt expired')) {
-      console.log("Session invalid, clearing and redirecting to login");
-      await authService.logout();
-      setProfile(null);
-      navigate("/login", { replace: true });
-      toast.error("Session expirée, veuillez vous reconnecter");
-    } else {
-      console.error("Unexpected auth error:", error);
-      toast.error("Une erreur est survenue, veuillez réessayer");
     }
   };
 
@@ -52,21 +36,30 @@ export const useAuthState = () => {
     const initializeAuth = async () => {
       try {
         const session = await authService.getCurrentSession();
+        console.log("Current session in useAuthState:", session);
+        
         if (session?.user && mounted) {
+          console.log("Session user found, fetching profile...");
           const userProfile = await handleProfileFetch(session.user.id);
+          
           if (userProfile && mounted) {
+            console.log("Profile found, redirecting...");
             handleAuthRedirect(userProfile, navigate);
           } else {
+            console.log("No profile found, redirecting to login");
             setProfile(null);
             navigate("/login", { replace: true });
           }
-        } else if (mounted) {
+        } else {
+          console.log("No session found, redirecting to login");
           setProfile(null);
           navigate("/login", { replace: true });
         }
       } catch (error) {
+        console.error("Auth initialization error:", error);
         if (mounted) {
-          await handleAuthError(error);
+          setProfile(null);
+          navigate("/login", { replace: true });
         }
       } finally {
         if (mounted) {
@@ -81,19 +74,16 @@ export const useAuthState = () => {
       console.log("Auth state changed:", event, session);
       
       if (event === 'SIGNED_IN' && session?.user && mounted) {
-        try {
-          const userProfile = await handleProfileFetch(session.user.id);
-          if (!userProfile && mounted) {
-            toast.error("Erreur lors de la récupération du profil");
-            await authService.logout();
-            navigate("/login", { replace: true });
-          } else if (mounted) {
-            handleAuthRedirect(userProfile, navigate);
-          }
-        } catch (error) {
-          if (mounted) {
-            await handleAuthError(error);
-          }
+        console.log("User signed in, fetching profile...");
+        const userProfile = await handleProfileFetch(session.user.id);
+        
+        if (userProfile && mounted) {
+          console.log("Profile found after sign in, redirecting...");
+          handleAuthRedirect(userProfile, navigate);
+        } else {
+          console.log("No profile found after sign in");
+          setProfile(null);
+          navigate("/login", { replace: true });
         }
       } else if (event === 'SIGNED_OUT' && mounted) {
         console.log("User signed out");
