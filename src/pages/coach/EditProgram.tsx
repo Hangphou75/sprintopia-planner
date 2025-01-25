@@ -24,8 +24,10 @@ export const EditProgram = () => {
 
   const handleSubmit = async (values: ProgramFormValues) => {
     try {
+      console.log("Starting program update...");
+      
       // Update program
-      const { error: programError } = await supabase
+      const { data: updatedProgram, error: programError } = await supabase
         .from("programs")
         .update({
           name: values.name,
@@ -34,7 +36,9 @@ export const EditProgram = () => {
           start_date: values.startDate.toISOString(),
           updated_at: new Date().toISOString(),
         })
-        .eq("id", programId);
+        .eq("id", programId)
+        .select()
+        .single();
 
       if (programError) {
         console.error("Error updating program:", programError);
@@ -42,28 +46,35 @@ export const EditProgram = () => {
         return;
       }
 
-      // Update main competition
-      const { error: mainCompError } = await supabase
-        .from("competitions")
-        .upsert({
-          program_id: programId,
-          name: values.mainCompetition.name,
-          date: values.mainCompetition.date.toISOString(),
-          distance: values.mainCompetition.distance,
-          level: values.mainCompetition.level,
-          is_main: true,
-          location: values.mainCompetition.location,
-        })
-        .eq("program_id", programId)
-        .eq("is_main", true);
+      console.log("Program updated successfully:", updatedProgram);
 
-      if (mainCompError) {
-        console.error("Error updating main competition:", mainCompError);
-        toast.error("Erreur lors de la mise à jour de la compétition principale");
-        return;
+      // Update main competition
+      if (values.mainCompetition) {
+        console.log("Updating main competition...");
+        const { error: mainCompError } = await supabase
+          .from("competitions")
+          .upsert({
+            program_id: programId,
+            name: values.mainCompetition.name,
+            date: values.mainCompetition.date.toISOString(),
+            distance: values.mainCompetition.distance,
+            level: values.mainCompetition.level,
+            is_main: true,
+            location: values.mainCompetition.location,
+          })
+          .eq("program_id", programId)
+          .eq("is_main", true);
+
+        if (mainCompError) {
+          console.error("Error updating main competition:", mainCompError);
+          toast.error("Erreur lors de la mise à jour de la compétition principale");
+          return;
+        }
+        console.log("Main competition updated successfully");
       }
 
       // Delete existing other competitions
+      console.log("Deleting existing other competitions...");
       const { error: deleteError } = await supabase
         .from("competitions")
         .delete()
@@ -75,9 +86,11 @@ export const EditProgram = () => {
         toast.error("Erreur lors de la mise à jour des compétitions intermédiaires");
         return;
       }
+      console.log("Old competitions deleted successfully");
 
       // Insert new other competitions if any exist
       if (values.otherCompetitions && values.otherCompetitions.length > 0) {
+        console.log("Inserting new other competitions...");
         const { error: otherCompError } = await supabase
           .from("competitions")
           .insert(
@@ -97,6 +110,7 @@ export const EditProgram = () => {
           toast.error("Erreur lors de la création des compétitions intermédiaires");
           return;
         }
+        console.log("Other competitions inserted successfully");
       }
 
       toast.success("Programme mis à jour avec succès");
