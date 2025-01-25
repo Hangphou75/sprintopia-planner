@@ -35,23 +35,24 @@ export type ProgramFormValues = {
 
 type ProgramFormProps = {
   onSubmit: (values: ProgramFormValues) => Promise<void>;
+  initialValues?: Partial<ProgramFormValues>;
 };
 
-export const ProgramForm = ({ onSubmit }: ProgramFormProps) => {
+export const ProgramForm = ({ onSubmit, initialValues }: ProgramFormProps) => {
   const form = useForm<ProgramFormValues>({
     defaultValues: {
-      name: "",
-      duration: 12,
-      objectives: "",
-      startDate: new Date(),
-      mainCompetition: {
+      name: initialValues?.name || "",
+      duration: initialValues?.duration || 12,
+      objectives: initialValues?.objectives || "",
+      startDate: initialValues?.startDate || new Date(),
+      mainCompetition: initialValues?.mainCompetition || {
         name: "",
         date: new Date(),
         distance: "100",
         level: "regional",
         is_main: true,
       },
-      otherCompetitions: [],
+      otherCompetitions: initialValues?.otherCompetitions || [],
     },
   });
 
