@@ -13,7 +13,14 @@ const AthleteHome = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("active_programs")
-        .select("*, programs(*)")
+        .select(`
+          *,
+          programs (
+            id,
+            name,
+            objectives
+          )
+        `)
         .eq("user_id", user?.id)
         .single();
       return data;
@@ -33,7 +40,7 @@ const AthleteHome = () => {
             <CardTitle>Programme en cours</CardTitle>
           </CardHeader>
           <CardContent>
-            {activeProgram ? (
+            {activeProgram?.programs ? (
               <div>
                 <h3 className="font-semibold">{activeProgram.programs.name}</h3>
                 <p className="text-sm text-muted-foreground">

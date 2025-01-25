@@ -1,37 +1,24 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 
-const CoachProfile = () => {
-  const { user, logout } = useAuth();
+const Profile = () => {
+  const { user } = useAuth();
+
+  if (!user) {
+    return <div>Chargement...</div>;
+  }
+
+  const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Utilisateur';
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Profile</h1>
-      <Card>
-        <CardHeader>
-          <CardTitle>Personal Information</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <p className="font-medium">Name</p>
-            <p className="text-gray-500">{user?.name}</p>
-          </div>
-          <div>
-            <p className="font-medium">Email</p>
-            <p className="text-gray-500">{user?.email}</p>
-          </div>
-          <div>
-            <p className="font-medium">Role</p>
-            <p className="text-gray-500 capitalize">{user?.role}</p>
-          </div>
-          <Button variant="destructive" onClick={logout}>
-            Sign Out
-          </Button>
-        </CardContent>
-      </Card>
+      <h1 className="text-3xl font-bold">Profil</h1>
+      <div>
+        <h2 className="text-xl font-semibold">{fullName}</h2>
+        <p className="text-muted-foreground">{user.email}</p>
+        <p className="text-muted-foreground capitalize">{user.role}</p>
+      </div>
     </div>
   );
 };
 
-export default CoachProfile;
+export default Profile;

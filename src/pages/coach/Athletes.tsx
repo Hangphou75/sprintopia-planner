@@ -3,240 +3,124 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Plus, Trash2 } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-
-type AthleteRelation = {
-  id: string;
-  athlete: {
-    id: string;
-    first_name: string | null;
-    last_name: string | null;
-    email: string | null;
-  };
-};
 
 const Athletes = () => {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
+  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
-  const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const queryClient = useQueryClient();
 
-  // Fetch athletes
   const { data: athletes } = useQuery({
-    queryKey: ["athletes", user?.id],
+    queryKey: ["coach-athletes", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("coach_athletes")
         .select(`
-          id,
-          athlete:profiles!coach_athletes_athlete_id_fkey(
+          *,
+          athlete:profiles!coach_athletes_athlete_id_fkey (
             id,
+            email,
             first_name,
-            last_name,
-            email
+            last_name
           )
         `)
         .eq("coach_id", user?.id);
 
       if (error) throw error;
-      return data as AthleteRelation[];
-    },
-  });
-
-  // Fetch invitations
-  const { data: invitations } = useQuery({
-    queryKey: ["invitations", user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("athlete_invitations")
-        .select("*")
-        .eq("coach_id", user?.id);
-
-      if (error) throw error;
       return data;
     },
+    enabled: !!user?.id,
   });
 
-  // Invite athlete mutation
-  const inviteAthleteMutation = useMutation({
+  const inviteMutation = useMutation({
     mutationFn: async (email: string) => {
-      const { error } = await supabase
-        .from("athlete_invitations")
-        .insert([{ coach_id: user?.id, email }]);
-
-      if (error) throw error;
-
-      // Call the Edge function to send the invitation email
-      const { data, error: functionError } = await supabase.functions.invoke("send-invitation", {
-        body: {
-          email,
-          coachName: user?.name || "Votre coach",
-        },
+      const { error } = await supabase.from("athlete_invitations").insert({
+        email,
+        coach_id: user?.id,
       });
 
-      if (functionError) throw functionError;
-      return data;
+      if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Invitation envoyée avec succès");
-      setShowInviteDialog(false);
+      setIsInviteDialogOpen(false);
       setInviteEmail("");
-      queryClient.invalidateQueries({ queryKey: ["invitations"] });
     },
     onError: (error) => {
-      console.error("Error inviting athlete:", error);
+      console.error("Error sending invitation:", error);
       toast.error("Erreur lors de l'envoi de l'invitation");
-    },
-  });
-
-  // Remove athlete mutation
-  const removeAthleteMutation = useMutation({
-    mutationFn: async (athleteId: string) => {
-      const { error } = await supabase
-        .from("coach_athletes")
-        .delete()
-        .eq("coach_id", user?.id)
-        .eq("athlete_id", athleteId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["athletes"] });
-      toast.success("Athlète retiré avec succès");
-    },
-    onError: (error) => {
-      console.error("Error removing athlete:", error);
-      toast.error("Erreur lors de la suppression de l'athlète");
     },
   });
 
   const handleInvite = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inviteEmail) return;
-    inviteAthleteMutation.mutate(inviteEmail);
+    inviteMutation.mutate(inviteEmail);
+  };
+
+  const getFullName = (athlete: { first_name: string | null; last_name: string | null }) => {
+    return `${athlete.first_name || ''} ${athlete.last_name || ''}`.trim() || 'Athlète';
   };
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Mes Athlètes</h1>
-        <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Inviter un athlète
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Inviter un athlète</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleInvite} className="space-y-4">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Mes athlètes</h1>
+        <Button onClick={() => setIsInviteDialogOpen(true)}>
+          Inviter un athlète
+        </Button>
+      </div>
+
+      <div className="grid gap-4">
+        {athletes?.map((relation) => (
+          <div
+            key={relation.id}
+            className="flex items-center justify-between p-4 border rounded-lg"
+          >
+            <div>
+              <p className="font-medium">{getFullName(relation.athlete)}</p>
+              <p className="text-sm text-muted-foreground">
+                {relation.athlete.email}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Inviter un athlète</DialogTitle>
+            <DialogDescription>
+              Envoyez une invitation à un athlète pour commencer à collaborer
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleInvite}>
+            <div className="grid gap-4 py-4">
               <Input
                 type="email"
                 placeholder="Email de l'athlète"
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
+                required
               />
-              <Button type="submit" className="w-full">
-                Envoyer l'invitation
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <div className="space-y-6">
-        <div className="bg-white rounded-lg shadow">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nom</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {athletes?.map((relation) => (
-                <TableRow key={relation.athlete.id}>
-                  <TableCell>
-                    {relation.athlete.first_name} {relation.athlete.last_name}
-                  </TableCell>
-                  <TableCell>{relation.athlete.email}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => removeAthleteMutation.mutate(relation.athlete.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {(!athletes || athletes.length === 0) && (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground">
-                    Aucun athlète pour le moment
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-4 border-b">
-            <h2 className="text-lg font-semibold">Invitations en attente</h2>
-          </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Email</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead>Date d'envoi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {invitations?.map((invitation) => (
-                <TableRow key={invitation.id}>
-                  <TableCell>{invitation.email}</TableCell>
-                  <TableCell>
-                    <span className="capitalize">{invitation.status}</span>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(invitation.created_at).toLocaleDateString()}
-                  </TableCell>
-                </TableRow>
-              ))}
-              {(!invitations || invitations.length === 0) && (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground">
-                    Aucune invitation en attente
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
+            </div>
+            <DialogFooter>
+              <Button type="submit">Envoyer l'invitation</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
