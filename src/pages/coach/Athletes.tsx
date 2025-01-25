@@ -62,14 +62,14 @@ const Athletes = () => {
     },
   });
 
-  // Fetch programs for sharing
-  const { data: programs } = useQuery({
-    queryKey: ["programs", user?.id],
+  // Fetch invitations
+  const { data: invitations } = useQuery({
+    queryKey: ["invitations", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("programs")
+        .from("athlete_invitations")
         .select("*")
-        .eq("user_id", user?.id);
+        .eq("coach_id", user?.id);
 
       if (error) throw error;
       return data;
@@ -84,39 +84,32 @@ const Athletes = () => {
         .insert([{ coach_id: user?.id, email }]);
 
       if (error) throw error;
+
+      // Appel à la fonction Edge pour envoyer l'email d'invitation
+      const response = await fetch("/api/send-invitation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          coachName: `${user?.first_name} ${user?.last_name}`,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de l'envoi de l'email d'invitation");
+      }
     },
     onSuccess: () => {
       toast.success("Invitation envoyée avec succès");
       setShowInviteDialog(false);
       setInviteEmail("");
+      queryClient.invalidateQueries({ queryKey: ["invitations"] });
     },
     onError: (error) => {
       console.error("Error inviting athlete:", error);
       toast.error("Erreur lors de l'envoi de l'invitation");
-    },
-  });
-
-  // Share program mutation
-  const shareProgramMutation = useMutation({
-    mutationFn: async ({ programId, athleteId }: { programId: string; athleteId: string }) => {
-      const { error } = await supabase
-        .from("shared_programs")
-        .insert([{
-          program_id: programId,
-          athlete_id: athleteId,
-          coach_id: user?.id
-        }]);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Programme partagé avec succès");
-      setShowShareDialog(false);
-      setSelectedAthleteId(null);
-    },
-    onError: (error) => {
-      console.error("Error sharing program:", error);
-      toast.error("Erreur lors du partage du programme");
     },
   });
 
@@ -145,11 +138,6 @@ const Athletes = () => {
     e.preventDefault();
     if (!inviteEmail) return;
     inviteAthleteMutation.mutate(inviteEmail);
-  };
-
-  const handleShareProgram = (programId: string) => {
-    if (!selectedAthleteId) return;
-    shareProgramMutation.mutate({ programId, athleteId: selectedAthleteId });
   };
 
   return (
@@ -182,35 +170,24 @@ const Athletes = () => {
         </Dialog>
       </div>
 
-      <div className="bg-white rounded-lg shadow">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nom</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {athletes?.map((relation) => (
-              <TableRow key={relation.athlete.id}>
-                <TableCell>
-                  {relation.athlete.first_name} {relation.athlete.last_name}
-                </TableCell>
-                <TableCell>{relation.athlete.email}</TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedAthleteId(relation.athlete.id);
-                        setShowShareDialog(true);
-                      }}
-                    >
-                      <Share className="h-4 w-4 mr-2" />
-                      Partager un programme
-                    </Button>
+      <div className="space-y-6">
+        <div className="bg-white rounded-lg shadow">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nom</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {athletes?.map((relation) => (
+                <TableRow key={relation.athlete.id}>
+                  <TableCell>
+                    {relation.athlete.first_name} {relation.athlete.last_name}
+                  </TableCell>
+                  <TableCell>{relation.athlete.email}</TableCell>
+                  <TableCell>
                     <Button
                       variant="destructive"
                       size="sm"
@@ -218,45 +195,55 @@ const Athletes = () => {
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-            {(!athletes || athletes.length === 0) && (
-              <TableRow>
-                <TableCell colSpan={3} className="text-center text-muted-foreground">
-                  Aucun athlète pour le moment
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {(!athletes || athletes.length === 0) && (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center text-muted-foreground">
+                    Aucun athlète pour le moment
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
 
-      <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Partager un programme</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            {programs?.map((program) => (
-              <Button
-                key={program.id}
-                variant="outline"
-                className="w-full justify-start"
-                onClick={() => handleShareProgram(program.id)}
-              >
-                {program.name}
-              </Button>
-            ))}
-            {(!programs || programs.length === 0) && (
-              <p className="text-center text-muted-foreground">
-                Aucun programme disponible
-              </p>
-            )}
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-4 border-b">
+            <h2 className="text-lg font-semibold">Invitations en attente</h2>
           </div>
-        </DialogContent>
-      </Dialog>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Email</TableHead>
+                <TableHead>Statut</TableHead>
+                <TableHead>Date d'envoi</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {invitations?.map((invitation) => (
+                <TableRow key={invitation.id}>
+                  <TableCell>{invitation.email}</TableCell>
+                  <TableCell>
+                    <span className="capitalize">{invitation.status}</span>
+                  </TableCell>
+                  <TableCell>
+                    {new Date(invitation.created_at).toLocaleDateString()}
+                  </TableCell>
+                </TableRow>
+              ))}
+              {(!invitations || invitations.length === 0) && (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center text-muted-foreground">
+                    Aucune invitation en attente
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
     </div>
   );
 };
