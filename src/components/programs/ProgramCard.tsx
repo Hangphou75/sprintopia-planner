@@ -27,10 +27,11 @@ import { CompetitionCard } from "./CompetitionCard";
 
 type ProgramCardProps = {
   program: any;
-  onDelete: () => void;
+  onDelete?: () => void;
+  readOnly?: boolean;
 };
 
-export const ProgramCard = ({ program, onDelete }: ProgramCardProps) => {
+export const ProgramCard = ({ program, onDelete, readOnly = false }: ProgramCardProps) => {
   const navigate = useNavigate();
 
   const handleDeleteProgram = async () => {
@@ -43,7 +44,7 @@ export const ProgramCard = ({ program, onDelete }: ProgramCardProps) => {
       if (error) throw error;
 
       toast.success("Programme supprimé avec succès");
-      onDelete();
+      onDelete?.();
     } catch (error) {
       console.error("Error deleting program:", error);
       toast.error("Erreur lors de la suppression du programme");
@@ -60,7 +61,7 @@ export const ProgramCard = ({ program, onDelete }: ProgramCardProps) => {
       if (error) throw error;
 
       toast.success("Compétition supprimée avec succès");
-      onDelete();
+      onDelete?.();
     } catch (error) {
       console.error("Error deleting competition:", error);
       toast.error("Erreur lors de la suppression de la compétition");
@@ -85,45 +86,49 @@ export const ProgramCard = ({ program, onDelete }: ProgramCardProps) => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate(`/coach/programs/${program.id}/workouts`)}
+              onClick={() => navigate(`/${readOnly ? 'athlete' : 'coach'}/programs/${program.id}/workouts`)}
             >
               <CalendarDays className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate(`/coach/programs/${program.id}/edit`)}
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
+            {!readOnly && (
+              <>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-destructive hover:text-destructive"
+                  onClick={() => navigate(`/coach/programs/${program.id}/edit`)}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Edit className="h-4 w-4" />
                 </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Cette action est irréversible. Le programme et toutes ses séances seront définitivement supprimés.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Annuler</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleDeleteProgram}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  >
-                    Supprimer
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Cette action est irréversible. Le programme et toutes ses séances seront définitivement supprimés.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Annuler</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDeleteProgram}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Supprimer
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -138,8 +143,8 @@ export const ProgramCard = ({ program, onDelete }: ProgramCardProps) => {
             <CompetitionCard
               key={competition.id}
               competition={competition}
-              onEdit={() => navigate(`/coach/programs/${program.id}/edit`)}
-              onDelete={handleDeleteCompetition}
+              onEdit={!readOnly ? () => navigate(`/coach/programs/${program.id}/edit`) : undefined}
+              onDelete={!readOnly ? handleDeleteCompetition : undefined}
             />
           ))}
         </div>

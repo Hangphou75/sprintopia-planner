@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +17,7 @@ const AthletePlanning = () => {
         .select(`
           program:programs(
             *,
+            competitions(*),
             coach:profiles!programs_user_id_fkey(
               first_name,
               last_name
