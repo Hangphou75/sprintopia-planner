@@ -57,13 +57,11 @@ export const EditProgram = () => {
         console.log("Updating main competition:", values.mainCompetition);
         const { error: mainCompError } = await supabase
           .from("competitions")
-          .upsert({
-            program_id: programId,
+          .update({
             name: values.mainCompetition.name,
             date: values.mainCompetition.date.toISOString(),
             distance: values.mainCompetition.distance,
             level: values.mainCompetition.level,
-            is_main: true,
             location: values.mainCompetition.location,
           })
           .eq("program_id", programId)
@@ -77,44 +75,78 @@ export const EditProgram = () => {
         console.log("Main competition updated successfully");
       }
 
-      // Delete existing other competitions
-      console.log("Deleting existing other competitions");
-      const { error: deleteError } = await supabase
-        .from("competitions")
-        .delete()
-        .eq("program_id", programId)
-        .eq("is_main", false);
-
-      if (deleteError) {
-        console.error("Error deleting old competitions:", deleteError);
-        toast.error("Erreur lors de la mise à jour des compétitions intermédiaires");
-        return;
-      }
-      console.log("Old competitions deleted successfully");
-
-      // Insert new other competitions if any exist
+      // Update other competitions
       if (values.otherCompetitions && values.otherCompetitions.length > 0) {
-        console.log("Inserting new other competitions:", values.otherCompetitions);
-        const { error: otherCompError } = await supabase
+        console.log("Updating other competitions:", values.otherCompetitions);
+        
+        // Get existing other competitions
+        const { data: existingCompetitions, error: fetchError } = await supabase
           .from("competitions")
-          .insert(
-            values.otherCompetitions.map((comp) => ({
-              program_id: programId,
-              name: comp.name,
-              date: comp.date.toISOString(),
-              distance: comp.distance,
-              level: comp.level,
-              is_main: false,
-              location: comp.location,
-            }))
-          );
+          .select("id")
+          .eq("program_id", programId)
+          .eq("is_main", false);
 
-        if (otherCompError) {
-          console.error("Error creating other competitions:", otherCompError);
-          toast.error("Erreur lors de la création des compétitions intermédiaires");
+        if (fetchError) {
+          console.error("Error fetching existing competitions:", fetchError);
+          toast.error("Erreur lors de la récupération des compétitions");
           return;
         }
-        console.log("Other competitions inserted successfully");
+
+        const existingIds = existingCompetitions?.map(comp => comp.id) || [];
+        const updatePromises = values.otherCompetitions.map(async (comp, index) => {
+          if (existingIds[index]) {
+            // Update existing competition
+            return supabase
+              .from("competitions")
+              .update({
+                name: comp.name,
+                date: comp.date.toISOString(),
+                distance: comp.distance,
+                level: comp.level,
+                location: comp.location,
+              })
+              .eq("id", existingIds[index]);
+          } else {
+            // Create new competition
+            return supabase
+              .from("competitions")
+              .insert({
+                program_id: programId,
+                name: comp.name,
+                date: comp.date.toISOString(),
+                distance: comp.distance,
+                level: comp.level,
+                is_main: false,
+                location: comp.location,
+              });
+          }
+        });
+
+        // If we have fewer new competitions than existing ones, delete the excess
+        if (existingIds.length > values.otherCompetitions.length) {
+          const idsToDelete = existingIds.slice(values.otherCompetitions.length);
+          const { error: deleteError } = await supabase
+            .from("competitions")
+            .delete()
+            .in("id", idsToDelete);
+
+          if (deleteError) {
+            console.error("Error deleting excess competitions:", deleteError);
+            toast.error("Erreur lors de la suppression des compétitions");
+            return;
+          }
+        }
+
+        // Execute all updates
+        const results = await Promise.all(updatePromises);
+        const errors = results.filter(result => result.error);
+        
+        if (errors.length > 0) {
+          console.error("Errors updating competitions:", errors);
+          toast.error("Erreur lors de la mise à jour des compétitions intermédiaires");
+          return;
+        }
+        console.log("Other competitions updated successfully");
       }
 
       toast.success("Programme mis à jour avec succès");
