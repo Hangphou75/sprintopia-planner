@@ -11,20 +11,26 @@ export const EditProgram = () => {
   const { data: program, isLoading } = useQuery({
     queryKey: ["program", programId],
     queryFn: async () => {
+      console.log("Fetching program data for ID:", programId);
       const { data, error } = await supabase
         .from("programs")
         .select("*, competitions(*)")
         .eq("id", programId)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching program:", error);
+        throw error;
+      }
+      
+      console.log("Program data retrieved:", data);
       return data;
     },
   });
 
   const handleSubmit = async (values: ProgramFormValues) => {
     try {
-      console.log("Starting program update...");
+      console.log("Starting program update with values:", values);
       
       // Update program
       const { data: updatedProgram, error: programError } = await supabase
@@ -50,7 +56,7 @@ export const EditProgram = () => {
 
       // Update main competition
       if (values.mainCompetition) {
-        console.log("Updating main competition...");
+        console.log("Updating main competition:", values.mainCompetition);
         const { error: mainCompError } = await supabase
           .from("competitions")
           .upsert({
@@ -74,7 +80,7 @@ export const EditProgram = () => {
       }
 
       // Delete existing other competitions
-      console.log("Deleting existing other competitions...");
+      console.log("Deleting existing other competitions");
       const { error: deleteError } = await supabase
         .from("competitions")
         .delete()
@@ -90,7 +96,7 @@ export const EditProgram = () => {
 
       // Insert new other competitions if any exist
       if (values.otherCompetitions && values.otherCompetitions.length > 0) {
-        console.log("Inserting new other competitions...");
+        console.log("Inserting new other competitions:", values.otherCompetitions);
         const { error: otherCompError } = await supabase
           .from("competitions")
           .insert(
@@ -116,7 +122,7 @@ export const EditProgram = () => {
       toast.success("Programme mis à jour avec succès");
       navigate(`/coach/programs/${programId}/workouts`);
     } catch (error) {
-      console.error("Error updating program:", error);
+      console.error("Error in handleSubmit:", error);
       toast.error("Erreur lors de la mise à jour du programme");
     }
   };
