@@ -22,6 +22,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+type AthleteRelation = {
+  id: string;
+  athlete: {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    email: string | null;
+  };
+};
+
 const Athletes = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -37,7 +47,7 @@ const Athletes = () => {
       const { data, error } = await supabase
         .from("coach_athletes")
         .select(`
-          athlete_id,
+          id,
           athlete:profiles!coach_athletes_athlete_id_fkey(
             id,
             first_name,
@@ -48,7 +58,7 @@ const Athletes = () => {
         .eq("coach_id", user?.id);
 
       if (error) throw error;
-      return data;
+      return data as AthleteRelation[];
     },
   });
 
