@@ -1,8 +1,7 @@
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useProfile, UserProfile } from "@/hooks/useProfile";
 import { authService } from "@/services/auth.service";
-import { useAuthState } from "@/hooks/useAuthState";
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -15,7 +14,25 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { profile, setProfile } = useProfile();
-  const { isLoading } = useAuthState();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const initAuth = async () => {
+      try {
+        const session = await authService.getCurrentSession();
+        if (!session?.user) {
+          setProfile(null);
+        }
+      } catch (error) {
+        console.error("Auth initialization error:", error);
+        setProfile(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initAuth();
+  }, [setProfile]);
 
   const login = async (email: string, password: string, role: string) => {
     try {
