@@ -32,6 +32,7 @@ export const LoginForm = () => {
     } catch (error: any) {
       console.error("Erreur de connexion:", error);
       toast.error("Erreur de connexion: " + (error.message || "Email ou mot de passe incorrect"));
+    } finally {
       setIsLoading(false);
     }
   };

@@ -51,6 +51,9 @@ export const useAuthState = () => {
         if (session?.user) {
           const userProfile = await handleProfileFetch(session.user.id);
           handleAuthRedirect(userProfile, navigate);
+        } else {
+          setProfile(null);
+          navigate("/login", { replace: true });
         }
       } catch (error) {
         await handleAuthError(error);
@@ -70,15 +73,17 @@ export const useAuthState = () => {
           if (!userProfile) {
             toast.error("Erreur lors de la récupération du profil");
             await authService.logout();
+            navigate("/login", { replace: true });
+          } else {
+            handleAuthRedirect(userProfile, navigate);
           }
-          handleAuthRedirect(userProfile, navigate);
         } catch (error) {
           await handleAuthError(error);
         }
-      } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-        console.log("User signed out or token refreshed");
+      } else if (event === 'SIGNED_OUT') {
+        console.log("User signed out");
         setProfile(null);
-        handleAuthRedirect(null, navigate);
+        navigate("/login", { replace: true });
       }
     });
 

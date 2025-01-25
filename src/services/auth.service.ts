@@ -26,13 +26,14 @@ export const authService = {
       return data.user;
     } catch (error: any) {
       console.error("Auth service: login error", error);
-      throw new Error(error.message);
+      throw new Error(error.message || "Erreur de connexion");
     }
   },
 
   logout: async () => {
     try {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
     } catch (error) {
       console.error("Auth service: logout error", error);
       throw error;
@@ -40,7 +41,13 @@ export const authService = {
   },
 
   getCurrentSession: async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    return session;
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      return session;
+    } catch (error) {
+      console.error("Error getting session:", error);
+      throw error;
+    }
   }
 };
