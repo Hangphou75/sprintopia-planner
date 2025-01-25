@@ -25,7 +25,7 @@ import {
   Flame,
   Dumbbell,
   Sparkles,
-  Stretch,
+  Stretching,
   ArrowUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -52,7 +52,7 @@ const themes = [
   { name: "Anaérobie lactique", value: "anaerobic-lactic", icon: Flame, color: "theme-anaerobic-lactic" },
   { name: "Renforcement musculaire", value: "strength", icon: Dumbbell, color: "theme-strength" },
   { name: "Travail technique", value: "technical", icon: Sparkles, color: "theme-technical" },
-  { name: "Mobilité", value: "mobility", icon: Stretch, color: "theme-mobility" },
+  { name: "Mobilité", value: "mobility", icon: Stretching, color: "theme-mobility" },
   { name: "Plyométrie", value: "plyometric", icon: ArrowUp, color: "theme-plyometric" },
 ];
 

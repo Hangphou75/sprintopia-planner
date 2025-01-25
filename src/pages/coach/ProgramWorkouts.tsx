@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, Trophy, Timer, Zap, Flame, Dumbbell, Sparkles, Stretch, ArrowUp } from "lucide-react";
+import { Plus, Trophy, Timer, Zap, Flame, Dumbbell, Sparkles, Stretching, ArrowUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -12,7 +12,7 @@ const themeIcons = {
   "anaerobic-lactic": Flame,
   strength: Dumbbell,
   technical: Sparkles,
-  mobility: Stretch,
+  mobility: Stretching,
   plyometric: ArrowUp,
 };
 
