@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Trophy, Timer } from "lucide-react";
+import { Timer, Trophy, Dumbbell, Activity, Running, Zap, Flame } from "lucide-react";
 import { CalendarView } from "./calendar/CalendarView";
 import { EventDetails } from "./calendar/EventDetails";
 import { EventFilters } from "./calendar/EventFilters";
-import { EventList } from "./calendar/EventList";
 import { Event, ThemeOption } from "./types";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +24,16 @@ const themeOptions: ThemeOption[] = [
   { value: "mobility", label: "Mobilité" },
   { value: "plyometric", label: "Pliométrie" },
 ];
+
+const themeIcons: { [key: string]: any } = {
+  "aerobic": Running,
+  "anaerobic-alactic": Zap,
+  "anaerobic-lactic": Flame,
+  "strength": Dumbbell,
+  "technical": Activity,
+  "mobility": Activity,
+  "plyometric": Activity,
+};
 
 export const ProgramWorkoutCalendar = ({
   workouts,
@@ -73,15 +82,6 @@ export const ProgramWorkoutCalendar = ({
     return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
   });
 
-  const filteredCompetitions = events.filter(event => event.type === "competition");
-
-  // Pagination
-  const totalPages = Math.ceil(filteredWorkouts.length / itemsPerPage);
-  const paginatedWorkouts = filteredWorkouts.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
   const handleDuplicateWorkout = async (event: Event) => {
     if (event.type !== "workout") return;
     
@@ -102,7 +102,6 @@ export const ProgramWorkoutCalendar = ({
 
       if (error) throw error;
 
-      // Invalider le cache pour forcer un rechargement des données
       await queryClient.invalidateQueries({ queryKey: ["workouts", programId] });
 
       toast({
@@ -130,7 +129,6 @@ export const ProgramWorkoutCalendar = ({
 
       if (error) throw error;
 
-      // Invalider le cache pour forcer un rechargement des données
       await queryClient.invalidateQueries({ queryKey: ["workouts", programId] });
 
       toast({
@@ -153,10 +151,6 @@ export const ProgramWorkoutCalendar = ({
     } else {
       navigate(`/coach/programs/${programId}/competitions/${event.id}/edit`);
     }
-  };
-
-  const handleViewAllWorkouts = () => {
-    navigate(`/coach/programs/${programId}/workouts`);
   };
 
   return (
@@ -187,17 +181,84 @@ export const ProgramWorkoutCalendar = ({
           />
         </div>
 
-        <EventList
-          events={paginatedWorkouts}
-          themeOptions={themeOptions}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onEventClick={handleEventClick}
-          onPageChange={setCurrentPage}
-          onViewAllClick={handleViewAllWorkouts}
-          onDuplicateEvent={handleDuplicateWorkout}
-          onDeleteEvent={handleDeleteWorkout}
-        />
+        <div className="grid gap-4">
+          {filteredWorkouts.map((event) => {
+            const Icon = event.theme ? themeIcons[event.theme] || Timer : Timer;
+            return (
+              <div
+                key={event.id}
+                className={`p-4 border rounded-lg hover:border-primary transition-colors ${
+                  event.theme ? `border-theme-${event.theme}` : ''
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div 
+                    className="flex items-center gap-2 cursor-pointer"
+                    onClick={() => handleEventClick(event)}
+                  >
+                    <Icon className={`h-5 w-5 ${
+                      event.theme ? `text-theme-${event.theme}` : ''
+                    }`} />
+                    <div>
+                      <h3 className="font-semibold">{event.title}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(event.date).toLocaleDateString()} à {event.time || "Non défini"}
+                      </p>
+                      {event.theme && (
+                        <p className="text-sm">
+                          {themeOptions.find(t => t.value === event.theme)?.label}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      className="p-2 hover:bg-gray-100 rounded-full"
+                      onClick={() => handleDuplicateWorkout(event)}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      className="p-2 hover:bg-gray-100 rounded-full text-red-500"
+                      onClick={() => handleDeleteWorkout(event)}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          {filteredWorkouts.length === 0 && (
+            <p className="text-center text-muted-foreground">Aucune séance créée</p>
+          )}
+        </div>
       </div>
     </div>
   );
