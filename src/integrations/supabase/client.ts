@@ -12,6 +12,10 @@ export const supabase = createClient<Database>(
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true
+    },
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
     }
   }
 );
