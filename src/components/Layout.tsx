@@ -11,10 +11,8 @@ const Layout = () => {
 
   if (!user) {
     console.log("No user found in Layout, redirecting to login");
-    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+    return <Navigate to="/login" state={{ from: location.pathname }} />;
   }
-
-  console.log("User found in Layout, rendering with user:", user);
 
   const handleLogout = async () => {
     try {
@@ -32,9 +30,7 @@ const Layout = () => {
     { name: "Profil", href: `/${user.role}/profile`, icon: User },
   ];
 
-  const isActiveRoute = (path: string) => {
-    return location.pathname === path;
-  };
+  const isActiveRoute = (path: string) => location.pathname === path;
 
   return (
     <SidebarProvider>

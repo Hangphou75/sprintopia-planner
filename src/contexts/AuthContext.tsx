@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user: profile,
     login,
     logout,
-    isAuthenticated: !!profile
+    isAuthenticated: !!profile && !isLoading
   };
 
   if (isLoading) {

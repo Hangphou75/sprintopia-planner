@@ -14,8 +14,19 @@ import { ProgramWorkouts } from "@/pages/coach/ProgramWorkouts";
 import { CreateWorkout } from "@/pages/coach/CreateWorkout";
 import { EditWorkout } from "@/pages/coach/EditWorkout";
 import { EditProgram } from "@/pages/coach/EditProgram";
+import { useAuth } from "@/contexts/AuthContext";
 
 const queryClient = new QueryClient();
+
+function PrivateRoute({ children }: { children: React.ReactNode }) {
+  const { user, isAuthenticated } = useAuth();
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return <>{children}</>;
+}
 
 function App() {
   return (
@@ -27,7 +38,14 @@ function App() {
             <Route path="/login" element={<Login />} />
 
             {/* Protected Athlete Routes */}
-            <Route path="/athlete" element={<Layout />}>
+            <Route
+              path="/athlete"
+              element={
+                <PrivateRoute>
+                  <Layout />
+                </PrivateRoute>
+              }
+            >
               <Route index element={<Navigate to="/athlete/home" replace />} />
               <Route path="home" element={<AthleteHome />} />
               <Route path="planning" element={<AthletePlanning />} />
@@ -35,7 +53,14 @@ function App() {
             </Route>
 
             {/* Protected Coach Routes */}
-            <Route path="/coach" element={<Layout />}>
+            <Route
+              path="/coach"
+              element={
+                <PrivateRoute>
+                  <Layout />
+                </PrivateRoute>
+              }
+            >
               <Route index element={<Navigate to="/coach/home" replace />} />
               <Route path="home" element={<CoachHome />} />
               <Route path="planning" element={<CoachPlanning />} />
