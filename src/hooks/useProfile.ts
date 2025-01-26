@@ -23,19 +23,19 @@ export const useProfile = () => {
       if (!userId) {
         console.error("No user ID provided");
         toast.error("Erreur: ID utilisateur manquant");
-        throw new Error('No user ID provided');
+        return null;
       }
 
       const { data: profileData, error } = await supabase
         .from('profiles')
         .select()
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Error fetching profile:", error);
         toast.error(`Erreur lors de la récupération du profil: ${error.message}`);
-        throw error;
+        return null;
       }
 
       if (!profileData) {

@@ -9,14 +9,15 @@ export const supabase = createClient<Database>(
   SUPABASE_ANON_KEY,
   {
     auth: {
-      persistSession: true,
       autoRefreshToken: true,
+      persistSession: true,
       detectSessionInUrl: false,
+      flowType: 'pkce',
       storage: {
         getItem: (key) => {
           try {
-            const value = localStorage.getItem(key);
-            return value ? JSON.parse(value) : null;
+            const item = localStorage.getItem(key);
+            return item ? JSON.parse(item) : null;
           } catch (error) {
             console.error('Error reading from localStorage:', error);
             return null;
