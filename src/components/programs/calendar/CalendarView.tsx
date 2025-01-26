@@ -17,7 +17,7 @@ export const CalendarView = ({
     <Calendar
       mode="single"
       selected={selectedDate}
-      onSelect={onSelectDate}
+      onSelect={(date) => onSelectDate(date || undefined)}
       className="rounded-md border"
       components={{
         DayContent: ({ date }) => {
