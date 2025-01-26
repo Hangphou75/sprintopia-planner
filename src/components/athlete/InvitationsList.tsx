@@ -13,6 +13,8 @@ export const InvitationsList = () => {
   const { data: invitations, isLoading } = useQuery({
     queryKey: ["athlete-invitations", user?.email],
     queryFn: async () => {
+      console.log("Fetching invitations for email:", user?.email); // Debug log
+
       const { data, error } = await supabase
         .from("athlete_invitations")
         .select(`
@@ -30,13 +32,18 @@ export const InvitationsList = () => {
         throw error;
       }
 
+      console.log("Fetched invitations:", data); // Debug log
       return data || [];
     },
     enabled: !!user?.email,
+    refetchOnWindowFocus: true, // Refetch when window gains focus
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   const handleAcceptInvitation = async (invitationId: string, coachId: string) => {
     try {
+      console.log("Accepting invitation:", invitationId, "from coach:", coachId); // Debug log
+
       // First update the invitation status
       const { error: updateError } = await supabase
         .from("athlete_invitations")
@@ -73,7 +80,18 @@ export const InvitationsList = () => {
   }
 
   if (!invitations || invitations.length === 0) {
-    return null;
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Aucune invitation en attente</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">
+            Vous n'avez pas d'invitation en attente pour le moment.
+          </p>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
