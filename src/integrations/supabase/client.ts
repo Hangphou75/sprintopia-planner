@@ -16,7 +16,9 @@ export const supabase = createClient<Database>(
       storage: {
         getItem: (key) => {
           try {
-            return JSON.parse(localStorage.getItem(key) || 'null');
+            const item = localStorage.getItem(key);
+            if (!item) return null;
+            return JSON.parse(item);
           } catch (error) {
             console.error('Error reading from localStorage:', error);
             return null;
