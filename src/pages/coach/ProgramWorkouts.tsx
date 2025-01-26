@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { ProgramWorkoutCalendar } from "@/components/programs/ProgramWorkoutCalendar";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const ProgramWorkouts = () => {
   const { programId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const { data: workouts, isLoading: isLoadingWorkouts, error: workoutsError } = useQuery({
     queryKey: ["workouts", programId],
@@ -71,10 +73,12 @@ export const ProgramWorkouts = () => {
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Séances d'entraînement</h1>
-        <Button onClick={() => navigate(`/coach/programs/${programId}/workouts/new`)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Nouvelle séance
-        </Button>
+        {user?.role === 'coach' && (
+          <Button onClick={() => navigate(`/coach/programs/${programId}/workouts/new`)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Nouvelle séance
+          </Button>
+        )}
       </div>
 
       <ProgramWorkoutCalendar
