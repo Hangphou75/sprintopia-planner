@@ -8,6 +8,7 @@ import { ProgramWorkoutCalendar } from "@/components/programs/ProgramWorkoutCale
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
+import { ProgramCard } from "@/components/programs/ProgramCard";
 
 const Home = () => {
   const { user } = useAuth();
@@ -170,9 +171,7 @@ const Home = () => {
                   <CardTitle>Programme en cours</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-xl font-semibold">
-                    {activeProgram.program.name}
-                  </p>
+                  <ProgramCard program={activeProgram.program} readOnly />
                 </CardContent>
               </Card>
               
