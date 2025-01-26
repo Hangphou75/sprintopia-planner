@@ -17,7 +17,6 @@ export const ProgramCard = ({ program, readOnly = false, onDelete }: ProgramCard
   const { profile } = useProfile();
 
   const handleClick = () => {
-    // Rediriger vers la page des séances
     if (profile?.role === 'athlete') {
       navigate(`/athlete/workouts/${program.id}`);
     } else {
