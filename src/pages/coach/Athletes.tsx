@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 const Athletes = () => {
   const { user } = useAuth();
@@ -42,16 +44,36 @@ const Athletes = () => {
     enabled: !!user?.id,
   });
 
+  const { data: invitations } = useQuery({
+    queryKey: ["coach-invitations", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("athlete_invitations")
+        .select()
+        .eq("coach_id", user?.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
   const inviteMutation = useMutation({
     mutationFn: async (email: string) => {
-      const { error } = await supabase.from("athlete_invitations").insert({
-        email,
-        coach_id: user?.id,
-      });
+      const { error } = await supabase
+        .from("athlete_invitations")
+        .insert([
+          {
+            coach_id: user?.id,
+            email,
+          },
+        ]);
 
       if (error) throw error;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["coach-invitations"] });
       toast.success("Invitation envoyée avec succès");
       setIsInviteDialogOpen(false);
       setInviteEmail("");
@@ -59,6 +81,44 @@ const Athletes = () => {
     onError: (error) => {
       console.error("Error sending invitation:", error);
       toast.error("Erreur lors de l'envoi de l'invitation");
+    },
+  });
+
+  const resendInvitationMutation = useMutation({
+    mutationFn: async (invitationId: string) => {
+      const { error } = await supabase
+        .from("athlete_invitations")
+        .update({ updated_at: new Date().toISOString() })
+        .eq("id", invitationId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["coach-invitations"] });
+      toast.success("Invitation renvoyée avec succès");
+    },
+    onError: (error) => {
+      console.error("Error resending invitation:", error);
+      toast.error("Erreur lors du renvoi de l'invitation");
+    },
+  });
+
+  const deleteInvitationMutation = useMutation({
+    mutationFn: async (invitationId: string) => {
+      const { error } = await supabase
+        .from("athlete_invitations")
+        .delete()
+        .eq("id", invitationId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["coach-invitations"] });
+      toast.success("Invitation supprimée avec succès");
+    },
+    onError: (error) => {
+      console.error("Error deleting invitation:", error);
+      toast.error("Erreur lors de la suppression de l'invitation");
     },
   });
 
@@ -81,6 +141,7 @@ const Athletes = () => {
       </div>
 
       <div className="grid gap-4">
+        <h2 className="text-xl font-semibold">Athlètes actifs</h2>
         {athletes?.map((relation) => (
           <div
             key={relation.id}
@@ -95,6 +156,39 @@ const Athletes = () => {
           </div>
         ))}
       </div>
+
+      {invitations && invitations.length > 0 && (
+        <div className="grid gap-4">
+          <h2 className="text-xl font-semibold">Invitations en attente</h2>
+          {invitations.map((invitation) => (
+            <div
+              key={invitation.id}
+              className="flex items-center justify-between p-4 border rounded-lg"
+            >
+              <div>
+                <p className="font-medium">{invitation.email}</p>
+                <p className="text-sm text-muted-foreground">
+                  Envoyée le {format(new Date(invitation.created_at), 'dd MMMM yyyy', { locale: fr })}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline"
+                  onClick={() => resendInvitationMutation.mutate(invitation.id)}
+                >
+                  Relancer
+                </Button>
+                <Button 
+                  variant="destructive"
+                  onClick={() => deleteInvitationMutation.mutate(invitation.id)}
+                >
+                  Supprimer
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
         <DialogContent>

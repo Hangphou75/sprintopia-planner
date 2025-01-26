@@ -10,6 +10,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 export const InvitationsList = () => {
   const { user } = useAuth();
@@ -102,6 +104,9 @@ export const InvitationsList = () => {
               </p>
               <p className="text-sm text-muted-foreground">
                 souhaite devenir votre coach
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Envoyée le {format(new Date(invitation.created_at), 'dd MMMM yyyy', { locale: fr })}
               </p>
             </div>
             <Button
