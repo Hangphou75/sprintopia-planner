@@ -27,6 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (error) {
         console.error("Auth initialization error:", error);
+        setProfile(null);
       } finally {
         setIsLoading(false);
       }
@@ -35,10 +36,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session);
+      
       if (event === 'SIGNED_IN' && session?.user) {
-        const userProfile = await fetchProfile(session.user.id);
-        setProfile(userProfile);
-      } else if (event === 'SIGNED_OUT') {
+        try {
+          const userProfile = await fetchProfile(session.user.id);
+          setProfile(userProfile);
+        } catch (error) {
+          console.error("Error fetching profile:", error);
+          setProfile(null);
+        }
+      } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
         setProfile(null);
       }
     });
@@ -54,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       toast.success("Connexion réussie");
     } catch (error: any) {
       console.error("Login error:", error);
-      toast.error("Erreur de connexion: " + error.message);
+      toast.error("Erreur de connexion: " + (error.message || "Email ou mot de passe incorrect"));
       throw error;
     }
   };

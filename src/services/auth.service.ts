@@ -26,6 +26,9 @@ export const authService = {
       return data.user;
     } catch (error: any) {
       console.error("Auth service: login error", error);
+      if (error.message.includes("Invalid login credentials")) {
+        throw new Error("Email ou mot de passe incorrect");
+      }
       throw new Error(error.message || "Erreur de connexion");
     }
   },
