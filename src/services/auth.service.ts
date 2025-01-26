@@ -29,7 +29,7 @@ export const authService = {
       if (error.message.includes("Invalid login credentials")) {
         throw new Error("Email ou mot de passe incorrect");
       }
-      throw new Error(error.message || "Erreur de connexion");
+      throw error;
     }
   },
 

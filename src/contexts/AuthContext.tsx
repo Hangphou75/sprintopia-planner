@@ -21,9 +21,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
+        console.log("Initial session check:", session);
+        
         if (session?.user) {
+          console.log("Found existing session, fetching profile for:", session.user.id);
           const userProfile = await fetchProfile(session.user.id);
-          setProfile(userProfile);
+          if (userProfile) {
+            console.log("Setting profile:", userProfile);
+            setProfile(userProfile);
+          } else {
+            console.log("No profile found for user");
+            setProfile(null);
+          }
+        } else {
+          console.log("No session found");
+          setProfile(null);
         }
       } catch (error) {
         console.error("Auth initialization error:", error);
@@ -40,13 +52,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (event === 'SIGNED_IN' && session?.user) {
         try {
+          console.log("User signed in, fetching profile for:", session.user.id);
           const userProfile = await fetchProfile(session.user.id);
-          setProfile(userProfile);
+          if (userProfile) {
+            console.log("Setting profile after sign in:", userProfile);
+            setProfile(userProfile);
+          } else {
+            console.log("No profile found after sign in");
+            setProfile(null);
+          }
         } catch (error) {
           console.error("Error fetching profile:", error);
           setProfile(null);
         }
-      } else if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+      } else if (event === 'SIGNED_OUT') {
+        console.log("User signed out");
         setProfile(null);
       }
     });
@@ -58,6 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string, role: string) => {
     try {
+      console.log("Attempting login with:", { email, role });
       await authService.login(email, password, role);
       toast.success("Connexion réussie");
     } catch (error: any) {
@@ -83,13 +104,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return <div className="flex items-center justify-center h-screen">Chargement...</div>;
   }
 
+  const contextValue = {
+    user: profile,
+    login,
+    logout,
+    isAuthenticated: !!profile
+  };
+
+  console.log("Auth context value:", contextValue);
+
   return (
-    <AuthContext.Provider value={{
-      user: profile,
-      login,
-      logout,
-      isAuthenticated: !!profile
-    }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
