@@ -47,6 +47,7 @@ export type Database = {
       }
       athlete_invitations: {
         Row: {
+          athlete_id: string | null
           coach_id: string
           created_at: string
           email: string
@@ -55,6 +56,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          athlete_id?: string | null
           coach_id: string
           created_at?: string
           email: string
@@ -63,6 +65,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          athlete_id?: string | null
           coach_id?: string
           created_at?: string
           email?: string
@@ -71,6 +74,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "athlete_invitations_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "athlete_invitations_coach_id_fkey"
             columns: ["coach_id"]

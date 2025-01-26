@@ -10,15 +10,15 @@ import { fr } from "date-fns/locale";
 export const InvitationsList = () => {
   const { user } = useAuth();
 
-  console.log("Current user:", user); // Debug log pour voir l'utilisateur actuel
+  console.log("Current user:", user); // Debug log
 
   const { data: invitations, isLoading } = useQuery({
-    queryKey: ["athlete-invitations", user?.email],
+    queryKey: ["athlete-invitations", user?.id],
     queryFn: async () => {
-      console.log("Fetching invitations for email:", user?.email);
+      console.log("Fetching invitations for user:", user?.id, user?.email);
 
-      if (!user?.email) {
-        console.error("No user email available");
+      if (!user?.id || !user?.email) {
+        console.error("No user information available");
         return [];
       }
 
@@ -31,7 +31,7 @@ export const InvitationsList = () => {
             last_name
           )
         `)
-        .eq("email", user.email)
+        .or(`email.eq.${user.email},athlete_id.eq.${user.id}`)
         .eq("status", "pending");
 
       if (error) {
@@ -42,7 +42,7 @@ export const InvitationsList = () => {
       console.log("Raw invitations data:", data);
       return data || [];
     },
-    enabled: !!user?.email,
+    enabled: !!user?.id && !!user?.email,
     refetchOnWindowFocus: true,
     refetchInterval: 30000,
   });
