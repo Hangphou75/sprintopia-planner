@@ -16,8 +16,7 @@ export const supabase = createClient<Database>(
       storage: {
         getItem: (key) => {
           try {
-            const item = localStorage.getItem(key);
-            return item ? JSON.parse(item) : null;
+            return JSON.parse(localStorage.getItem(key) || 'null');
           } catch (error) {
             console.error('Error reading from localStorage:', error);
             return null;
@@ -38,6 +37,11 @@ export const supabase = createClient<Database>(
           }
         }
       }
-    }
+    },
+    global: {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
   }
 );
