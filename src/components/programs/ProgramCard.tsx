@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { Program } from "@/types/program";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarDays, Dumbbell } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 
 type ProgramCardProps = {
   program: Program;
@@ -31,12 +31,9 @@ export const ProgramCard = ({ program, readOnly = false, onDelete }: ProgramCard
 
   return (
     <Card 
-      className="cursor-pointer hover:shadow-lg transition-shadow relative group"
+      className="cursor-pointer hover:shadow-lg transition-shadow"
       onClick={handleClick}
     >
-      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-        <Dumbbell className="h-5 w-5 text-muted-foreground" />
-      </div>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <CalendarDays className="h-5 w-5" />
