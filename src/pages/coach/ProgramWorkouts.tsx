@@ -4,12 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { ProgramWorkoutCalendar } from "@/components/programs/ProgramWorkoutCalendar";
+import { toast } from "sonner";
 
 export const ProgramWorkouts = () => {
   const { programId } = useParams();
   const navigate = useNavigate();
 
-  const { data: workouts, isLoading: isLoadingWorkouts } = useQuery({
+  const { data: workouts, isLoading: isLoadingWorkouts, error: workoutsError } = useQuery({
     queryKey: ["workouts", programId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -18,12 +19,16 @@ export const ProgramWorkouts = () => {
         .eq("program_id", programId)
         .order("date", { ascending: true });
 
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error("Error fetching workouts:", error);
+        throw error;
+      }
+      return data || [];
     },
+    enabled: !!programId,
   });
 
-  const { data: competitions, isLoading: isLoadingCompetitions } = useQuery({
+  const { data: competitions, isLoading: isLoadingCompetitions, error: competitionsError } = useQuery({
     queryKey: ["competitions", programId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -32,15 +37,32 @@ export const ProgramWorkouts = () => {
         .eq("program_id", programId)
         .order("date", { ascending: true });
 
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error("Error fetching competitions:", error);
+        throw error;
+      }
+      return data || [];
     },
+    enabled: !!programId,
   });
+
+  if (workoutsError || competitionsError) {
+    toast.error("Une erreur est survenue lors du chargement des données");
+    return (
+      <div className="container mx-auto p-6">
+        <div className="text-center text-red-500">
+          Une erreur est survenue lors du chargement des données. Veuillez réessayer.
+        </div>
+      </div>
+    );
+  }
 
   if (isLoadingWorkouts || isLoadingCompetitions) {
     return (
-      <div className="flex items-center justify-center min-h-[200px]">
-        <div className="text-muted-foreground">Chargement...</div>
+      <div className="container mx-auto p-6">
+        <div className="flex items-center justify-center min-h-[200px]">
+          <div className="text-muted-foreground">Chargement...</div>
+        </div>
       </div>
     );
   }
