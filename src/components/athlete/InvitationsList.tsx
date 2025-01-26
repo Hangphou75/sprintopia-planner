@@ -10,10 +10,17 @@ import { fr } from "date-fns/locale";
 export const InvitationsList = () => {
   const { user } = useAuth();
 
+  console.log("Current user:", user); // Debug log pour voir l'utilisateur actuel
+
   const { data: invitations, isLoading } = useQuery({
     queryKey: ["athlete-invitations", user?.email],
     queryFn: async () => {
-      console.log("Fetching invitations for email:", user?.email); // Debug log
+      console.log("Fetching invitations for email:", user?.email);
+
+      if (!user?.email) {
+        console.error("No user email available");
+        return [];
+      }
 
       const { data, error } = await supabase
         .from("athlete_invitations")
@@ -24,7 +31,7 @@ export const InvitationsList = () => {
             last_name
           )
         `)
-        .eq("email", user?.email)
+        .eq("email", user.email)
         .eq("status", "pending");
 
       if (error) {
@@ -32,19 +39,18 @@ export const InvitationsList = () => {
         throw error;
       }
 
-      console.log("Fetched invitations:", data); // Debug log
+      console.log("Raw invitations data:", data);
       return data || [];
     },
     enabled: !!user?.email,
-    refetchOnWindowFocus: true, // Refetch when window gains focus
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchOnWindowFocus: true,
+    refetchInterval: 30000,
   });
 
   const handleAcceptInvitation = async (invitationId: string, coachId: string) => {
     try {
-      console.log("Accepting invitation:", invitationId, "from coach:", coachId); // Debug log
+      console.log("Accepting invitation:", invitationId, "from coach:", coachId);
 
-      // First update the invitation status
       const { error: updateError } = await supabase
         .from("athlete_invitations")
         .update({ status: "accepted" })
@@ -52,7 +58,6 @@ export const InvitationsList = () => {
 
       if (updateError) throw updateError;
 
-      // Then create the coach-athlete relationship
       const { error: relationError } = await supabase
         .from("coach_athletes")
         .insert({
