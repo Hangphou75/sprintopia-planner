@@ -17,9 +17,14 @@ export const ProgramCard = ({ program, readOnly = false, onDelete }: ProgramCard
   const { profile } = useProfile();
 
   const handleClick = () => {
+    console.log("Profile role:", profile?.role); // Debug log
+    console.log("Program ID:", program.id); // Debug log
+    
     if (profile?.role === 'athlete') {
+      console.log("Navigating to athlete workouts"); // Debug log
       navigate(`/athlete/workouts/${program.id}`);
     } else {
+      console.log("Navigating to coach workouts"); // Debug log
       navigate(`/coach/programs/${program.id}/workouts`);
     }
   };
