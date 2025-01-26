@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { fr } from "date-fns/locale";
 
 export const InvitationsList = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   console.log("Current user:", user); // Debug log
 
@@ -51,22 +52,35 @@ export const InvitationsList = () => {
     try {
       console.log("Accepting invitation:", invitationId, "from coach:", coachId);
 
+      // 1. Mettre à jour le statut de l'invitation
       const { error: updateError } = await supabase
         .from("athlete_invitations")
         .update({ status: "accepted" })
-        .eq("id", invitationId);
+        .eq("id", invitationId)
+        .select();
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error("Error updating invitation:", updateError);
+        throw updateError;
+      }
 
+      // 2. Créer la relation coach-athlète
       const { error: relationError } = await supabase
         .from("coach_athletes")
         .insert({
           coach_id: coachId,
           athlete_id: user?.id,
-        });
+        })
+        .select();
 
-      if (relationError) throw relationError;
+      if (relationError) {
+        console.error("Error creating coach-athlete relation:", relationError);
+        throw relationError;
+      }
 
+      // 3. Rafraîchir les données
+      await queryClient.invalidateQueries({ queryKey: ["athlete-invitations"] });
+      
       toast.success("Invitation acceptée avec succès");
     } catch (error) {
       console.error("Error accepting invitation:", error);
