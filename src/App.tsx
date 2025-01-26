@@ -58,6 +58,7 @@ function App() {
               <Route path="planning" element={<AthletePlanning />} />
               <Route path="profile" element={<AthleteProfile />} />
               <Route path="workouts/:programId" element={<ProgramWorkouts />} />
+              <Route path="programs/:programId/workouts/:workoutId/edit" element={<EditWorkout />} />
             </Route>
 
             <Route
