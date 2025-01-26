@@ -3,9 +3,20 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Timer } from "lucide-react";
+import { ArrowLeft, Timer, Dumbbell, Activity } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+
+const themes = [
+  { value: "aerobic", label: "Aérobie" },
+  { value: "anaerobic-alactic", label: "Anaérobie Alactique" },
+  { value: "anaerobic-lactic", label: "Anaérobie lactique" },
+  { value: "strength", label: "Renforcement musculaire" },
+  { value: "technical", label: "Travail technique" },
+  { value: "mobility", label: "Mobilité" },
+  { value: "plyometric", label: "Plyométrie" },
+];
 
 export const WorkoutDetails = () => {
   const { workoutId } = useParams();
@@ -45,8 +56,10 @@ export const WorkoutDetails = () => {
     );
   }
 
+  const themeLabel = themes.find(t => t.value === workout.theme)?.label || workout.theme;
+
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-6 space-y-6 max-w-3xl">
       <Button
         variant="outline"
         onClick={() => navigate(-1)}
@@ -56,47 +69,85 @@ export const WorkoutDetails = () => {
         Retour
       </Button>
 
-      <Card>
+      <Card className={cn(
+        "border-2",
+        workout.theme && `border-theme-${workout.theme}`
+      )}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-2xl">
             <Timer className="h-5 w-5" />
             {workout.title}
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <p className="text-sm text-muted-foreground">
-              Date : {format(new Date(workout.date), 'dd MMMM yyyy', { locale: fr })}
-            </p>
-            {workout.time && (
-              <p className="text-sm text-muted-foreground">
-                Heure : {workout.time}
-              </p>
-            )}
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold mb-1">Date et heure</h3>
+                <p className="text-muted-foreground">
+                  {format(new Date(workout.date), 'dd MMMM yyyy', { locale: fr })}
+                  {workout.time && ` à ${workout.time}`}
+                </p>
+              </div>
+
+              {workout.theme && (
+                <div>
+                  <h3 className="font-semibold mb-1">Type de séance</h3>
+                  <p className="text-muted-foreground">{themeLabel}</p>
+                </div>
+              )}
+
+              {workout.phase && (
+                <div>
+                  <h3 className="font-semibold mb-1">Phase</h3>
+                  <p className="text-muted-foreground capitalize">{workout.phase}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              {workout.intensity && (
+                <div>
+                  <h3 className="font-semibold mb-1">Intensité</h3>
+                  <p className="text-muted-foreground">{workout.intensity}</p>
+                </div>
+              )}
+
+              {workout.recovery && (
+                <div>
+                  <h3 className="font-semibold mb-1">Récupération</h3>
+                  <p className="text-muted-foreground">{workout.recovery}</p>
+                </div>
+              )}
+
+              {workout.duration && (
+                <div>
+                  <h3 className="font-semibold mb-1">Durée</h3>
+                  <p className="text-muted-foreground">{workout.duration}</p>
+                </div>
+              )}
+            </div>
           </div>
 
           {workout.description && (
             <div>
               <h3 className="font-semibold mb-2">Description</h3>
-              <p className="text-sm">{workout.description}</p>
-            </div>
-          )}
-
-          {workout.theme && (
-            <div>
-              <h3 className="font-semibold mb-2">Type de séance</h3>
-              <p className="text-sm">{workout.theme}</p>
+              <p className="text-muted-foreground whitespace-pre-wrap">
+                {workout.description}
+              </p>
             </div>
           )}
 
           {workout.details && (
             <div>
-              <h3 className="font-semibold mb-2">Détails</h3>
-              <p className="text-sm whitespace-pre-wrap">
-                {typeof workout.details === 'string' 
-                  ? workout.details 
-                  : JSON.stringify(workout.details, null, 2)}
-              </p>
+              <h3 className="font-semibold mb-2">Détails de la séance</h3>
+              <div className="bg-muted p-4 rounded-lg">
+                <pre className="text-sm whitespace-pre-wrap">
+                  {typeof workout.details === 'string' 
+                    ? workout.details 
+                    : JSON.stringify(workout.details, null, 2)}
+                </pre>
+              </div>
             </div>
           )}
         </CardContent>
