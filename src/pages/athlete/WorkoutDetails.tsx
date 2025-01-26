@@ -92,7 +92,11 @@ export const WorkoutDetails = () => {
           {workout.details && (
             <div>
               <h3 className="font-semibold mb-2">Détails</h3>
-              <p className="text-sm whitespace-pre-wrap">{workout.details}</p>
+              <p className="text-sm whitespace-pre-wrap">
+                {typeof workout.details === 'string' 
+                  ? workout.details 
+                  : JSON.stringify(workout.details, null, 2)}
+              </p>
             </div>
           )}
         </CardContent>
