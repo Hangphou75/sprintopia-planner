@@ -4,7 +4,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { Toaster } from "./components/ui/toaster";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { RoleProtectedRoute } from "./components/auth/RoleProtectedRoute";
-import Layout from "./components/layout/Layout";
+import Layout from "./components/Layout";
 import { Login } from "./pages/auth/Login";
 import { Register } from "./pages/auth/Register";
 import { ForgotPassword } from "./pages/auth/ForgotPassword";
