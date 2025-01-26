@@ -7,7 +7,7 @@ import { InvitationsList } from "@/components/athlete/InvitationsList";
 const Home = () => {
   const { user } = useAuth();
 
-  const { data: activeProgram } = useQuery({
+  const { data: activeProgram, isLoading } = useQuery({
     queryKey: ["active-program", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -21,7 +21,7 @@ const Home = () => {
         `
         )
         .eq("user_id", user?.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;
@@ -35,7 +35,13 @@ const Home = () => {
 
       <InvitationsList />
 
-      {activeProgram?.programs && (
+      {isLoading ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Chargement...</CardTitle>
+          </CardHeader>
+        </Card>
+      ) : activeProgram?.programs ? (
         <Card>
           <CardHeader>
             <CardTitle>Programme en cours</CardTitle>
@@ -43,6 +49,17 @@ const Home = () => {
           <CardContent>
             <p className="text-xl font-semibold">
               {activeProgram.programs.name}
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>Aucun programme actif</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">
+              Vous n'avez pas encore de programme actif. Contactez votre coach pour en activer un.
             </p>
           </CardContent>
         </Card>
