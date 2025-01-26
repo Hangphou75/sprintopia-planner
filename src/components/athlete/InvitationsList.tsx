@@ -11,7 +11,7 @@ export const InvitationsList = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  console.log("Current user:", user); // Debug log
+  console.log("Current user:", user);
 
   const { data: invitations, isLoading } = useQuery({
     queryKey: ["athlete-invitations", user?.id],
@@ -52,37 +52,35 @@ export const InvitationsList = () => {
     try {
       console.log("Accepting invitation:", invitationId, "from coach:", coachId);
 
-      // 1. Mettre à jour le statut de l'invitation
-      const { error: updateError } = await supabase
-        .from("athlete_invitations")
-        .update({ status: "accepted" })
-        .eq("id", invitationId)
-        .select();
-
-      if (updateError) {
-        console.error("Error updating invitation:", updateError);
-        throw updateError;
-      }
-
-      // 2. Créer la relation coach-athlète
+      // 1. Créer d'abord la relation coach-athlète
       const { error: relationError } = await supabase
         .from("coach_athletes")
         .insert({
           coach_id: coachId,
           athlete_id: user?.id,
-        })
-        .select();
+        });
 
       if (relationError) {
         console.error("Error creating coach-athlete relation:", relationError);
         throw relationError;
       }
 
+      // 2. Mettre à jour le statut de l'invitation seulement si la relation est créée
+      const { error: updateError } = await supabase
+        .from("athlete_invitations")
+        .update({ status: "accepted" })
+        .eq("id", invitationId);
+
+      if (updateError) {
+        console.error("Error updating invitation:", updateError);
+        throw updateError;
+      }
+
       // 3. Rafraîchir les données
       await queryClient.invalidateQueries({ queryKey: ["athlete-invitations"] });
       
       toast.success("Invitation acceptée avec succès");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error accepting invitation:", error);
       toast.error("Erreur lors de l'acceptation de l'invitation");
     }
