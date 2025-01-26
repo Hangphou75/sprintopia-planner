@@ -1,34 +1,58 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InvitationsList } from "@/components/athlete/InvitationsList";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { ProgramWorkoutCalendar } from "@/components/programs/ProgramWorkoutCalendar";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
 const Home = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const { data: activeProgram, isLoading: isLoadingActive } = useQuery({
     queryKey: ["active-program", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: activeData, error: activeError } = await supabase
         .from("active_programs")
-        .select(
-          `
+        .select(`
           *,
-          programs (
+          program:programs (
             *
           )
-        `
-        )
+        `)
         .eq("user_id", user?.id)
         .maybeSingle();
 
-      if (error) throw error;
-      return data;
+      if (activeError) throw activeError;
+
+      if (activeData) {
+        // Fetch workouts and competitions for the active program
+        const [workoutsResponse, competitionsResponse] = await Promise.all([
+          supabase
+            .from("workouts")
+            .select("*")
+            .eq("program_id", activeData.program_id)
+            .order("date", { ascending: true }),
+          supabase
+            .from("competitions")
+            .select("*")
+            .eq("program_id", activeData.program_id)
+            .order("date", { ascending: true }),
+        ]);
+
+        if (workoutsResponse.error) throw workoutsResponse.error;
+        if (competitionsResponse.error) throw competitionsResponse.error;
+
+        return {
+          ...activeData,
+          workouts: workoutsResponse.data || [],
+          competitions: competitionsResponse.data || [],
+        };
+      }
+
+      return null;
     },
     enabled: !!user?.id,
   });
@@ -59,14 +83,29 @@ const Home = () => {
 
   const handleAcceptProgram = async (programId: string, coachId: string) => {
     try {
-      const { error } = await supabase
+      // 1. Update shared program status
+      const { error: updateError } = await supabase
         .from("shared_programs")
         .update({ status: "active" })
         .eq("program_id", programId)
         .eq("athlete_id", user?.id)
         .eq("coach_id", coachId);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
+
+      // 2. Create active program entry
+      const { error: activeError } = await supabase
+        .from("active_programs")
+        .insert({
+          user_id: user?.id,
+          program_id: programId,
+        });
+
+      if (activeError) throw activeError;
+
+      // 3. Refresh queries
+      await queryClient.invalidateQueries({ queryKey: ["shared-programs-pending"] });
+      await queryClient.invalidateQueries({ queryKey: ["active-program"] });
 
       toast.success("Programme accepté avec succès");
     } catch (error) {
@@ -122,17 +161,32 @@ const Home = () => {
             </Card>
           )}
 
-          {activeProgram?.programs ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Programme en cours</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xl font-semibold">
-                  {activeProgram.programs.name}
-                </p>
-              </CardContent>
-            </Card>
+          {activeProgram ? (
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Programme en cours</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-xl font-semibold">
+                    {activeProgram.program.name}
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Calendrier des séances</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ProgramWorkoutCalendar
+                    workouts={activeProgram.workouts}
+                    competitions={activeProgram.competitions}
+                    programId={activeProgram.program_id}
+                  />
+                </CardContent>
+              </Card>
+            </div>
           ) : (
             <Card>
               <CardHeader>
