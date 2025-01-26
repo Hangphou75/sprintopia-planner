@@ -14,13 +14,12 @@ type ProgramCardProps = {
 export const ProgramCard = ({ program, readOnly = false, onDelete }: ProgramCardProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { profile } = useProfile();
 
   const handleClick = () => {
-    console.log("Profile role:", profile?.role); // Debug log
+    console.log("User role:", user?.role); // Debug log
     console.log("Program ID:", program.id); // Debug log
     
-    if (profile?.role === 'athlete') {
+    if (user?.role === 'athlete') {
       console.log("Navigating to athlete workouts"); // Debug log
       navigate(`/athlete/workouts/${program.id}`);
     } else {
