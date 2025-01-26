@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useProfile } from "@/hooks/useProfile";
 import { Program } from "@/types/program";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarDays } from "lucide-react";
@@ -16,16 +15,23 @@ export const ProgramCard = ({ program, readOnly = false, onDelete }: ProgramCard
   const { user } = useAuth();
 
   const handleClick = () => {
-    console.log("User role:", user?.role); // Debug log
-    console.log("Program ID:", program.id); // Debug log
-    
-    if (user?.role === 'athlete') {
-      console.log("Navigating to athlete workouts"); // Debug log
-      navigate(`/athlete/workouts/${program.id}`);
-    } else {
-      console.log("Navigating to coach workouts"); // Debug log
-      navigate(`/coach/programs/${program.id}/workouts`);
+    if (!user?.role || !program.id) {
+      console.error("Missing user role or program ID");
+      return;
     }
+
+    console.log("Navigating with:", {
+      role: user.role,
+      programId: program.id,
+      currentPath: window.location.pathname
+    });
+
+    const path = user.role === 'athlete' 
+      ? `/athlete/workouts/${program.id}`
+      : `/coach/programs/${program.id}/workouts`;
+
+    console.log("Navigation path:", path);
+    navigate(path);
   };
 
   return (
