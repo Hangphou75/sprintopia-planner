@@ -22,25 +22,22 @@ export const useProfile = () => {
       
       if (!userId) {
         console.error("No user ID provided");
-        toast.error("Erreur: ID utilisateur manquant");
         return null;
       }
 
       const { data: profileData, error } = await supabase
         .from('profiles')
-        .select()
+        .select('*')
         .eq('id', userId)
-        .maybeSingle();
+        .single();
 
       if (error) {
         console.error("Error fetching profile:", error);
-        toast.error(`Erreur lors de la récupération du profil: ${error.message}`);
         return null;
       }
 
       if (!profileData) {
         console.error("No profile found for user:", userId);
-        toast.error("Profil non trouvé");
         return null;
       }
 
@@ -51,7 +48,7 @@ export const useProfile = () => {
         first_name: profileData.first_name,
         last_name: profileData.last_name,
         email: profileData.email,
-        role: (profileData.role as UserRole) || 'athlete',
+        role: profileData.role as UserRole || 'athlete',
       };
 
       console.log("Processed user profile:", userProfile);
@@ -59,7 +56,6 @@ export const useProfile = () => {
       return userProfile;
     } catch (error: any) {
       console.error('Error in fetchProfile:', error);
-      toast.error(`Erreur de connexion: ${error.message}`);
       return null;
     }
   };
