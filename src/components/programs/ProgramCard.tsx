@@ -30,7 +30,10 @@ export const ProgramCard = ({ program, readOnly = false, onDelete }: ProgramCard
   };
 
   return (
-    <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+    <Card 
+      className="cursor-pointer hover:shadow-lg transition-shadow"
+      onClick={handleClick}
+    >
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <CalendarDays className="h-5 w-5" />
