@@ -32,7 +32,8 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
     queryFn: async () => {
       if (!coachId || !selectedDate) return [];
 
-      console.log("Fetching workouts for date:", format(selectedDate, "yyyy-MM-dd"));
+      const formattedDate = format(selectedDate, "yyyy-MM-dd");
+      console.log("Fetching workouts for date:", formattedDate);
 
       // First get all athlete IDs for this coach
       const { data: coachAthletes, error: athletesError } = await supabase
@@ -51,45 +52,8 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
 
       const athleteIds = coachAthletes.map(row => row.athlete_id);
 
-      // Get workouts for both owned and shared programs
-      const { data: programs, error: programsError } = await supabase
-        .from("programs")
-        .select("id")
-        .in("user_id", athleteIds);
-
-      if (programsError) {
-        console.error("Error fetching programs:", programsError);
-        return [];
-      }
-
-      console.log("Athletes programs:", programs);
-
-      const programIds = programs?.map(p => p.id) || [];
-
-      // Get additional program IDs from shared programs
-      const { data: sharedPrograms, error: sharedError } = await supabase
-        .from("shared_programs")
-        .select("program_id")
-        .in("athlete_id", athleteIds);
-
-      if (sharedError) {
-        console.error("Error fetching shared programs:", sharedError);
-        return [];
-      }
-
-      console.log("Shared programs:", sharedPrograms);
-
-      const sharedProgramIds = sharedPrograms?.map(sp => sp.program_id) || [];
-
-      // Combine all program IDs
-      const allProgramIds = [...programIds, ...sharedProgramIds];
-
-      if (!allProgramIds.length) return [];
-
-      console.log("All program IDs:", allProgramIds);
-
-      // Get workouts for the specific date and programs
-      const { data, error } = await supabase
+      // Get workouts for all programs where these athletes are either owners or have shared access
+      const { data: workouts, error: workoutsError } = await supabase
         .from("workouts")
         .select(`
           *,
@@ -111,16 +75,18 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
             )
           )
         `)
-        .eq("date", format(selectedDate, "yyyy-MM-dd"))
-        .in("program_id", allProgramIds);
+        .eq("date", formattedDate)
+        .or(`program.user_id.in.(${athleteIds.join(",")}),program.id.in.(
+          select program_id from shared_programs where athlete_id in (${athleteIds.join(",")})
+        )`);
 
-      if (error) {
-        console.error("Error fetching workouts:", error);
+      if (workoutsError) {
+        console.error("Error fetching workouts:", workoutsError);
         return [];
       }
 
-      console.log("Workouts for date:", data);
-      return data || [];
+      console.log("Workouts for date:", workouts);
+      return workouts || [];
     },
     enabled: !!coachId && !!selectedDate,
   });
@@ -139,23 +105,6 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
 
       const athleteIds = coachAthletes.map(row => row.athlete_id);
 
-      const { data: programs } = await supabase
-        .from("programs")
-        .select("id")
-        .in("user_id", athleteIds);
-
-      const programIds = programs?.map(p => p.id) || [];
-
-      const { data: sharedPrograms } = await supabase
-        .from("shared_programs")
-        .select("program_id")
-        .in("athlete_id", athleteIds);
-
-      const sharedProgramIds = sharedPrograms?.map(sp => sp.program_id) || [];
-      const allProgramIds = [...programIds, ...sharedProgramIds];
-
-      if (!allProgramIds.length) return [];
-
       const { data, error } = await supabase
         .from("workouts")
         .select(`
@@ -164,7 +113,9 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
             user_id
           )
         `)
-        .in("program_id", allProgramIds);
+        .or(`program.user_id.in.(${athleteIds.join(",")}),program.id.in.(
+          select program_id from shared_programs where athlete_id in (${athleteIds.join(",")})
+        )`);
 
       if (error) {
         console.error("Error fetching all workouts:", error);
@@ -219,7 +170,10 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
         components={{
           DayContent: ({ date }) => {
             const hasWorkouts = allWorkouts?.some(
-              workout => format(new Date(workout.date), "yyyy-MM-dd") === format(date, "yyyy-MM-dd")
+              workout => {
+                const workoutDate = new Date(workout.date);
+                return format(workoutDate, "yyyy-MM-dd") === format(date, "yyyy-MM-dd");
+              }
             );
 
             return (
