@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Program } from "@/types/program";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarDays, Users, Share2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,7 @@ export const ProgramCard = ({ program, readOnly = false, onDelete, onShare }: Pr
   };
 
   const handleShare = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     if (onShare && program.id) {
       console.log("Sharing program:", program.id);
@@ -37,8 +38,11 @@ export const ProgramCard = ({ program, readOnly = false, onDelete, onShare }: Pr
   };
 
   return (
-    <Card>
-      <div onClick={handleClick} className="cursor-pointer">
+    <Card className="relative flex flex-col h-full">
+      <div 
+        onClick={handleClick} 
+        className="cursor-pointer flex-grow"
+      >
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -83,17 +87,17 @@ export const ProgramCard = ({ program, readOnly = false, onDelete, onShare }: Pr
         </CardContent>
       </div>
       {user?.role === 'coach' && (
-        <CardFooter className="border-t pt-4">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-background">
           <Button
             variant="outline"
             size="sm"
             onClick={handleShare}
-            className="ml-auto"
+            className="w-full"
           >
             <Share2 className="h-4 w-4 mr-2" />
             Associer
           </Button>
-        </CardFooter>
+        </div>
       )}
     </Card>
   );
