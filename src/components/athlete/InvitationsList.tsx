@@ -11,13 +11,9 @@ export const InvitationsList = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  console.log("Current user:", user);
-
   const { data: invitations, isLoading } = useQuery({
     queryKey: ["athlete-invitations", user?.id],
     queryFn: async () => {
-      console.log("Fetching invitations for user:", user?.id, user?.email);
-
       if (!user?.id || !user?.email) {
         console.error("No user information available");
         return [];
@@ -40,18 +36,34 @@ export const InvitationsList = () => {
         throw error;
       }
 
-      console.log("Raw invitations data:", data);
       return data || [];
     },
     enabled: !!user?.id && !!user?.email,
-    refetchOnWindowFocus: true,
-    refetchInterval: 30000,
+  });
+
+  const { data: hasCoach } = useQuery({
+    queryKey: ["has-coach", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return false;
+
+      const { data, error } = await supabase
+        .from("coach_athletes")
+        .select("id")
+        .eq("athlete_id", user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error checking coach relationship:", error);
+        throw error;
+      }
+
+      return !!data;
+    },
+    enabled: !!user?.id,
   });
 
   const handleAcceptInvitation = async (invitationId: string, coachId: string) => {
     try {
-      console.log("Accepting invitation:", invitationId, "from coach:", coachId);
-
       // 1. Créer d'abord la relation coach-athlète
       const { error: relationError } = await supabase
         .from("coach_athletes")
@@ -65,7 +77,7 @@ export const InvitationsList = () => {
         throw relationError;
       }
 
-      // 2. Mettre à jour le statut de l'invitation seulement si la relation est créée
+      // 2. Mettre à jour le statut de l'invitation
       const { error: updateError } = await supabase
         .from("athlete_invitations")
         .update({ status: "accepted" })
@@ -78,6 +90,7 @@ export const InvitationsList = () => {
 
       // 3. Rafraîchir les données
       await queryClient.invalidateQueries({ queryKey: ["athlete-invitations"] });
+      await queryClient.invalidateQueries({ queryKey: ["has-coach"] });
       
       toast.success("Invitation acceptée avec succès");
     } catch (error: any) {
@@ -97,18 +110,21 @@ export const InvitationsList = () => {
   }
 
   if (!invitations || invitations.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Aucune invitation en attente</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            Vous n'avez pas d'invitation en attente pour le moment.
-          </p>
-        </CardContent>
-      </Card>
-    );
+    if (!hasCoach) {
+      return (
+        <Card>
+          <CardHeader>
+            <CardTitle>Aucune invitation en attente</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">
+              Vous n'avez pas d'invitation en attente pour le moment.
+            </p>
+          </CardContent>
+        </Card>
+      );
+    }
+    return null;
   }
 
   return (

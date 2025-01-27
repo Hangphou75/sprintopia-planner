@@ -5,14 +5,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { InvitationsList } from "@/components/athlete/InvitationsList";
 import { ProgramWorkoutCalendar } from "@/components/programs/ProgramWorkoutCalendar";
-import { format } from "date-fns";
+import { format, startOfWeek, endOfWeek, isWithinInterval, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { ProgramCard } from "@/components/programs/ProgramCard";
+import { CompetitionCard } from "@/components/programs/CompetitionCard";
+import { Trophy, Timer } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const Home = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const today = new Date();
+  const weekStart = startOfWeek(today, { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
 
   const { data: activeProgram, isLoading: isLoadingActive } = useQuery({
     queryKey: ["active-program", user?.id],
@@ -31,7 +37,6 @@ const Home = () => {
       if (activeError) throw activeError;
 
       if (activeData) {
-        // Fetch workouts and competitions for the active program
         const [workoutsResponse, competitionsResponse] = await Promise.all([
           supabase
             .from("workouts")
@@ -60,62 +65,26 @@ const Home = () => {
     enabled: !!user?.id,
   });
 
-  const { data: sharedPrograms, isLoading: isLoadingShared } = useQuery({
-    queryKey: ["shared-programs-pending", user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("shared_programs")
-        .select(`
-          *,
-          programs (
-            *
-          ),
-          coach:profiles!shared_programs_coach_id_fkey (
-            first_name,
-            last_name
-          )
-        `)
-        .eq("athlete_id", user?.id)
-        .eq("status", "pending");
+  const todayWorkout = activeProgram?.workouts.find(workout => 
+    workout.date && isSameDay(new Date(workout.date), today)
+  );
 
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user?.id,
-  });
+  const upcomingCompetition = activeProgram?.competitions.find(competition =>
+    competition.date && isWithinInterval(new Date(competition.date), {
+      start: weekStart,
+      end: weekEnd
+    })
+  );
 
-  const handleAcceptProgram = async (programId: string, coachId: string) => {
-    try {
-      // 1. Update shared program status
-      const { error: updateError } = await supabase
-        .from("shared_programs")
-        .update({ status: "active" })
-        .eq("program_id", programId)
-        .eq("athlete_id", user?.id)
-        .eq("coach_id", coachId);
-
-      if (updateError) throw updateError;
-
-      // 2. Create active program entry
-      const { error: activeError } = await supabase
-        .from("active_programs")
-        .insert({
-          user_id: user?.id,
-          program_id: programId,
-        });
-
-      if (activeError) throw activeError;
-
-      // 3. Refresh queries
-      await queryClient.invalidateQueries({ queryKey: ["shared-programs-pending"] });
-      await queryClient.invalidateQueries({ queryKey: ["active-program"] });
-
-      toast.success("Programme accepté avec succès");
-    } catch (error) {
-      console.error("Error accepting program:", error);
-      toast.error("Erreur lors de l'acceptation du programme");
-    }
-  };
+  if (isLoadingActive) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Chargement...</CardTitle>
+        </CardHeader>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -123,84 +92,90 @@ const Home = () => {
 
       <InvitationsList />
 
-      {(isLoadingActive || isLoadingShared) ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Chargement...</CardTitle>
-          </CardHeader>
-        </Card>
-      ) : (
-        <>
-          {sharedPrograms && sharedPrograms.length > 0 && (
+      {activeProgram ? (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Programme en cours</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ProgramCard program={activeProgram.program} readOnly />
+            </CardContent>
+          </Card>
+
+          {todayWorkout && (
             <Card>
               <CardHeader>
-                <CardTitle>Programmes en attente</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Timer className="h-5 w-5" />
+                  Séance du jour
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {sharedPrograms.map((shared) => (
-                  <div
-                    key={shared.id}
-                    className="flex items-center justify-between p-4 border rounded-lg"
-                  >
-                    <div>
-                      <p className="font-medium">
-                        {shared.coach.first_name} {shared.coach.last_name}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        vous a partagé le programme "{shared.programs.name}"
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Envoyé le {format(new Date(shared.created_at), 'dd MMMM yyyy', { locale: fr })}
-                      </p>
-                    </div>
-                    <Button
-                      onClick={() => handleAcceptProgram(shared.program_id, shared.coach_id)}
-                    >
-                      Accepter
-                    </Button>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold">{todayWorkout.title}</h3>
+                    {todayWorkout.theme && (
+                      <Badge variant="outline" className="mt-1">
+                        {todayWorkout.theme}
+                      </Badge>
+                    )}
                   </div>
-                ))}
+                  {todayWorkout.description && (
+                    <p className="text-muted-foreground">{todayWorkout.description}</p>
+                  )}
+                  {todayWorkout.time && (
+                    <p className="text-sm text-muted-foreground">
+                      Heure : {todayWorkout.time}
+                    </p>
+                  )}
+                </div>
               </CardContent>
             </Card>
           )}
 
-          {activeProgram ? (
-            <div className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Programme en cours</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ProgramCard program={activeProgram.program} readOnly />
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Calendrier des séances</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ProgramWorkoutCalendar
-                    workouts={activeProgram.workouts}
-                    competitions={activeProgram.competitions}
-                    programId={activeProgram.program_id}
-                  />
-                </CardContent>
-              </Card>
-            </div>
-          ) : (
+          {upcomingCompetition && (
             <Card>
               <CardHeader>
-                <CardTitle>Aucun programme actif</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Trophy className="h-5 w-5 text-yellow-500" />
+                  Compétition cette semaine
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">
-                  Vous n'avez pas encore de programme actif. Contactez votre coach pour en activer un.
-                </p>
+                <CompetitionCard
+                  competition={upcomingCompetition}
+                  onEdit={() => {}}
+                  onDelete={() => {}}
+                />
               </CardContent>
             </Card>
           )}
-        </>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Calendrier des séances</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ProgramWorkoutCalendar
+                workouts={activeProgram.workouts}
+                competitions={activeProgram.competitions}
+                programId={activeProgram.program_id}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>Aucun programme actif</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">
+              Vous n'avez pas encore de programme actif. Contactez votre coach pour en activer un.
+            </p>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
