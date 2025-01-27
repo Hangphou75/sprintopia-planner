@@ -76,15 +76,50 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
           )
         `)
         .eq("date", formattedDate)
-        .or(`program.user_id.in.(${athleteIds.join(",")}),program.id.in.(select program_id from shared_programs where athlete_id in (${athleteIds.join(",")}))`);
+        .in("program.user_id", athleteIds);
 
       if (workoutsError) {
         console.error("Error fetching workouts:", workoutsError);
         return [];
       }
 
-      console.log("Workouts for date:", workouts);
-      return workouts || [];
+      // Also get workouts from shared programs
+      const { data: sharedWorkouts, error: sharedWorkoutsError } = await supabase
+        .from("workouts")
+        .select(`
+          *,
+          program:programs (
+            id,
+            name,
+            user_id,
+            athlete:profiles!programs_user_id_fkey (
+              id,
+              first_name,
+              last_name
+            ),
+            shared_programs (
+              athlete:profiles!shared_programs_athlete_id_fkey (
+                id,
+                first_name,
+                last_name
+              )
+            )
+          )
+        `)
+        .eq("date", formattedDate)
+        .in(
+          "program_id",
+          athleteIds.map(id => `(select program_id from shared_programs where athlete_id = '${id}')`)
+        );
+
+      if (sharedWorkoutsError) {
+        console.error("Error fetching shared workouts:", sharedWorkoutsError);
+        return [];
+      }
+
+      const allWorkouts = [...(workouts || []), ...(sharedWorkouts || [])];
+      console.log("Workouts for date:", allWorkouts);
+      return allWorkouts;
     },
     enabled: !!coachId && !!selectedDate,
   });
@@ -103,7 +138,8 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
 
       const athleteIds = coachAthletes.map(row => row.athlete_id);
 
-      const { data, error } = await supabase
+      // Get all workouts for direct programs
+      const { data: directWorkouts, error: directError } = await supabase
         .from("workouts")
         .select(`
           date,
@@ -111,14 +147,33 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
             user_id
           )
         `)
-        .or(`program.user_id.in.(${athleteIds.join(",")}),program.id.in.(select program_id from shared_programs where athlete_id in (${athleteIds.join(",")}))`);
+        .in("program.user_id", athleteIds);
 
-      if (error) {
-        console.error("Error fetching all workouts:", error);
+      if (directError) {
+        console.error("Error fetching direct workouts:", directError);
         return [];
       }
 
-      return data || [];
+      // Get all workouts for shared programs
+      const { data: sharedWorkouts, error: sharedError } = await supabase
+        .from("workouts")
+        .select(`
+          date,
+          program:programs (
+            user_id
+          )
+        `)
+        .in(
+          "program_id",
+          athleteIds.map(id => `(select program_id from shared_programs where athlete_id = '${id}')`)
+        );
+
+      if (sharedError) {
+        console.error("Error fetching shared workouts:", sharedError);
+        return [];
+      }
+
+      return [...(directWorkouts || []), ...(sharedWorkouts || [])];
     },
     enabled: !!coachId,
   });
