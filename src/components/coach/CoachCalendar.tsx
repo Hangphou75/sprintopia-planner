@@ -10,7 +10,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { format, startOfDay } from "date-fns";
+import { format, startOfDay, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -95,7 +95,8 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
         return directWorkouts || [];
       }
 
-      const programIds = sharedPrograms.map(sp => sp.program_id);
+      // Remove duplicates from program IDs
+      const programIds = [...new Set(sharedPrograms.map(sp => sp.program_id))];
       console.log("Program IDs:", programIds);
 
       // Get workouts from shared programs
@@ -173,7 +174,8 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
         return directWorkouts || [];
       }
 
-      const programIds = sharedPrograms.map(sp => sp.program_id);
+      // Remove duplicates from program IDs
+      const programIds = [...new Set(sharedPrograms.map(sp => sp.program_id))];
 
       // Get all workouts for shared programs
       const { data: sharedWorkouts } = await supabase
@@ -234,7 +236,11 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
         components={{
           DayContent: ({ date }) => {
             const hasWorkouts = allWorkouts?.some(
-              workout => format(new Date(workout.date), "yyyy-MM-dd") === format(date, "yyyy-MM-dd")
+              workout => {
+                const workoutDate = startOfDay(parseISO(workout.date));
+                const currentDate = startOfDay(date);
+                return workoutDate.getTime() === currentDate.getTime();
+              }
             );
 
             return (
