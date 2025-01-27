@@ -6,10 +6,20 @@ import { Button } from "@/components/ui/button";
 import { ProgramCard } from "@/components/programs/ProgramCard";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useState } from "react";
 
 const Programs = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
 
   const { data: programs, isLoading } = useQuery({
     queryKey: ["programs", user?.id],
@@ -45,6 +55,50 @@ const Programs = () => {
     enabled: !!user?.id,
   });
 
+  const { data: athletes } = useQuery({
+    queryKey: ["coach-athletes", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("coach_athletes")
+        .select(`
+          athlete:profiles!coach_athletes_athlete_id_fkey (
+            id,
+            first_name,
+            last_name,
+            email
+          )
+        `)
+        .eq("coach_id", user?.id);
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  const handleShare = async (athleteId: string) => {
+    if (!user?.id || !selectedProgramId) return;
+
+    try {
+      const { error } = await supabase
+        .from("shared_programs")
+        .insert({
+          program_id: selectedProgramId,
+          athlete_id: athleteId,
+          coach_id: user.id,
+        });
+
+      if (error) throw error;
+
+      toast.success("Programme partagé avec succès");
+      setIsShareDialogOpen(false);
+      setSelectedProgramId(null);
+    } catch (error) {
+      console.error("Error sharing program:", error);
+      toast.error("Erreur lors du partage du programme");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto py-6 px-4">
@@ -72,11 +126,42 @@ const Programs = () => {
             </p>
           ) : (
             programs.map((program) => (
-              <ProgramCard key={program.id} program={program} />
+              <ProgramCard 
+                key={program.id} 
+                program={program}
+                onShare={() => {
+                  setSelectedProgramId(program.id);
+                  setIsShareDialogOpen(true);
+                }}
+              />
             ))
           )}
         </div>
       </ScrollArea>
+
+      <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Associer le programme</DialogTitle>
+            <DialogDescription>
+              Choisissez un athlète à qui associer ce programme
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 py-4">
+            {athletes?.map((relation) => (
+              <Button
+                key={relation.athlete.id}
+                variant="outline"
+                className="justify-start"
+                onClick={() => handleShare(relation.athlete.id)}
+              >
+                {relation.athlete.first_name} {relation.athlete.last_name}
+              </Button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

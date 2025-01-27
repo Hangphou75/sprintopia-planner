@@ -23,16 +23,35 @@ import {
 import { useAthletes } from "@/hooks/useAthletes";
 import { useAthletePrograms } from "@/hooks/useAthletePrograms";
 import { useAthleteMutations } from "@/hooks/useAthleteMutations";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Athletes = () => {
   const { user } = useAuth();
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+  const [isProgramDialogOpen, setIsProgramDialogOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [selectedAthlete, setSelectedAthlete] = useState<Profile | null>(null);
 
   const { data: athletes } = useAthletes(user?.id);
   const { data: athletePrograms } = useAthletePrograms(selectedAthlete?.id);
   const { inviteMutation, deleteAthleteMutation, deleteProgramMutation } = useAthleteMutations();
+
+  // Fetch available programs for the coach
+  const { data: availablePrograms } = useQuery({
+    queryKey: ["coach-programs", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("programs")
+        .select("*")
+        .eq("user_id", user?.id);
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
 
   const handleInvite = (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +76,28 @@ const Athletes = () => {
   const handleDeleteProgram = (programId: string) => {
     if (user?.id && window.confirm("Êtes-vous sûr de vouloir supprimer ce programme ?")) {
       deleteProgramMutation.mutate({ coachId: user.id, programId });
+    }
+  };
+
+  const handleAssignProgram = async (programId: string) => {
+    if (!user?.id || !selectedAthlete?.id) return;
+
+    try {
+      const { error } = await supabase
+        .from("shared_programs")
+        .insert({
+          program_id: programId,
+          athlete_id: selectedAthlete.id,
+          coach_id: user.id,
+        });
+
+      if (error) throw error;
+
+      toast.success("Programme associé avec succès");
+      setIsProgramDialogOpen(false);
+    } catch (error) {
+      console.error("Error assigning program:", error);
+      toast.error("Erreur lors de l'association du programme");
     }
   };
 
@@ -121,11 +162,37 @@ const Athletes = () => {
               <AthletePrograms
                 programs={athletePrograms}
                 onDeleteProgram={handleDeleteProgram}
+                onAddProgram={() => setIsProgramDialogOpen(true)}
+                showAddButton={true}
               />
             )}
           </div>
         </SheetContent>
       </Sheet>
+
+      <Dialog open={isProgramDialogOpen} onOpenChange={setIsProgramDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Associer un programme</DialogTitle>
+            <DialogDescription>
+              Choisissez un programme à associer à {selectedAthlete?.first_name} {selectedAthlete?.last_name}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 py-4">
+            {availablePrograms?.map((program) => (
+              <Button
+                key={program.id}
+                variant="outline"
+                className="justify-start"
+                onClick={() => handleAssignProgram(program.id)}
+              >
+                {program.name}
+              </Button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
