@@ -34,18 +34,19 @@ const CoachPlanning = () => {
 
   return (
     <div className="container mx-auto py-6 px-4 max-w-5xl h-[calc(100vh-4rem)] flex flex-col">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Gestion des programmes</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold">Planning</h1>
         <Button 
-          className="bg-[#0F172A] text-white hover:bg-[#1E293B]"
-          onClick={() => navigate("/coach/programs/create")}
+          onClick={() => navigate("/coach/programs/new")}
+          size="lg"
+          className="w-full sm:w-auto bg-[#0F172A] text-white hover:bg-[#1E293B]"
         >
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="mr-2 h-5 w-5" />
           Nouveau Programme
         </Button>
       </div>
       <ScrollArea className="flex-1 px-1">
-        <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
           {!programs || programs.length === 0 ? (
             <p className="text-muted-foreground col-span-full text-center py-8">
               Aucun programme créé

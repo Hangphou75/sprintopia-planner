@@ -4,6 +4,8 @@ import { Program } from "@/types/program";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarDays, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 type ProgramCardProps = {
   program: Program;
@@ -28,54 +30,54 @@ export const ProgramCard = ({ program, readOnly = false }: ProgramCardProps) => 
   };
 
   return (
-    <Card className="h-full">
-      <div 
-        onClick={handleClick} 
-        className="cursor-pointer h-full"
-      >
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CalendarDays className="h-5 w-5" />
-              {program.name}
-            </div>
-            {program.shared_programs && program.shared_programs.length > 0 && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                <Users className="h-4 w-4" />
-                {program.shared_programs.length}
-              </Badge>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div>
-            <p className="text-sm font-medium">Objectifs</p>
-            <p className="text-sm text-muted-foreground">{program.objectives || "Aucun objectif défini"}</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium">Durée</p>
-            <p className="text-sm text-muted-foreground">{program.duration} semaines</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium">Date de début</p>
-            <p className="text-sm text-muted-foreground">
-              {new Date(program.start_date).toLocaleDateString()}
-            </p>
+    <Card 
+      className="h-full hover:shadow-md transition-shadow duration-200 cursor-pointer"
+      onClick={handleClick}
+    >
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center justify-between text-xl">
+          <div className="flex items-center gap-2">
+            <CalendarDays className="h-5 w-5 text-primary" />
+            <span className="font-semibold">{program.name}</span>
           </div>
           {program.shared_programs && program.shared_programs.length > 0 && (
-            <div>
-              <p className="text-sm font-medium">Athlètes</p>
-              <div className="space-y-1">
-                {program.shared_programs.map((shared) => (
-                  <p key={shared.athlete.id} className="text-sm text-muted-foreground">
-                    {shared.athlete.first_name} {shared.athlete.last_name}
-                  </p>
-                ))}
-              </div>
-            </div>
+            <Badge variant="secondary" className="flex items-center gap-1">
+              <Users className="h-4 w-4" />
+              {program.shared_programs.length}
+            </Badge>
           )}
-        </CardContent>
-      </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div>
+          <p className="text-sm font-medium text-muted-foreground mb-1">Objectifs</p>
+          <p className="text-sm">{program.objectives || "Aucun objectif défini"}</p>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm font-medium text-muted-foreground mb-1">Durée</p>
+            <p className="text-sm">{program.duration} semaines</p>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-muted-foreground mb-1">Date de début</p>
+            <p className="text-sm">
+              {format(new Date(program.start_date), "dd MMM yyyy", { locale: fr })}
+            </p>
+          </div>
+        </div>
+        {program.shared_programs && program.shared_programs.length > 0 && (
+          <div>
+            <p className="text-sm font-medium text-muted-foreground mb-1">Athlètes</p>
+            <div className="space-y-1">
+              {program.shared_programs.map((shared) => (
+                <p key={shared.athlete.id} className="text-sm text-muted-foreground">
+                  {shared.athlete.first_name} {shared.athlete.last_name}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
+      </CardContent>
     </Card>
   );
 };
