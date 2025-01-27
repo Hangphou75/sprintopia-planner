@@ -9,6 +9,8 @@ const Login = () => {
   const { user, isAuthenticated } = useAuth();
   const location = useLocation();
 
+  console.log("Login page - Auth state:", { user, isAuthenticated });
+
   if (isAuthenticated && user) {
     const from = location.state?.from?.pathname || `/${user.role}/home`;
     return <Navigate to={from} replace />;
@@ -22,19 +24,19 @@ const Login = () => {
           <CardDescription>Connectez-vous ou créez un compte pour continuer</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
+          <Tabs defaultValue="login">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Connexion</TabsTrigger>
               <TabsTrigger value="signup">Inscription</TabsTrigger>
             </TabsList>
-            
-            <TabsContent value="login" className="space-y-4">
-              <LoginForm />
-            </TabsContent>
-
-            <TabsContent value="signup" className="space-y-4">
-              <SignUpForm />
-            </TabsContent>
+            <div className="mt-4">
+              <TabsContent value="login">
+                <LoginForm />
+              </TabsContent>
+              <TabsContent value="signup">
+                <SignUpForm />
+              </TabsContent>
+            </div>
           </Tabs>
         </CardContent>
       </Card>
