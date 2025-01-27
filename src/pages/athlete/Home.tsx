@@ -100,7 +100,9 @@ const Home = () => {
       "recovery": "Récupération",
       "technique": "Technique",
       "speed": "Vitesse",
-      "endurance": "Endurance"
+      "endurance": "Endurance",
+      "alactic": "Anaérobie alactique",
+      "lactic": "Anaérobie lactique"
     };
     return themeMap[theme] || theme;
   };
@@ -198,7 +200,7 @@ const Home = () => {
             <CardHeader>
               <CardTitle>Calendrier</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <ProgramWorkoutCalendar
                 workouts={sharedPrograms.workouts}
                 competitions={sharedPrograms.competitions}
