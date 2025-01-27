@@ -22,7 +22,7 @@ const Login = () => {
           <CardDescription>Connectez-vous ou créez un compte pour continuer</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login">
+          <Tabs defaultValue="login" className="space-y-4">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Connexion</TabsTrigger>
               <TabsTrigger value="signup">Inscription</TabsTrigger>
