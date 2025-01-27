@@ -12,8 +12,8 @@ const Login = () => {
   console.log("Login page - Auth state:", { user, isAuthenticated });
 
   if (isAuthenticated && user) {
-    const from = location.state?.from?.pathname || `/${user.role}/home`;
-    return <Navigate to={from} replace />;
+    const basePath = user.role === 'coach' ? '/coach' : '/athlete';
+    return <Navigate to={basePath} replace />;
   }
 
   return (
@@ -29,10 +29,10 @@ const Login = () => {
               <TabsTrigger value="login">Connexion</TabsTrigger>
               <TabsTrigger value="signup">Inscription</TabsTrigger>
             </TabsList>
-            <TabsContent value="login" className="mt-4">
+            <TabsContent value="login">
               <LoginForm />
             </TabsContent>
-            <TabsContent value="signup" className="mt-4">
+            <TabsContent value="signup">
               <SignUpForm />
             </TabsContent>
           </Tabs>

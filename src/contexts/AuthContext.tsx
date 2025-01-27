@@ -72,8 +72,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else if (event === 'SIGNED_OUT' && mounted) {
         console.log("User signed out");
         setProfile(null);
-      } else if (event === 'TOKEN_REFRESHED' && mounted) {
-        console.log("Token refreshed");
       }
     });
 
