@@ -160,6 +160,11 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
                 )}
               </div>
             ))}
+            {(!workouts || workouts.length === 0) && (
+              <p className="text-center text-muted-foreground">
+                Aucune séance prévue pour ce jour
+              </p>
+            )}
           </div>
         </SheetContent>
       </Sheet>
