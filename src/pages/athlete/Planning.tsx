@@ -12,10 +12,11 @@ const AthletePlanning = () => {
   const { data: sharedPrograms, isLoading, error } = useQuery({
     queryKey: ["shared-programs-active", user?.id],
     queryFn: async () => {
-      const { data: sharedProgramsData, error: sharedError } = await supabase
-        .from("shared_programs")
+      // First, get the active program for the athlete
+      const { data: activeProgram, error: activeError } = await supabase
+        .from("active_programs")
         .select(`
-          program:programs(
+          program:programs (
             *,
             shared_programs (
               athlete:profiles!shared_programs_athlete_id_fkey (
@@ -26,7 +27,36 @@ const AthletePlanning = () => {
               )
             ),
             competitions(*),
-            coach:profiles!programs_user_id_fkey(
+            coach:profiles!programs_user_id_fkey (
+              first_name,
+              last_name
+            )
+          )
+        `)
+        .eq("user_id", user?.id)
+        .single();
+
+      if (activeError) {
+        console.error("Error fetching active program:", activeError);
+        throw activeError;
+      }
+
+      // Then, get all shared programs for the athlete
+      const { data: sharedProgramsData, error: sharedError } = await supabase
+        .from("shared_programs")
+        .select(`
+          program:programs (
+            *,
+            shared_programs (
+              athlete:profiles!shared_programs_athlete_id_fkey (
+                id,
+                first_name,
+                last_name,
+                email
+              )
+            ),
+            competitions(*),
+            coach:profiles!programs_user_id_fkey (
               first_name,
               last_name
             )
@@ -40,9 +70,14 @@ const AthletePlanning = () => {
         throw sharedError;
       }
 
-      return sharedProgramsData.map((sp: any) => ({
-        ...sp.program,
-        coachName: `${sp.program.coach.first_name} ${sp.program.coach.last_name}`,
+      // Combine active program with shared programs if it exists
+      const programs = activeProgram 
+        ? [activeProgram.program, ...sharedProgramsData.map((sp: any) => sp.program)]
+        : sharedProgramsData.map((sp: any) => sp.program);
+
+      return programs.map((program: any) => ({
+        ...program,
+        coachName: `${program.coach.first_name} ${program.coach.last_name}`,
       })) as Program[];
     },
     enabled: !!user?.id,
