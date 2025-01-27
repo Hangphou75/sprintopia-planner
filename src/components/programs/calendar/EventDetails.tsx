@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Pencil } from "lucide-react";
+import { Pencil, Trophy } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -29,6 +29,13 @@ export const EventDetails = ({
       format(new Date(event.date), 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd')
   );
 
+  const levelLabels: { [key: string]: string } = {
+    local: "Local",
+    regional: "Régional",
+    national: "National",
+    international: "International",
+  };
+
   return (
     <div className="space-y-4">
       <h3 className="font-semibold">
@@ -44,7 +51,8 @@ export const EventDetails = ({
               className={cn(
                 "border-l-4",
                 "cursor-pointer hover:border-primary transition-colors",
-                event.type === "workout" && event.theme && `border-theme-${event.theme}`
+                event.type === "workout" && event.theme && `border-theme-${event.theme}`,
+                event.type === "competition" && "border-yellow-500"
               )}
               onClick={() => onEventClick?.(event)}
             >
@@ -52,12 +60,17 @@ export const EventDetails = ({
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {event.title}
-                    <Badge variant={event.type === "workout" ? "default" : "destructive"}>
+                    <Badge variant={event.type === "workout" ? "default" : "warning"}>
                       {event.type === "workout" ? "Séance" : "Compétition"}
                     </Badge>
                     {event.type === "workout" && event.theme && themeOptions && (
                       <Badge variant="outline">
                         {themeOptions.find(t => t.value === event.theme)?.label}
+                      </Badge>
+                    )}
+                    {event.type === "competition" && event.level && (
+                      <Badge variant="outline">
+                        {levelLabels[event.level] || event.level}
                       </Badge>
                     )}
                   </div>
@@ -75,11 +88,26 @@ export const EventDetails = ({
                   )}
                 </CardTitle>
               </CardHeader>
-              {event.description && (
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">{event.description}</p>
-                </CardContent>
-              )}
+              <CardContent>
+                {event.type === "competition" ? (
+                  <div className="space-y-2">
+                    {event.location && (
+                      <p className="text-sm text-muted-foreground">
+                        Lieu : {event.location}
+                      </p>
+                    )}
+                    {event.distance && (
+                      <p className="text-sm text-muted-foreground">
+                        Distance : {event.distance}m
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  event.description && (
+                    <p className="text-sm text-muted-foreground">{event.description}</p>
+                  )
+                )}
+              </CardContent>
             </Card>
           ))}
         </div>

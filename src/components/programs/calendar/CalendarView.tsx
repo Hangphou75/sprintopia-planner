@@ -23,7 +23,7 @@ export const CalendarView = ({
         DayContent: ({ date }) => {
           const dayEvents = events.filter(
             (event) =>
-              event.date.toISOString().split("T")[0] ===
+              new Date(event.date).toISOString().split("T")[0] ===
               date.toISOString().split("T")[0]
           );
 
@@ -38,9 +38,11 @@ export const CalendarView = ({
                         key={index}
                         className={cn(
                           "w-1 h-1 rounded-full",
-                          event.type === "workout"
+                          event.type === "competition"
+                            ? "bg-yellow-500"
+                            : event.theme
                             ? `bg-theme-${event.theme}`
-                            : "bg-yellow-500"
+                            : "bg-primary"
                         )}
                       />
                     ))}
