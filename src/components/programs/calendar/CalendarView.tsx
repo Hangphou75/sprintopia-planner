@@ -13,19 +13,41 @@ export const CalendarView = ({
   selectedDate,
   onSelectDate,
 }: CalendarViewProps) => {
+  const formatDate = (date: Date): string => {
+    try {
+      return date.toISOString().split("T")[0];
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "";
+    }
+  };
+
   return (
     <Calendar
       mode="single"
       selected={selectedDate}
-      onSelect={(date) => onSelectDate(date || undefined)}
+      onSelect={(date) => {
+        try {
+          onSelectDate(date || undefined);
+        } catch (error) {
+          console.error("Error selecting date:", error);
+        }
+      }}
       className="rounded-md border"
       components={{
         DayContent: ({ date }) => {
-          const dayEvents = events.filter(
-            (event) =>
-              new Date(event.date).toISOString().split("T")[0] ===
-              date.toISOString().split("T")[0]
-          );
+          const currentDateStr = formatDate(date);
+          const dayEvents = events.filter((event) => {
+            try {
+              const eventDate = event.date instanceof Date 
+                ? event.date 
+                : new Date(event.date);
+              return formatDate(eventDate) === currentDateStr;
+            } catch (error) {
+              console.error("Error comparing dates:", error);
+              return false;
+            }
+          });
 
           return (
             <div className="relative w-full h-full">
