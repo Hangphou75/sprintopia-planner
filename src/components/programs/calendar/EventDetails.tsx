@@ -21,8 +21,7 @@ export const EventDetails = ({
 
   const selectedDateEvents = events.filter(
     (event) =>
-      new Date(event.date).toISOString().split("T")[0] ===
-      selectedDate.toISOString().split("T")[0]
+      new Date(event.date).toLocaleDateString() === selectedDate.toLocaleDateString()
   );
 
   return (
@@ -44,6 +43,7 @@ export const EventDetails = ({
               "cursor-pointer hover:border-primary transition-colors",
               event.type === "workout" && event.theme && `border-theme-${event.theme}`
             )}
+            onClick={() => onEventClick(event)}
           >
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
