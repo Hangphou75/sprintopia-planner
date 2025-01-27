@@ -99,7 +99,15 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
       const programIds = [...new Set(sharedPrograms.map(sp => sp.program_id))];
       console.log("Program IDs:", programIds);
 
-      // Get workouts from shared programs
+      // Debugging: Let's check if there are any workouts at all for these programs
+      const { data: allProgramWorkouts, error: allWorkoutsError } = await supabase
+        .from("workouts")
+        .select("id, date, title, program_id")
+        .in("program_id", programIds);
+
+      console.log("All workouts for these programs:", allProgramWorkouts);
+
+      // Get workouts from shared programs for the specific date
       const { data: sharedWorkouts, error: workoutsError } = await supabase
         .from("workouts")
         .select(`
