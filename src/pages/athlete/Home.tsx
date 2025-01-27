@@ -43,6 +43,7 @@ const Home = () => {
               location,
               distance,
               level,
+              is_main,
               time
             )
           )
