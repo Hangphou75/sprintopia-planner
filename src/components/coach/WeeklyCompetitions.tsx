@@ -17,20 +17,23 @@ export const WeeklyCompetitions = ({ coachId }: WeeklyCompetitionsProps) => {
       const start = startOfWeek(new Date(), { weekStartsOn: 1 });
       const end = endOfWeek(new Date(), { weekStartsOn: 1 });
 
-      const { data: athleteIds } = await supabase
+      // Get all athlete IDs for this coach
+      const { data: coachAthletes } = await supabase
         .from("coach_athletes")
         .select("athlete_id")
         .eq("coach_id", coachId);
 
-      if (!athleteIds?.length) return [];
+      if (!coachAthletes?.length) return [];
 
+      const athleteIds = coachAthletes.map(row => row.athlete_id);
+
+      // Get all competitions for these athletes
       const { data, error } = await supabase
         .from("competitions")
         .select(`
           *,
           program:programs (
             name,
-            user_id,
             athlete:profiles!programs_user_id_fkey (
               id,
               first_name,
@@ -40,7 +43,7 @@ export const WeeklyCompetitions = ({ coachId }: WeeklyCompetitionsProps) => {
         `)
         .gte("date", format(start, "yyyy-MM-dd"))
         .lte("date", format(end, "yyyy-MM-dd"))
-        .in("program.user_id", athleteIds.map(row => row.athlete_id));
+        .in("program.user_id", athleteIds);
 
       if (error) throw error;
       return data;
@@ -71,15 +74,25 @@ export const WeeklyCompetitions = ({ coachId }: WeeklyCompetitionsProps) => {
             <h3 className="font-semibold">{competition.name}</h3>
           </div>
           
-          <div className="space-y-1 text-sm">
-            <p>
+          <div className="space-y-2 text-sm">
+            <p className="font-medium">
               {format(new Date(competition.date), "d MMMM yyyy", { locale: fr })}
             </p>
-            <p className="text-muted-foreground">
-              {competition.program?.athlete?.first_name} {competition.program?.athlete?.last_name}
-            </p>
+            <div className="flex items-center gap-2">
+              <span className="font-medium">Athlète :</span>
+              <span className="text-muted-foreground">
+                {competition.program?.athlete?.first_name} {competition.program?.athlete?.last_name}
+              </span>
+            </div>
             {competition.location && (
-              <p className="text-muted-foreground">{competition.location}</p>
+              <p className="text-muted-foreground">
+                <span className="font-medium">Lieu :</span> {competition.location}
+              </p>
+            )}
+            {competition.distance && (
+              <p className="text-muted-foreground">
+                <span className="font-medium">Distance :</span> {competition.distance}m
+              </p>
             )}
           </div>
         </div>

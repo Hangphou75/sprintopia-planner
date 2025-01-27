@@ -26,20 +26,23 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
     queryFn: async () => {
       if (!coachId || !selectedDate) return [];
 
-      const { data: athleteIds } = await supabase
+      // First, get all athlete IDs for this coach
+      const { data: coachAthletes } = await supabase
         .from("coach_athletes")
         .select("athlete_id")
         .eq("coach_id", coachId);
 
-      if (!athleteIds?.length) return [];
+      if (!coachAthletes?.length) return [];
 
+      const athleteIds = coachAthletes.map(row => row.athlete_id);
+
+      // Then get all workouts for these athletes on the selected date
       const { data, error } = await supabase
         .from("workouts")
         .select(`
           *,
           program:programs (
             name,
-            user_id,
             athlete:profiles!programs_user_id_fkey (
               id,
               first_name,
@@ -48,7 +51,7 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
           )
         `)
         .eq("date", format(selectedDate, "yyyy-MM-dd"))
-        .in("program.user_id", athleteIds.map(row => row.athlete_id));
+        .in("program.user_id", athleteIds);
 
       if (error) throw error;
       return data;
@@ -61,13 +64,17 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
     queryFn: async () => {
       if (!coachId) return [];
 
-      const { data: athleteIds } = await supabase
+      // Get all athlete IDs for this coach
+      const { data: coachAthletes } = await supabase
         .from("coach_athletes")
         .select("athlete_id")
         .eq("coach_id", coachId);
 
-      if (!athleteIds?.length) return [];
+      if (!coachAthletes?.length) return [];
 
+      const athleteIds = coachAthletes.map(row => row.athlete_id);
+
+      // Get all workouts for these athletes
       const { data, error } = await supabase
         .from("workouts")
         .select(`
@@ -76,7 +83,7 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
             user_id
           )
         `)
-        .in("program.user_id", athleteIds.map(row => row.athlete_id));
+        .in("program.user_id", athleteIds);
 
       if (error) throw error;
       return data;
