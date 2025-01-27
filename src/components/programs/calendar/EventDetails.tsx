@@ -60,7 +60,7 @@ export const EventDetails = ({
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {event.title}
-                    <Badge variant={event.type === "workout" ? "default" : "warning"}>
+                    <Badge variant={event.type === "workout" ? "default" : "secondary"}>
                       {event.type === "workout" ? "Séance" : "Compétition"}
                     </Badge>
                     {event.type === "workout" && event.theme && themeOptions && (
