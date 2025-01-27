@@ -72,18 +72,6 @@ export const ProgramWorkoutCalendar = ({
     })),
   ];
 
-  // Filter and sort events for the list
-  let filteredWorkouts = events.filter(event => event.type === "workout");
-  if (selectedTheme) {
-    filteredWorkouts = filteredWorkouts.filter((event) => event.theme === selectedTheme);
-  }
-
-  filteredWorkouts.sort((a, b) => {
-    const dateA = new Date(a.date).getTime();
-    const dateB = new Date(b.date).getTime();
-    return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
-  });
-
   const handleDuplicateWorkout = async (event: Event) => {
     if (event.type !== "workout" || user?.role !== 'coach') return;
     
@@ -149,14 +137,32 @@ export const ProgramWorkoutCalendar = ({
 
   const handleEventClick = (event: Event) => {
     if (event.type === "workout") {
-      const basePath = user?.role === 'athlete' ? '/athlete' : '/coach';
+      console.log("Navigation event:", {
+        role: user?.role,
+        eventId: event.id,
+        programId: programId
+      });
+      
       if (user?.role === 'athlete') {
-        navigate(`${basePath}/programs/${programId}/workouts/${event.id}`);
+        console.log("Navigating to workout details:", `/athlete/programs/${programId}/workouts/${event.id}`);
+        navigate(`/athlete/programs/${programId}/workouts/${event.id}`);
       } else {
-        navigate(`${basePath}/programs/${programId}/workouts/${event.id}/edit`);
+        console.log("Navigating to workout edit:", `/coach/programs/${programId}/workouts/${event.id}/edit`);
+        navigate(`/coach/programs/${programId}/workouts/${event.id}/edit`);
       }
     }
   };
+
+  let filteredWorkouts = events.filter(event => event.type === "workout");
+  if (selectedTheme) {
+    filteredWorkouts = filteredWorkouts.filter((event) => event.theme === selectedTheme);
+  }
+
+  filteredWorkouts.sort((a, b) => {
+    const dateA = new Date(a.date).getTime();
+    const dateB = new Date(b.date).getTime();
+    return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+  });
 
   return (
     <div className="space-y-8">
