@@ -43,7 +43,11 @@ const Athletes = () => {
             email,
             first_name,
             last_name,
-            bio
+            bio,
+            avatar_url,
+            role,
+            created_at,
+            updated_at
           )
         `)
         .eq("coach_id", user?.id);
