@@ -7,6 +7,7 @@ import { format, startOfWeek, endOfWeek, isWithinInterval, isSameDay } from "dat
 import { fr } from "date-fns/locale";
 import { Trophy, Timer } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ProgramWorkoutCalendar } from "@/components/programs/ProgramWorkoutCalendar";
 
 const Home = () => {
   const { user } = useAuth();
@@ -56,8 +57,13 @@ const Home = () => {
 
       console.log("Shared programs data:", sharedData);
 
-      const allWorkouts = sharedData?.flatMap(sp => sp.program.workouts || []) || [];
-      const allCompetitions = sharedData?.flatMap(sp => sp.program.competitions || []) || [];
+      const allWorkouts = sharedData?.reduce((acc, sp) => {
+        return acc.concat(sp.program?.workouts || []);
+      }, []) || [];
+      
+      const allCompetitions = sharedData?.reduce((acc, sp) => {
+        return acc.concat(sp.program?.competitions || []);
+      }, []) || [];
 
       console.log("All workouts:", allWorkouts);
       console.log("All competitions:", allCompetitions);
@@ -82,19 +88,6 @@ const Home = () => {
     })
   );
 
-  if (isLoadingShared) {
-    return (
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold">Tableau de bord</h1>
-        <Card>
-          <CardHeader>
-            <CardTitle>Chargement...</CardTitle>
-          </CardHeader>
-        </Card>
-      </div>
-    );
-  }
-
   const getThemeLabel = (theme: string) => {
     const themeMap: { [key: string]: string } = {
       "aerobic": "Aérobie",
@@ -112,6 +105,19 @@ const Home = () => {
     return themeMap[theme] || theme;
   };
 
+  if (isLoadingShared) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold">Tableau de bord</h1>
+        <Card>
+          <CardHeader>
+            <CardTitle>Chargement...</CardTitle>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Tableau de bord</h1>
@@ -119,73 +125,88 @@ const Home = () => {
       <InvitationsList />
 
       {sharedPrograms?.programs.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {todayWorkout && (
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Timer className="h-5 w-5" />
-                  Séance du jour
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-semibold">{todayWorkout.title}</h3>
-                    {todayWorkout.theme && (
-                      <Badge variant="outline" className="mt-1">
-                        {getThemeLabel(todayWorkout.theme)}
-                      </Badge>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {todayWorkout && (
+              <Card className="h-full">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Timer className="h-5 w-5" />
+                    Séance du jour
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-semibold">{todayWorkout.title}</h3>
+                      {todayWorkout.theme && (
+                        <Badge variant="outline" className="mt-1">
+                          {getThemeLabel(todayWorkout.theme)}
+                        </Badge>
+                      )}
+                    </div>
+                    {todayWorkout.description && (
+                      <p className="text-muted-foreground">{todayWorkout.description}</p>
+                    )}
+                    {todayWorkout.time && (
+                      <p className="text-sm text-muted-foreground">
+                        Heure : {todayWorkout.time}
+                      </p>
                     )}
                   </div>
-                  {todayWorkout.description && (
-                    <p className="text-muted-foreground">{todayWorkout.description}</p>
-                  )}
-                  {todayWorkout.time && (
-                    <p className="text-sm text-muted-foreground">
-                      Heure : {todayWorkout.time}
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                </CardContent>
+              </Card>
+            )}
 
-          {upcomingCompetition && (
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Trophy className="h-5 w-5 text-yellow-500" />
-                  Compétition cette semaine
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-semibold">{upcomingCompetition.name}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {format(new Date(upcomingCompetition.date), "d MMMM yyyy", { locale: fr })}
-                    </p>
+            {upcomingCompetition && (
+              <Card className="h-full">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Trophy className="h-5 w-5 text-yellow-500" />
+                    Compétition cette semaine
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-semibold">{upcomingCompetition.name}</h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {format(new Date(upcomingCompetition.date), "d MMMM yyyy", { locale: fr })}
+                      </p>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      <p>{upcomingCompetition.distance}m • {
+                        upcomingCompetition.level === "local" ? "Local" :
+                        upcomingCompetition.level === "regional" ? "Régional" :
+                        upcomingCompetition.level === "national" ? "National" :
+                        "International"
+                      }</p>
+                      {upcomingCompetition.location && (
+                        <p className="mt-1">Lieu : {upcomingCompetition.location}</p>
+                      )}
+                      {upcomingCompetition.time && (
+                        <p className="mt-1">Heure : {upcomingCompetition.time}</p>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    <p>{upcomingCompetition.distance}m • {
-                      upcomingCompetition.level === "local" ? "Local" :
-                      upcomingCompetition.level === "regional" ? "Régional" :
-                      upcomingCompetition.level === "national" ? "National" :
-                      "International"
-                    }</p>
-                    {upcomingCompetition.location && (
-                      <p className="mt-1">Lieu : {upcomingCompetition.location}</p>
-                    )}
-                    {upcomingCompetition.time && (
-                      <p className="mt-1">Heure : {upcomingCompetition.time}</p>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Calendrier</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ProgramWorkoutCalendar
+                workouts={sharedPrograms.workouts}
+                competitions={sharedPrograms.competitions}
+                programId={sharedPrograms.programs[0]?.id}
+              />
+            </CardContent>
+          </Card>
+        </>
       ) : (
         <Card>
           <CardHeader>
