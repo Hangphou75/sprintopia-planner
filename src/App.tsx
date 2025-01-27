@@ -10,6 +10,7 @@ import { Register } from "./pages/auth/Register";
 import { ForgotPassword } from "./pages/auth/ForgotPassword";
 import { ResetPassword } from "./pages/auth/ResetPassword";
 import AthleteHome from "./pages/athlete/Home";
+import AthletePlanning from "./pages/athlete/Planning";
 import CoachHome from "./pages/coach/Home";
 import Programs from "./pages/coach/Programs";
 import { ProgramWorkouts } from "./pages/coach/ProgramWorkouts";
@@ -39,6 +40,7 @@ function App() {
               <Route element={<Layout />}>
                 <Route element={<RoleProtectedRoute allowedRoles={["athlete"]} />}>
                   <Route path="/athlete" element={<AthleteHome />} />
+                  <Route path="/athlete/planning" element={<AthletePlanning />} />
                   <Route path="/athlete/programs/:programId/workouts/:workoutId" element={<WorkoutDetails />} />
                 </Route>
 
