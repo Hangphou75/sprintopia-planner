@@ -34,17 +34,18 @@ export const WeeklyCompetitions = ({ coachId }: WeeklyCompetitionsProps) => {
           *,
           program:programs (
             name,
+            user_id,
+            athlete:profiles!programs_user_id_fkey (
+              id,
+              first_name,
+              last_name
+            ),
             shared_programs (
               athlete:profiles!shared_programs_athlete_id_fkey (
                 id,
                 first_name,
                 last_name
               )
-            ),
-            athlete:profiles!programs_user_id_fkey (
-              id,
-              first_name,
-              last_name
             )
           )
         `)
@@ -54,10 +55,25 @@ export const WeeklyCompetitions = ({ coachId }: WeeklyCompetitionsProps) => {
 
       if (error) throw error;
       console.log("Weekly competitions:", competitionsData);
-      return competitionsData;
+      return competitionsData || [];
     },
-    enabled: !!coachId,
   });
+
+  const getAthletes = (competition: any) => {
+    const athletes = [];
+    
+    // Add program owner if they exist
+    if (competition.program?.athlete) {
+      athletes.push(competition.program.athlete);
+    }
+    
+    // Add shared program athletes if they exist
+    if (competition.program?.shared_programs) {
+      athletes.push(...competition.program.shared_programs.map((sp: any) => sp.athlete));
+    }
+    
+    return athletes;
+  };
 
   if (!competitions?.length) {
     return (
@@ -72,49 +88,41 @@ export const WeeklyCompetitions = ({ coachId }: WeeklyCompetitionsProps) => {
 
   return (
     <div className="space-y-4">
-      {competitions.map((competition) => {
-        // Combine athletes from program owner and shared programs
-        const athletes = [
-          competition.program?.athlete,
-          ...(competition.program?.shared_programs?.map(sp => sp.athlete) || [])
-        ].filter(Boolean);
-
-        return (
-          <div
-            key={competition.id}
-            className="rounded-lg border p-4 hover:border-primary transition-colors"
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <Trophy className="h-4 w-4 text-yellow-500" />
-              <h3 className="font-semibold">{competition.name}</h3>
-            </div>
-            
-            <div className="space-y-2 text-sm">
-              <p className="font-medium">
-                {format(new Date(competition.date), "d MMMM yyyy", { locale: fr })}
-              </p>
-              <div className="flex flex-col gap-1">
-                <span className="font-medium">Athlètes :</span>
-                {athletes.map((athlete, index) => (
-                  <span key={athlete.id} className="text-muted-foreground pl-2">
-                    {athlete.first_name} {athlete.last_name}
-                  </span>
-                ))}
-              </div>
-              {competition.location && (
-                <p className="text-muted-foreground">
-                  <span className="font-medium">Lieu :</span> {competition.location}
-                </p>
-              )}
-              {competition.distance && (
-                <p className="text-muted-foreground">
-                  <span className="font-medium">Distance :</span> {competition.distance}m
-                </p>
-              )}
-            </div>
+      {competitions.map((competition) => (
+        <div
+          key={competition.id}
+          className="rounded-lg border p-4 hover:border-primary transition-colors"
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <Trophy className="h-4 w-4 text-yellow-500" />
+            <h3 className="font-semibold">{competition.name}</h3>
           </div>
-        );
-      })}
+          
+          <div className="space-y-2 text-sm">
+            <p className="font-medium">
+              {format(new Date(competition.date), "d MMMM yyyy", { locale: fr })}
+            </p>
+            <div>
+              <span className="font-medium">Athlètes :</span>
+              {getAthletes(competition).map((athlete: any) => (
+                <p key={athlete.id} className="text-muted-foreground pl-2">
+                  {athlete.first_name} {athlete.last_name}
+                </p>
+              ))}
+            </div>
+            {competition.location && (
+              <p className="text-muted-foreground">
+                <span className="font-medium">Lieu :</span> {competition.location}
+              </p>
+            )}
+            {competition.distance && (
+              <p className="text-muted-foreground">
+                <span className="font-medium">Distance :</span> {competition.distance}m
+              </p>
+            )}
+          </div>
+        </div>
+      ))}
     </div>
   );
 };

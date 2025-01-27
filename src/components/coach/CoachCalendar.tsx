@@ -12,6 +12,11 @@ import {
 } from "@/components/ui/sheet";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Pencil } from "lucide-react";
 
 type CoachCalendarProps = {
   coachId: string | undefined;
@@ -20,13 +25,14 @@ type CoachCalendarProps = {
 export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const navigate = useNavigate();
 
-  const { data: workouts } = useQuery({
+  const { data: workouts, isLoading: isLoadingWorkouts } = useQuery({
     queryKey: ["coach-workouts", coachId, selectedDate],
     queryFn: async () => {
       if (!coachId || !selectedDate) return [];
 
-      // First, get all athlete IDs for this coach
+      // First get all athlete IDs for this coach
       const { data: coachAthletes } = await supabase
         .from("coach_athletes")
         .select("athlete_id")
@@ -42,6 +48,7 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
         .select(`
           *,
           program:programs (
+            id,
             name,
             user_id,
             athlete:profiles!programs_user_id_fkey (
@@ -61,9 +68,13 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
         .eq("date", format(selectedDate, "yyyy-MM-dd"))
         .in("program.user_id", athleteIds);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching workouts:", error);
+        return [];
+      }
+
       console.log("Workouts for date:", data);
-      return data;
+      return data || [];
     },
     enabled: !!coachId && !!selectedDate,
   });
@@ -73,7 +84,6 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
     queryFn: async () => {
       if (!coachId) return [];
 
-      // Get all athlete IDs for this coach
       const { data: coachAthletes } = await supabase
         .from("coach_athletes")
         .select("athlete_id")
@@ -83,22 +93,22 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
 
       const athleteIds = coachAthletes.map(row => row.athlete_id);
 
-      // Get all workouts for these athletes' programs
       const { data, error } = await supabase
         .from("workouts")
         .select(`
           date,
           program:programs (
-            user_id,
-            shared_programs (
-              athlete_id
-            )
+            user_id
           )
         `)
         .in("program.user_id", athleteIds);
 
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error("Error fetching all workouts:", error);
+        return [];
+      }
+
+      return data || [];
     },
     enabled: !!coachId,
   });
@@ -106,13 +116,28 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
     if (date) {
-      const hasWorkouts = workouts?.some(workout => 
-        format(new Date(workout.date), "yyyy-MM-dd") === format(date, "yyyy-MM-dd")
-      );
-      if (hasWorkouts) {
-        setIsDetailsOpen(true);
-      }
+      setIsDetailsOpen(true);
     }
+  };
+
+  const handleEditWorkout = (programId: string, workoutId: string) => {
+    navigate(`/coach/programs/${programId}/workouts/${workoutId}/edit`);
+  };
+
+  const getAthletes = (workout: any) => {
+    const athletes = [];
+    
+    // Add program owner if they exist
+    if (workout.program?.athlete) {
+      athletes.push(workout.program.athlete);
+    }
+    
+    // Add shared program athletes if they exist
+    if (workout.program?.shared_programs) {
+      athletes.push(...workout.program.shared_programs.map((sp: any) => sp.athlete));
+    }
+    
+    return athletes;
   };
 
   return (
@@ -147,69 +172,55 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
         <SheetContent>
           <SheetHeader>
             <SheetTitle>
-              Séances du {selectedDate && format(selectedDate, "d MMMM yyyy", { locale: fr })}
+              {selectedDate && format(selectedDate, "EEEE d MMMM yyyy", { locale: fr })}
             </SheetTitle>
             <SheetDescription>
-              Détails des séances prévues pour vos athlètes
+              Séances prévues pour vos athlètes
             </SheetDescription>
           </SheetHeader>
 
-          <div className="mt-6 space-y-6">
-            {workouts?.map((workout) => {
-              // Combine athletes from program owner and shared programs
-              const athletes = [
-                workout.program?.athlete,
-                ...(workout.program?.shared_programs?.map(sp => sp.athlete) || [])
-              ].filter(Boolean);
-
-              return (
-                <div
-                  key={workout.id}
-                  className={cn(
-                    "rounded-lg border p-4",
-                    "hover:border-primary transition-colors"
-                  )}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="space-y-1">
-                      <h3 className="font-semibold">Athlètes :</h3>
-                      {athletes.map((athlete) => (
-                        <p key={athlete.id} className="text-sm">
+          <div className="mt-6 space-y-4">
+            {isLoadingWorkouts ? (
+              <p>Chargement des séances...</p>
+            ) : workouts && workouts.length > 0 ? (
+              workouts.map((workout) => (
+                <Card key={workout.id} className="border-l-4 border-primary">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between text-base">
+                      <div className="flex items-center gap-2">
+                        {workout.title}
+                        {workout.theme && (
+                          <Badge variant="outline" className={cn("border-theme-" + workout.theme)}>
+                            {workout.theme}
+                          </Badge>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEditWorkout(workout.program.id, workout.id)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="text-sm font-medium">Athlètes :</div>
+                      {getAthletes(workout).map((athlete: any) => (
+                        <div key={athlete.id} className="text-sm text-muted-foreground">
                           {athlete.first_name} {athlete.last_name}
-                        </p>
+                        </div>
                       ))}
+                      {workout.description && (
+                        <p className="text-sm text-muted-foreground mt-2">{workout.description}</p>
+                      )}
                     </div>
-                    <span className="text-sm text-muted-foreground">
-                      {workout.program?.name}
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium">{workout.title}</p>
-                    {workout.description && (
-                      <p className="text-sm text-muted-foreground">
-                        {workout.description}
-                      </p>
-                    )}
-                    {workout.theme && (
-                      <p className="text-sm">
-                        <span className="font-medium">Type :</span>{" "}
-                        <span className="text-muted-foreground">{workout.theme}</span>
-                      </p>
-                    )}
-                    {workout.duration && (
-                      <p className="text-sm">
-                        <span className="font-medium">Durée :</span>{" "}
-                        <span className="text-muted-foreground">{workout.duration}</span>
-                      </p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-            {(!workouts || workouts.length === 0) && (
-              <p className="text-center text-muted-foreground">
-                Aucune séance prévue pour ce jour
-              </p>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <p className="text-muted-foreground">Aucune séance prévue ce jour</p>
             )}
           </div>
         </SheetContent>
