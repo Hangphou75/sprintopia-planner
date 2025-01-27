@@ -10,7 +10,7 @@ type ProgramCardProps = {
   program: Program;
   readOnly?: boolean;
   onDelete?: () => void;
-  onShare?: () => void;
+  onShare?: (programId: string) => void;
 };
 
 export const ProgramCard = ({ program, readOnly = false, onDelete, onShare }: ProgramCardProps) => {
@@ -34,6 +34,14 @@ export const ProgramCard = ({ program, readOnly = false, onDelete, onShare }: Pr
     
     console.log("Navigation path:", path);
     navigate(path);
+  };
+
+  const handleShare = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onShare && program.id) {
+      console.log("Sharing program:", program.id);
+      onShare(program.id);
+    }
   };
 
   return (
@@ -87,10 +95,7 @@ export const ProgramCard = ({ program, readOnly = false, onDelete, onShare }: Pr
           <Button
             variant="outline"
             size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              onShare?.();
-            }}
+            onClick={handleShare}
           >
             <Share2 className="h-4 w-4 mr-2" />
             Associer
