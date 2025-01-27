@@ -52,7 +52,7 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
 
       const athleteIds = coachAthletes.map(row => row.athlete_id);
 
-      // First get workouts from programs owned by athletes
+      // Get workouts from programs owned by athletes
       const { data: directWorkouts, error: directError } = await supabase
         .from("workouts")
         .select(`
@@ -76,7 +76,9 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
         return [];
       }
 
-      // Get shared programs IDs first
+      console.log("Direct workouts:", directWorkouts);
+
+      // Get shared programs
       const { data: sharedPrograms, error: sharedError } = await supabase
         .from("shared_programs")
         .select("program_id")
@@ -87,13 +89,16 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
         return directWorkouts || [];
       }
 
+      console.log("Shared programs:", sharedPrograms);
+
       if (!sharedPrograms?.length) {
         return directWorkouts || [];
       }
 
       const programIds = sharedPrograms.map(sp => sp.program_id);
+      console.log("Program IDs:", programIds);
 
-      // Then get workouts from these shared programs
+      // Get workouts from shared programs
       const { data: sharedWorkouts, error: workoutsError } = await supabase
         .from("workouts")
         .select(`
@@ -124,8 +129,10 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
         return directWorkouts || [];
       }
 
+      console.log("Shared workouts:", sharedWorkouts);
+
       const allWorkouts = [...(directWorkouts || []), ...(sharedWorkouts || [])];
-      console.log("All workouts for date:", allWorkouts);
+      console.log("All workouts:", allWorkouts);
       return allWorkouts;
     },
     enabled: !!coachId && !!selectedDate,
