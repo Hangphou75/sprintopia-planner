@@ -31,15 +31,14 @@ export const ProgramCard = ({ program, readOnly = false, onDelete, onShare }: Pr
   const handleShare = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log("Share button clicked for program:", program.id);
     if (onShare && program.id) {
       onShare(program.id);
     }
   };
 
   return (
-    <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-      <div onClick={handleClick}>
+    <Card>
+      <div onClick={handleClick} className="cursor-pointer hover:shadow-lg transition-shadow">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
