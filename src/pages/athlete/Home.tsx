@@ -57,7 +57,6 @@ const Home = () => {
 
       console.log("Shared programs data:", sharedData);
 
-      // Transformer les données pour avoir une liste plate de séances et compétitions
       const allWorkouts = sharedData?.flatMap(sp => sp.program.workouts || []) || [];
       const allCompetitions = sharedData?.flatMap(sp => sp.program.competitions || []) || [];
 
@@ -97,9 +96,22 @@ const Home = () => {
     );
   }
 
-  console.log("Today workout:", todayWorkout);
-  console.log("Upcoming competition:", upcomingCompetition);
-  console.log("Shared programs length:", sharedPrograms?.programs.length);
+  const getThemeLabel = (theme: string) => {
+    const themeMap: { [key: string]: string } = {
+      "aerobic": "Aérobie",
+      "anaerobic-lactic": "Anaérobie lactique",
+      "anaerobic-alactic": "Anaérobie alactique",
+      "mobility": "Mobilité",
+      "conditioning": "Préparation physique",
+      "power": "Force",
+      "competition": "Compétition",
+      "recovery": "Récupération",
+      "technique": "Technique",
+      "speed": "Vitesse",
+      "endurance": "Endurance"
+    };
+    return themeMap[theme] || theme;
+  };
 
   return (
     <div className="space-y-6">
@@ -124,14 +136,7 @@ const Home = () => {
                       <h3 className="text-lg font-semibold">{todayWorkout.title}</h3>
                       {todayWorkout.theme && (
                         <Badge variant="outline" className="mt-1">
-                          {todayWorkout.theme === "aerobic" ? "Aérobie" :
-                            todayWorkout.theme === "lactic" ? "Lactique" :
-                            todayWorkout.theme === "alactic" ? "Alactique" :
-                            todayWorkout.theme === "mobility" ? "Mobilité" :
-                            todayWorkout.theme === "conditioning" ? "Préparation physique" :
-                            todayWorkout.theme === "power" ? "Force" :
-                            todayWorkout.theme === "competition" ? "Compétition" :
-                            todayWorkout.theme}
+                          {getThemeLabel(todayWorkout.theme)}
                         </Badge>
                       )}
                     </div>
