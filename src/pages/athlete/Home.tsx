@@ -6,7 +6,6 @@ import { InvitationsList } from "@/components/athlete/InvitationsList";
 import { ProgramWorkoutCalendar } from "@/components/programs/ProgramWorkoutCalendar";
 import { format, startOfWeek, endOfWeek, isWithinInterval, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
-import { CompetitionCard } from "@/components/programs/CompetitionCard";
 import { Trophy, Timer, CalendarDays } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -125,7 +124,14 @@ const Home = () => {
                       <h3 className="text-lg font-semibold">{todayWorkout.title}</h3>
                       {todayWorkout.theme && (
                         <Badge variant="outline" className="mt-1">
-                          {todayWorkout.theme}
+                          {todayWorkout.theme === "aerobic" ? "Aérobie" :
+                            todayWorkout.theme === "lactic" ? "Lactique" :
+                            todayWorkout.theme === "alactic" ? "Alactique" :
+                            todayWorkout.theme === "mobility" ? "Mobilité" :
+                            todayWorkout.theme === "conditioning" ? "Préparation physique" :
+                            todayWorkout.theme === "power" ? "Force" :
+                            todayWorkout.theme === "competition" ? "Compétition" :
+                            todayWorkout.theme}
                         </Badge>
                       )}
                     </div>
@@ -151,11 +157,28 @@ const Home = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CompetitionCard
-                    competition={upcomingCompetition}
-                    onEdit={() => {}}
-                    onDelete={() => {}}
-                  />
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-semibold">{upcomingCompetition.name}</h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {format(new Date(upcomingCompetition.date), "d MMMM yyyy", { locale: fr })}
+                      </p>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      <p>{upcomingCompetition.distance}m • {
+                        upcomingCompetition.level === "local" ? "Local" :
+                        upcomingCompetition.level === "regional" ? "Régional" :
+                        upcomingCompetition.level === "national" ? "National" :
+                        "International"
+                      }</p>
+                      {upcomingCompetition.location && (
+                        <p className="mt-1">Lieu : {upcomingCompetition.location}</p>
+                      )}
+                      {upcomingCompetition.time && (
+                        <p className="mt-1">Heure : {upcomingCompetition.time}</p>
+                      )}
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             )}
