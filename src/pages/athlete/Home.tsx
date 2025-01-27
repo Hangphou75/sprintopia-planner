@@ -6,7 +6,6 @@ import { InvitationsList } from "@/components/athlete/InvitationsList";
 import { ProgramWorkoutCalendar } from "@/components/programs/ProgramWorkoutCalendar";
 import { format, startOfWeek, endOfWeek, isWithinInterval, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
-import { ProgramCard } from "@/components/programs/ProgramCard";
 import { CompetitionCard } from "@/components/programs/CompetitionCard";
 import { Trophy, Timer, CalendarDays } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -17,63 +16,54 @@ const Home = () => {
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
 
-  const { data: activeProgram, isLoading: isLoadingActive } = useQuery({
-    queryKey: ["active-program", user?.id],
+  const { data: sharedPrograms, isLoading: isLoadingShared } = useQuery({
+    queryKey: ["shared-programs", user?.id],
     queryFn: async () => {
-      const { data: activeData, error: activeError } = await supabase
-        .from("active_programs")
+      // Récupérer tous les programmes partagés avec l'athlète
+      const { data: sharedData, error: sharedError } = await supabase
+        .from("shared_programs")
         .select(`
-          *,
           program:programs (
-            *
+            id,
+            name,
+            workouts (
+              *
+            ),
+            competitions (
+              *
+            )
           )
         `)
-        .eq("user_id", user?.id)
-        .maybeSingle();
+        .eq("athlete_id", user?.id)
+        .eq("status", "active");
 
-      if (activeError) throw activeError;
+      if (sharedError) throw sharedError;
 
-      if (activeData) {
-        const [workoutsResponse, competitionsResponse] = await Promise.all([
-          supabase
-            .from("workouts")
-            .select("*")
-            .eq("program_id", activeData.program_id)
-            .order("date", { ascending: true }),
-          supabase
-            .from("competitions")
-            .select("*")
-            .eq("program_id", activeData.program_id)
-            .order("date", { ascending: true }),
-        ]);
+      // Transformer les données pour avoir une liste plate de séances et compétitions
+      const allWorkouts = sharedData?.flatMap(sp => sp.program.workouts || []) || [];
+      const allCompetitions = sharedData?.flatMap(sp => sp.program.competitions || []) || [];
 
-        if (workoutsResponse.error) throw workoutsResponse.error;
-        if (competitionsResponse.error) throw competitionsResponse.error;
-
-        return {
-          ...activeData,
-          workouts: workoutsResponse.data || [],
-          competitions: competitionsResponse.data || [],
-        };
-      }
-
-      return null;
+      return {
+        programs: sharedData?.map(sp => sp.program) || [],
+        workouts: allWorkouts,
+        competitions: allCompetitions,
+      };
     },
     enabled: !!user?.id,
   });
 
-  const todayWorkout = activeProgram?.workouts.find(workout => 
+  const todayWorkout = sharedPrograms?.workouts.find(workout => 
     workout.date && isSameDay(new Date(workout.date), today)
   );
 
-  const upcomingCompetition = activeProgram?.competitions.find(competition =>
+  const upcomingCompetition = sharedPrograms?.competitions.find(competition =>
     competition.date && isWithinInterval(new Date(competition.date), {
       start: weekStart,
       end: weekEnd
     })
   );
 
-  if (isLoadingActive) {
+  if (isLoadingShared) {
     return (
       <div className="space-y-6">
         <h1 className="text-3xl font-bold">Tableau de bord</h1>
@@ -92,7 +82,7 @@ const Home = () => {
 
       <InvitationsList />
 
-      {activeProgram ? (
+      {sharedPrograms?.programs.length > 0 ? (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {todayWorkout && (
@@ -149,14 +139,14 @@ const Home = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CalendarDays className="h-5 w-5" />
-                Programme actif : {activeProgram.program.name}
+                Calendrier des séances
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ProgramWorkoutCalendar
-                workouts={activeProgram.workouts}
-                competitions={activeProgram.competitions}
-                programId={activeProgram.program_id}
+                workouts={sharedPrograms.workouts}
+                competitions={sharedPrograms.competitions}
+                programId={null}
               />
             </CardContent>
           </Card>
