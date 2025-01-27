@@ -19,6 +19,14 @@ const Programs = () => {
         .select(`
           *,
           competitions(*),
+          shared_programs(
+            athlete:profiles!shared_programs_athlete_id_fkey(
+              id,
+              first_name,
+              last_name,
+              email
+            )
+          ),
           coach:profiles!programs_user_id_fkey(
             first_name,
             last_name
