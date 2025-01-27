@@ -1,12 +1,13 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Timer, Dumbbell, Activity } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 const themes = [
   { value: "aerobic", label: "Aérobie" },
@@ -29,7 +30,7 @@ export const WorkoutDetails = () => {
         .from("workouts")
         .select("*")
         .eq("id", workoutId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;
@@ -74,10 +75,7 @@ export const WorkoutDetails = () => {
         workout.theme && `border-theme-${workout.theme}`
       )}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-2xl">
-            <Timer className="h-5 w-5" />
-            {workout.title}
-          </CardTitle>
+          <CardTitle className="text-2xl">{workout.title}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
