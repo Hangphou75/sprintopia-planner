@@ -1,7 +1,5 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { Database } from "@/integrations/supabase/types";
 
 export type UserRole = "athlete" | "coach";
 
@@ -14,10 +12,10 @@ export interface UserProfile {
   role: UserRole;
 }
 
-export const useProfile = () => {
+export function useProfile() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
 
-  const fetchProfile = async (userId: string): Promise<UserProfile | null> => {
+  const fetchProfile = useCallback(async (userId: string): Promise<UserProfile | null> => {
     try {
       console.log("Fetching profile for user:", userId);
       
@@ -60,7 +58,7 @@ export const useProfile = () => {
       console.error('Error in fetchProfile:', error);
       return null;
     }
-  };
+  }, []);
 
   return { profile, fetchProfile, setProfile };
-};
+}
