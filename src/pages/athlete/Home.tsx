@@ -19,7 +19,8 @@ const Home = () => {
   const { data: sharedPrograms, isLoading: isLoadingShared } = useQuery({
     queryKey: ["shared-programs", user?.id],
     queryFn: async () => {
-      // Récupérer tous les programmes partagés avec l'athlète
+      console.log("Fetching shared programs for user:", user?.id);
+      
       const { data: sharedData, error: sharedError } = await supabase
         .from("shared_programs")
         .select(`
@@ -27,21 +28,41 @@ const Home = () => {
             id,
             name,
             workouts (
-              *
+              id,
+              title,
+              description,
+              date,
+              time,
+              theme,
+              details
             ),
             competitions (
-              *
+              id,
+              name,
+              date,
+              location,
+              distance,
+              level,
+              time
             )
           )
         `)
         .eq("athlete_id", user?.id)
         .eq("status", "active");
 
-      if (sharedError) throw sharedError;
+      if (sharedError) {
+        console.error("Error fetching shared programs:", sharedError);
+        throw sharedError;
+      }
+
+      console.log("Shared programs data:", sharedData);
 
       // Transformer les données pour avoir une liste plate de séances et compétitions
       const allWorkouts = sharedData?.flatMap(sp => sp.program.workouts || []) || [];
       const allCompetitions = sharedData?.flatMap(sp => sp.program.competitions || []) || [];
+
+      console.log("All workouts:", allWorkouts);
+      console.log("All competitions:", allCompetitions);
 
       return {
         programs: sharedData?.map(sp => sp.program) || [],
@@ -75,6 +96,10 @@ const Home = () => {
       </div>
     );
   }
+
+  console.log("Today workout:", todayWorkout);
+  console.log("Upcoming competition:", upcomingCompetition);
+  console.log("Shared programs length:", sharedPrograms?.programs.length);
 
   return (
     <div className="space-y-6">
