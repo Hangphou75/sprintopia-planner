@@ -7,4 +7,12 @@ export type Program = {
   created_at: string;
   updated_at: string;
   user_id: string | null;
+  shared_programs?: {
+    athlete: {
+      id: string;
+      first_name: string | null;
+      last_name: string | null;
+      email: string | null;
+    };
+  }[];
 };
