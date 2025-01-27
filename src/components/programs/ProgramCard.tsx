@@ -37,8 +37,8 @@ export const ProgramCard = ({ program, readOnly = false, onDelete, onShare }: Pr
   };
 
   return (
-    <Card>
-      <div onClick={handleClick} className="cursor-pointer hover:shadow-lg transition-shadow">
+    <Card className="flex flex-col">
+      <div onClick={handleClick} className="cursor-pointer hover:shadow-lg transition-shadow flex-grow">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -83,7 +83,7 @@ export const ProgramCard = ({ program, readOnly = false, onDelete, onShare }: Pr
         </CardContent>
       </div>
       {user?.role === 'coach' && (
-        <CardFooter className="flex justify-end gap-2">
+        <CardFooter className="flex justify-end gap-2 mt-auto">
           <Button
             variant="outline"
             size="sm"

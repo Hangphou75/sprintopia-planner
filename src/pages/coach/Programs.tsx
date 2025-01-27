@@ -84,10 +84,7 @@ const Programs = () => {
           coach_id: user.id,
         });
 
-      if (error) {
-        console.error("Error sharing program:", error);
-        throw error;
-      }
+      if (error) throw error;
 
       toast.success("Programme partagé avec succès");
       setIsShareDialogOpen(false);
