@@ -45,11 +45,7 @@ const Programs = () => {
         .eq("user_id", user?.id)
         .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Error fetching programs:", error);
-        throw error;
-      }
-
+      if (error) throw error;
       return data;
     },
     enabled: !!user?.id,
@@ -80,12 +76,6 @@ const Programs = () => {
     if (!user?.id || !selectedProgramId) return;
 
     try {
-      console.log("Sharing program:", {
-        program_id: selectedProgramId,
-        athlete_id: athleteId,
-        coach_id: user.id,
-      });
-
       const { error } = await supabase
         .from("shared_programs")
         .insert({
@@ -109,7 +99,6 @@ const Programs = () => {
   };
 
   const onShareProgram = (programId: string) => {
-    console.log("Opening share dialog for program:", programId);
     setSelectedProgramId(programId);
     setIsShareDialogOpen(true);
   };
