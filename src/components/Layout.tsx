@@ -26,23 +26,23 @@ const Layout = () => {
     <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-screen w-full bg-background">
         <Sidebar variant="sidebar" collapsible="offcanvas">
-          <SidebarContent>
-            <SidebarHeader className="flex items-center justify-between border-b border-border/10 bg-sidebar p-4">
-              <span className="text-lg font-semibold text-sidebar-foreground">Sprintopia</span>
+          <SidebarContent className="bg-white dark:bg-gray-900 shadow-lg">
+            <SidebarHeader className="flex items-center justify-between border-b bg-white dark:bg-gray-900 p-4">
+              <span className="text-lg font-semibold text-primary">Sprintopia</span>
               <SidebarTrigger className="md:hidden" />
             </SidebarHeader>
             <div className="flex-1 space-y-6 py-6">
               <MainNav isCoach={isCoach} basePath={basePath} />
             </div>
-            <div className="border-t border-border/10 p-4">
+            <div className="border-t p-4">
               <LogoutButton />
             </div>
           </SidebarContent>
         </Sidebar>
         <SidebarInset>
-          <div className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 shadow-sm md:px-6">
-            <SidebarTrigger className="h-9 w-9 md:hidden">
-              <Menu className="h-5 w-5" />
+          <div className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-white dark:bg-gray-900 px-4 shadow-sm md:px-6">
+            <SidebarTrigger className="h-10 w-10 md:hidden">
+              <Menu className="h-6 w-6" />
             </SidebarTrigger>
             <div className="flex-1" />
           </div>
