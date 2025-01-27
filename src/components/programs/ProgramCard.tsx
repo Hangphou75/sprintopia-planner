@@ -29,7 +29,9 @@ export const ProgramCard = ({ program, readOnly = false, onDelete, onShare }: Pr
   };
 
   const handleShare = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
+    console.log("Share button clicked for program:", program.id);
     if (onShare && program.id) {
       onShare(program.id);
     }

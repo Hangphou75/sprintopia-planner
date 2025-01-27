@@ -24,6 +24,7 @@ const Programs = () => {
   const { data: programs, isLoading } = useQuery({
     queryKey: ["programs", user?.id],
     queryFn: async () => {
+      console.log("Fetching programs for user:", user?.id);
       const { data, error } = await supabase
         .from("programs")
         .select(`
@@ -46,6 +47,7 @@ const Programs = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+      console.log("Programs fetched:", data);
       return data;
     },
     enabled: !!user?.id,
@@ -54,6 +56,7 @@ const Programs = () => {
   const { data: athletes } = useQuery({
     queryKey: ["coach-athletes", user?.id],
     queryFn: async () => {
+      console.log("Fetching athletes for coach:", user?.id);
       const { data, error } = await supabase
         .from("coach_athletes")
         .select(`
@@ -67,6 +70,7 @@ const Programs = () => {
         .eq("coach_id", user?.id);
 
       if (error) throw error;
+      console.log("Athletes fetched:", data);
       return data;
     },
     enabled: !!user?.id,
@@ -74,6 +78,7 @@ const Programs = () => {
 
   const handleShare = async (athleteId: string) => {
     if (!user?.id || !selectedProgramId) return;
+    console.log("Sharing program:", selectedProgramId, "with athlete:", athleteId);
 
     try {
       const { error } = await supabase
@@ -99,6 +104,7 @@ const Programs = () => {
   };
 
   const onShareProgram = (programId: string) => {
+    console.log("Opening share dialog for program:", programId);
     setSelectedProgramId(programId);
     setIsShareDialogOpen(true);
   };
@@ -160,6 +166,11 @@ const Programs = () => {
                 {relation.athlete.first_name} {relation.athlete.last_name}
               </Button>
             ))}
+            {(!athletes || athletes.length === 0) && (
+              <p className="text-muted-foreground text-center">
+                Aucun athlète disponible
+              </p>
+            )}
           </div>
         </DialogContent>
       </Dialog>
