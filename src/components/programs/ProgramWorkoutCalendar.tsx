@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Timer, Trophy, Dumbbell, Activity, Zap, Flame } from "lucide-react";
 import { CalendarView } from "./calendar/CalendarView";
@@ -48,6 +48,7 @@ export const ProgramWorkoutCalendar = ({
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
+  const [isProcessingClick, setIsProcessingClick] = useState(false);
 
   // Combine workouts and competitions into events
   const events: Event[] = [
@@ -133,23 +134,37 @@ export const ProgramWorkoutCalendar = ({
     }
   };
 
-  const handleEventClick = (event: Event) => {
-    if (event.type === "workout") {
-      console.log("Navigation event:", {
-        role: user?.role,
-        eventId: event.id,
-        programId: programId
-      });
-      
+  const handleEventClick = useCallback((event: Event) => {
+    if (isProcessingClick || event.type !== "workout") return;
+    
+    setIsProcessingClick(true);
+    
+    try {
       if (user?.role === 'athlete') {
-        console.log("Navigating to workout details:", `/athlete/programs/${programId}/workouts/${event.id}`);
         navigate(`/athlete/programs/${programId}/workouts/${event.id}`);
       } else {
-        console.log("Navigating to workout edit:", `/coach/programs/${programId}/workouts/${event.id}/edit`);
         navigate(`/coach/programs/${programId}/workouts/${event.id}/edit`);
       }
+    } catch (error) {
+      console.error("Navigation error:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la navigation.",
+        variant: "destructive",
+      });
+    } finally {
+      // Reset after a short delay to prevent double clicks
+      setTimeout(() => {
+        setIsProcessingClick(false);
+      }, 500);
     }
-  };
+  }, [navigate, programId, user?.role, isProcessingClick, toast]);
+
+  const handleDateSelect = useCallback((date: Date | undefined) => {
+    if (!isProcessingClick) {
+      setSelectedDate(date);
+    }
+  }, [isProcessingClick]);
 
   let filteredWorkouts = events.filter(event => event.type === "workout");
   if (selectedTheme) {
@@ -168,7 +183,7 @@ export const ProgramWorkoutCalendar = ({
         <CalendarView
           events={events}
           selectedDate={selectedDate}
-          onSelectDate={setSelectedDate}
+          onSelectDate={handleDateSelect}
         />
         <EventDetails
           events={events}
