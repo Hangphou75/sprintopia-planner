@@ -24,6 +24,7 @@ const Programs = () => {
   const { data: programs, isLoading } = useQuery({
     queryKey: ["programs", user?.id],
     queryFn: async () => {
+      console.log("Fetching programs for user:", user?.id);
       const { data, error } = await supabase
         .from("programs")
         .select(`
@@ -46,6 +47,7 @@ const Programs = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+      console.log("Programs fetched:", data);
       return data;
     },
     enabled: !!user?.id,
@@ -138,7 +140,13 @@ const Programs = () => {
         </div>
       </ScrollArea>
 
-      <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
+      <Dialog 
+        open={isShareDialogOpen} 
+        onOpenChange={(open) => {
+          setIsShareDialogOpen(open);
+          if (!open) setSelectedProgramId(null);
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Associer le programme</DialogTitle>
