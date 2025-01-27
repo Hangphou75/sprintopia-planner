@@ -26,6 +26,13 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
     queryFn: async () => {
       if (!coachId || !selectedDate) return [];
 
+      const { data: athleteIds } = await supabase
+        .from("coach_athletes")
+        .select("athlete_id")
+        .eq("coach_id", coachId);
+
+      if (!athleteIds?.length) return [];
+
       const { data, error } = await supabase
         .from("workouts")
         .select(`
@@ -41,9 +48,7 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
           )
         `)
         .eq("date", format(selectedDate, "yyyy-MM-dd"))
-        .filter("program.athlete.id", "in", `(
-          select athlete_id from coach_athletes where coach_id = '${coachId}'
-        )`);
+        .in("program.user_id", athleteIds.map(row => row.athlete_id));
 
       if (error) throw error;
       return data;
@@ -56,6 +61,13 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
     queryFn: async () => {
       if (!coachId) return [];
 
+      const { data: athleteIds } = await supabase
+        .from("coach_athletes")
+        .select("athlete_id")
+        .eq("coach_id", coachId);
+
+      if (!athleteIds?.length) return [];
+
       const { data, error } = await supabase
         .from("workouts")
         .select(`
@@ -64,9 +76,7 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
             user_id
           )
         `)
-        .filter("program.user_id", "in", `(
-          select athlete_id from coach_athletes where coach_id = '${coachId}'
-        )`);
+        .in("program.user_id", athleteIds.map(row => row.athlete_id));
 
       if (error) throw error;
       return data;

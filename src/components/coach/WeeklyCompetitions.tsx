@@ -17,6 +17,13 @@ export const WeeklyCompetitions = ({ coachId }: WeeklyCompetitionsProps) => {
       const start = startOfWeek(new Date(), { weekStartsOn: 1 });
       const end = endOfWeek(new Date(), { weekStartsOn: 1 });
 
+      const { data: athleteIds } = await supabase
+        .from("coach_athletes")
+        .select("athlete_id")
+        .eq("coach_id", coachId);
+
+      if (!athleteIds?.length) return [];
+
       const { data, error } = await supabase
         .from("competitions")
         .select(`
@@ -33,9 +40,7 @@ export const WeeklyCompetitions = ({ coachId }: WeeklyCompetitionsProps) => {
         `)
         .gte("date", format(start, "yyyy-MM-dd"))
         .lte("date", format(end, "yyyy-MM-dd"))
-        .filter("program.athlete.id", "in", `(
-          select athlete_id from coach_athletes where coach_id = '${coachId}'
-        )`);
+        .in("program.user_id", athleteIds.map(row => row.athlete_id));
 
       if (error) throw error;
       return data;
