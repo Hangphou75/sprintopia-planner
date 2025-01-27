@@ -1,4 +1,4 @@
-import { Event } from "../types";
+import { Event, ThemeOption } from "../types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,7 @@ interface EventDetailsProps {
   onEventClick?: (event: Event) => void;
   onEditClick?: (event: Event) => void;
   readOnly?: boolean;
+  themeOptions?: ThemeOption[];
 }
 
 export const EventDetails = ({
@@ -21,6 +22,7 @@ export const EventDetails = ({
   onEventClick,
   onEditClick,
   readOnly = false,
+  themeOptions = [],
 }: EventDetailsProps) => {
   const selectedDateEvents = events.filter(
     (event) =>
@@ -53,6 +55,11 @@ export const EventDetails = ({
                     <Badge variant={event.type === "workout" ? "default" : "destructive"}>
                       {event.type === "workout" ? "Séance" : "Compétition"}
                     </Badge>
+                    {event.type === "workout" && event.theme && themeOptions && (
+                      <Badge variant="outline">
+                        {themeOptions.find(t => t.value === event.theme)?.label}
+                      </Badge>
+                    )}
                   </div>
                   {!readOnly && onEditClick && (
                     <Button
