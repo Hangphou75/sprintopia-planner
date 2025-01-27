@@ -65,13 +65,6 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
               id,
               first_name,
               last_name
-            ),
-            shared_programs (
-              athlete:profiles!shared_programs_athlete_id_fkey (
-                id,
-                first_name,
-                last_name
-              )
             )
           )
         `)
@@ -83,24 +76,23 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
         return [];
       }
 
-      // Then get workouts from shared programs
-      const sharedProgramsQuery = await supabase
+      // Get shared programs IDs first
+      const { data: sharedPrograms, error: sharedError } = await supabase
         .from("shared_programs")
         .select("program_id")
         .in("athlete_id", athleteIds);
 
-      if (sharedProgramsQuery.error) {
-        console.error("Error fetching shared program IDs:", sharedProgramsQuery.error);
+      if (sharedError) {
+        console.error("Error fetching shared programs:", sharedError);
         return directWorkouts || [];
       }
 
-      if (!sharedProgramsQuery.data?.length) {
+      if (!sharedPrograms?.length) {
         return directWorkouts || [];
       }
 
-      const sharedProgramIds = sharedProgramsQuery.data.map(sp => sp.program_id);
-
-      const { data: sharedWorkouts, error: sharedError } = await supabase
+      // Then get workouts from these shared programs
+      const { data: sharedWorkouts, error: workoutsError } = await supabase
         .from("workouts")
         .select(`
           *,
@@ -123,10 +115,10 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
           )
         `)
         .eq("date", formattedDate)
-        .in("program_id", sharedProgramIds);
+        .in("program_id", sharedPrograms.map(sp => sp.program_id));
 
-      if (sharedError) {
-        console.error("Error fetching shared workouts:", sharedError);
+      if (workoutsError) {
+        console.error("Error fetching workouts from shared programs:", workoutsError);
         return directWorkouts || [];
       }
 
@@ -233,11 +225,8 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
         locale={fr}
         components={{
           DayContent: ({ date }) => {
-            const hasWorkouts = allWorkouts?.some(
-              workout => {
-                const workoutDate = new Date(workout.date);
-                return format(workoutDate, "yyyy-MM-dd") === format(date, "yyyy-MM-dd");
-              }
+            const hasWorkouts = workouts?.some(
+              workout => format(new Date(workout.date), "yyyy-MM-dd") === format(date, "yyyy-MM-dd")
             );
 
             return (
