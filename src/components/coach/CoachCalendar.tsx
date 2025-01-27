@@ -52,8 +52,8 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
 
       const athleteIds = coachAthletes.map(row => row.athlete_id);
 
-      // Get workouts for all programs where these athletes are either owners or have shared access
-      const { data: workouts, error: workoutsError } = await supabase
+      // First get workouts from programs owned by athletes
+      const { data: directWorkouts, error: directError } = await supabase
         .from("workouts")
         .select(`
           *,
@@ -78,13 +78,29 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
         .eq("date", formattedDate)
         .in("program.user_id", athleteIds);
 
-      if (workoutsError) {
-        console.error("Error fetching workouts:", workoutsError);
+      if (directError) {
+        console.error("Error fetching direct workouts:", directError);
         return [];
       }
 
-      // Also get workouts from shared programs
-      const { data: sharedWorkouts, error: sharedWorkoutsError } = await supabase
+      // Then get workouts from shared programs
+      const sharedProgramsQuery = await supabase
+        .from("shared_programs")
+        .select("program_id")
+        .in("athlete_id", athleteIds);
+
+      if (sharedProgramsQuery.error) {
+        console.error("Error fetching shared program IDs:", sharedProgramsQuery.error);
+        return directWorkouts || [];
+      }
+
+      if (!sharedProgramsQuery.data?.length) {
+        return directWorkouts || [];
+      }
+
+      const sharedProgramIds = sharedProgramsQuery.data.map(sp => sp.program_id);
+
+      const { data: sharedWorkouts, error: sharedError } = await supabase
         .from("workouts")
         .select(`
           *,
@@ -107,18 +123,15 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
           )
         `)
         .eq("date", formattedDate)
-        .in(
-          "program_id",
-          athleteIds.map(id => `(select program_id from shared_programs where athlete_id = '${id}')`)
-        );
+        .in("program_id", sharedProgramIds);
 
-      if (sharedWorkoutsError) {
-        console.error("Error fetching shared workouts:", sharedWorkoutsError);
-        return [];
+      if (sharedError) {
+        console.error("Error fetching shared workouts:", sharedError);
+        return directWorkouts || [];
       }
 
-      const allWorkouts = [...(workouts || []), ...(sharedWorkouts || [])];
-      console.log("Workouts for date:", allWorkouts);
+      const allWorkouts = [...(directWorkouts || []), ...(sharedWorkouts || [])];
+      console.log("All workouts for date:", allWorkouts);
       return allWorkouts;
     },
     enabled: !!coachId && !!selectedDate,
