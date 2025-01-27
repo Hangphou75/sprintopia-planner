@@ -24,19 +24,17 @@ const Login = () => {
           <CardDescription>Connectez-vous ou créez un compte pour continuer</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login">
-            <TabsList className="grid w-full grid-cols-2">
+          <Tabs defaultValue="login" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
               <TabsTrigger value="login">Connexion</TabsTrigger>
               <TabsTrigger value="signup">Inscription</TabsTrigger>
             </TabsList>
-            <div className="mt-4">
-              <TabsContent value="login">
-                <LoginForm />
-              </TabsContent>
-              <TabsContent value="signup">
-                <SignUpForm />
-              </TabsContent>
-            </div>
+            <TabsContent value="login" className="mt-4">
+              <LoginForm />
+            </TabsContent>
+            <TabsContent value="signup" className="mt-4">
+              <SignUpForm />
+            </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
