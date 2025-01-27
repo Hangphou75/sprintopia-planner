@@ -1,21 +1,18 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { InvitationsList } from "@/components/athlete/InvitationsList";
 import { ProgramWorkoutCalendar } from "@/components/programs/ProgramWorkoutCalendar";
 import { format, startOfWeek, endOfWeek, isWithinInterval, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
-import { toast } from "sonner";
 import { ProgramCard } from "@/components/programs/ProgramCard";
 import { CompetitionCard } from "@/components/programs/CompetitionCard";
-import { Trophy, Timer } from "lucide-react";
+import { Trophy, Timer, CalendarDays } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const Home = () => {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
   const today = new Date();
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
@@ -78,11 +75,14 @@ const Home = () => {
 
   if (isLoadingActive) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Chargement...</CardTitle>
-        </CardHeader>
-      </Card>
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold">Tableau de bord</h1>
+        <Card>
+          <CardHeader>
+            <CardTitle>Chargement...</CardTitle>
+          </CardHeader>
+        </Card>
+      </div>
     );
   }
 
@@ -94,67 +94,63 @@ const Home = () => {
 
       {activeProgram ? (
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Programme en cours</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ProgramCard program={activeProgram.program} readOnly />
-            </CardContent>
-          </Card>
-
-          {todayWorkout && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Timer className="h-5 w-5" />
-                  Séance du jour
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-semibold">{todayWorkout.title}</h3>
-                    {todayWorkout.theme && (
-                      <Badge variant="outline" className="mt-1">
-                        {todayWorkout.theme}
-                      </Badge>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {todayWorkout && (
+              <Card className="h-full">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Timer className="h-5 w-5" />
+                    Séance du jour
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-semibold">{todayWorkout.title}</h3>
+                      {todayWorkout.theme && (
+                        <Badge variant="outline" className="mt-1">
+                          {todayWorkout.theme}
+                        </Badge>
+                      )}
+                    </div>
+                    {todayWorkout.description && (
+                      <p className="text-muted-foreground">{todayWorkout.description}</p>
+                    )}
+                    {todayWorkout.time && (
+                      <p className="text-sm text-muted-foreground">
+                        Heure : {todayWorkout.time}
+                      </p>
                     )}
                   </div>
-                  {todayWorkout.description && (
-                    <p className="text-muted-foreground">{todayWorkout.description}</p>
-                  )}
-                  {todayWorkout.time && (
-                    <p className="text-sm text-muted-foreground">
-                      Heure : {todayWorkout.time}
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                </CardContent>
+              </Card>
+            )}
 
-          {upcomingCompetition && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Trophy className="h-5 w-5 text-yellow-500" />
-                  Compétition cette semaine
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CompetitionCard
-                  competition={upcomingCompetition}
-                  onEdit={() => {}}
-                  onDelete={() => {}}
-                />
-              </CardContent>
-            </Card>
-          )}
-          
+            {upcomingCompetition && (
+              <Card className="h-full">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Trophy className="h-5 w-5 text-yellow-500" />
+                    Compétition cette semaine
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CompetitionCard
+                    competition={upcomingCompetition}
+                    onEdit={() => {}}
+                    onDelete={() => {}}
+                  />
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
           <Card>
             <CardHeader>
-              <CardTitle>Calendrier des séances</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <CalendarDays className="h-5 w-5" />
+                Programme actif : {activeProgram.program.name}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <ProgramWorkoutCalendar
