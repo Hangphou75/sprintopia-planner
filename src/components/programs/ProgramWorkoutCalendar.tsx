@@ -149,8 +149,12 @@ export const ProgramWorkoutCalendar = ({
 
   const handleEventClick = (event: Event) => {
     if (event.type === "workout") {
-      const basePath = user?.role === 'coach' ? '/coach' : '/athlete';
-      navigate(`${basePath}/programs/${programId}/workouts/${event.id}/edit`);
+      const basePath = user?.role === 'athlete' ? '/athlete' : '/coach';
+      if (user?.role === 'athlete') {
+        navigate(`${basePath}/programs/${programId}/workouts/${event.id}`);
+      } else {
+        navigate(`${basePath}/programs/${programId}/workouts/${event.id}/edit`);
+      }
     }
   };
 
