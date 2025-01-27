@@ -13,13 +13,15 @@ const AthletePlanning = () => {
   const { data: activeProgram, isLoading: isLoadingActive } = useQuery({
     queryKey: ["active-program", user?.id],
     queryFn: async () => {
+      console.log("Fetching active program for user:", user?.id);
+      
       const { data: activeProgram, error } = await supabase
         .from("active_programs")
         .select(`
           program:programs (
             *,
-            workouts(*),
-            competitions(*),
+            workouts (*),
+            competitions (*),
             coach:profiles!programs_user_id_fkey (
               first_name,
               last_name
@@ -34,7 +36,8 @@ const AthletePlanning = () => {
         throw error;
       }
 
-      console.log("Active program data:", activeProgram);
+      // Ajout de logs pour déboguer
+      console.log("Active program raw data:", activeProgram);
       return activeProgram?.program;
     },
     enabled: !!user?.id,
@@ -43,13 +46,15 @@ const AthletePlanning = () => {
   const { data: sharedPrograms, isLoading: isLoadingShared } = useQuery({
     queryKey: ["shared-programs-active", user?.id],
     queryFn: async () => {
+      console.log("Fetching shared programs for user:", user?.id);
+      
       const { data: sharedProgramsData, error: sharedError } = await supabase
         .from("shared_programs")
         .select(`
           program:programs (
             *,
-            workouts(*),
-            competitions(*),
+            workouts (*),
+            competitions (*),
             coach:profiles!programs_user_id_fkey (
               first_name,
               last_name
@@ -64,7 +69,8 @@ const AthletePlanning = () => {
         throw sharedError;
       }
 
-      console.log("Shared programs data:", sharedProgramsData);
+      // Ajout de logs pour déboguer
+      console.log("Shared programs raw data:", sharedProgramsData);
       return sharedProgramsData.map((sp: any) => sp.program);
     },
     enabled: !!user?.id,
@@ -83,7 +89,7 @@ const AthletePlanning = () => {
   }
 
   const currentProgram = activeProgram || (sharedPrograms && sharedPrograms[0]);
-  console.log("Current program:", currentProgram);
+  console.log("Current program with competitions:", currentProgram);
 
   return (
     <div className="container mx-auto py-6 px-4 max-w-5xl h-[calc(100vh-4rem)] flex flex-col">
