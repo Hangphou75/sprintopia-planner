@@ -66,7 +66,7 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
           )
         `)
         .eq("date", format(selectedDate, "yyyy-MM-dd"))
-        .or(`user_id.in.(${athleteIds.join(",")}),program.id.in.(select program_id from shared_programs where athlete_id in (${athleteIds.join(",")}))`);
+        .or(`program_id.in.(select id from programs where user_id.in.(${athleteIds.join(",")})),program_id.in.(select program_id from shared_programs where athlete_id.in.(${athleteIds.join(",")}))`);
 
       if (error) {
         console.error("Error fetching workouts:", error);
@@ -101,7 +101,7 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
             user_id
           )
         `)
-        .or(`user_id.in.(${athleteIds.join(",")}),program.id.in.(select program_id from shared_programs where athlete_id in (${athleteIds.join(",")}))`);
+        .or(`program_id.in.(select id from programs where user_id.in.(${athleteIds.join(",")})),program_id.in.(select program_id from shared_programs where athlete_id.in.(${athleteIds.join(",")}))`);
 
       if (error) {
         console.error("Error fetching all workouts:", error);
