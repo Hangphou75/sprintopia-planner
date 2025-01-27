@@ -32,29 +32,52 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
     queryFn: async () => {
       if (!coachId || !selectedDate) return [];
 
+      console.log("Fetching workouts for date:", format(selectedDate, "yyyy-MM-dd"));
+
       // First get all athlete IDs for this coach
-      const { data: coachAthletes } = await supabase
+      const { data: coachAthletes, error: athletesError } = await supabase
         .from("coach_athletes")
         .select("athlete_id")
         .eq("coach_id", coachId);
+
+      if (athletesError) {
+        console.error("Error fetching athletes:", athletesError);
+        return [];
+      }
+
+      console.log("Coach athletes:", coachAthletes);
 
       if (!coachAthletes?.length) return [];
 
       const athleteIds = coachAthletes.map(row => row.athlete_id);
 
       // Get workouts for both owned and shared programs
-      const { data: programs } = await supabase
+      const { data: programs, error: programsError } = await supabase
         .from("programs")
         .select("id")
         .in("user_id", athleteIds);
 
+      if (programsError) {
+        console.error("Error fetching programs:", programsError);
+        return [];
+      }
+
+      console.log("Athletes programs:", programs);
+
       const programIds = programs?.map(p => p.id) || [];
 
       // Get additional program IDs from shared programs
-      const { data: sharedPrograms } = await supabase
+      const { data: sharedPrograms, error: sharedError } = await supabase
         .from("shared_programs")
         .select("program_id")
         .in("athlete_id", athleteIds);
+
+      if (sharedError) {
+        console.error("Error fetching shared programs:", sharedError);
+        return [];
+      }
+
+      console.log("Shared programs:", sharedPrograms);
 
       const sharedProgramIds = sharedPrograms?.map(sp => sp.program_id) || [];
 
@@ -62,6 +85,8 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
       const allProgramIds = [...programIds, ...sharedProgramIds];
 
       if (!allProgramIds.length) return [];
+
+      console.log("All program IDs:", allProgramIds);
 
       // Get workouts for the specific date and programs
       const { data, error } = await supabase
@@ -152,6 +177,7 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
   });
 
   const handleDateSelect = (date: Date | undefined) => {
+    console.log("Selected date:", date);
     setSelectedDate(date);
     if (date) {
       setIsDetailsOpen(true);
