@@ -27,10 +27,7 @@ export const ProgramCard = ({ program, readOnly = false, onDelete }: ProgramCard
       currentPath: window.location.pathname
     });
 
-    const path = user.role === 'athlete' 
-      ? `/athlete/programs/${program.id}/workouts`
-      : `/coach/programs/${program.id}/workouts`;
-
+    const path = `/athlete/programs/${program.id}/workouts`;
     console.log("Navigation path:", path);
     navigate(path);
   };
