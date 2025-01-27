@@ -28,11 +28,25 @@ export const SignUpForm = () => {
           title: "Erreur d'inscription",
           description: "Veuillez remplir tous les champs",
         });
-        setIsLoading(false);
         return;
       }
 
       console.log("Tentative d'inscription avec:", { email, role, firstName, lastName });
+
+      const { data: existingUser } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .single();
+
+      if (existingUser) {
+        toast({
+          variant: "destructive",
+          title: "Erreur d'inscription",
+          description: "Un compte existe déjà avec cet email. Veuillez vous connecter.",
+        });
+        return;
+      }
 
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -51,7 +65,7 @@ export const SignUpForm = () => {
         
         let errorMessage = "Une erreur est survenue lors de la création du compte";
         
-        if (error.message?.includes("already registered") || error.message?.includes("user_already_exists")) {
+        if (error.message?.includes("already registered")) {
           errorMessage = "Un compte existe déjà avec cet email. Veuillez vous connecter.";
         }
 
@@ -60,7 +74,6 @@ export const SignUpForm = () => {
           title: "Erreur d'inscription",
           description: errorMessage,
         });
-        setIsLoading(false);
         return;
       }
 
@@ -70,7 +83,6 @@ export const SignUpForm = () => {
           title: "Compte créé avec succès",
           description: "Vous allez être redirigé vers votre tableau de bord",
         });
-        // La redirection sera gérée automatiquement par AuthContext
       }
       
     } catch (error: any) {
