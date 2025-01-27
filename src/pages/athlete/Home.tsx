@@ -3,10 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InvitationsList } from "@/components/athlete/InvitationsList";
-import { ProgramWorkoutCalendar } from "@/components/programs/ProgramWorkoutCalendar";
 import { format, startOfWeek, endOfWeek, isWithinInterval, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Trophy, Timer, CalendarDays } from "lucide-react";
+import { Trophy, Timer } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const Home = () => {
@@ -120,90 +119,72 @@ const Home = () => {
       <InvitationsList />
 
       {sharedPrograms?.programs.length > 0 ? (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {todayWorkout && (
-              <Card className="h-full">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Timer className="h-5 w-5" />
-                    Séance du jour
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-lg font-semibold">{todayWorkout.title}</h3>
-                      {todayWorkout.theme && (
-                        <Badge variant="outline" className="mt-1">
-                          {getThemeLabel(todayWorkout.theme)}
-                        </Badge>
-                      )}
-                    </div>
-                    {todayWorkout.description && (
-                      <p className="text-muted-foreground">{todayWorkout.description}</p>
-                    )}
-                    {todayWorkout.time && (
-                      <p className="text-sm text-muted-foreground">
-                        Heure : {todayWorkout.time}
-                      </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {todayWorkout && (
+            <Card className="h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Timer className="h-5 w-5" />
+                  Séance du jour
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold">{todayWorkout.title}</h3>
+                    {todayWorkout.theme && (
+                      <Badge variant="outline" className="mt-1">
+                        {getThemeLabel(todayWorkout.theme)}
+                      </Badge>
                     )}
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                  {todayWorkout.description && (
+                    <p className="text-muted-foreground">{todayWorkout.description}</p>
+                  )}
+                  {todayWorkout.time && (
+                    <p className="text-sm text-muted-foreground">
+                      Heure : {todayWorkout.time}
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-            {upcomingCompetition && (
-              <Card className="h-full">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Trophy className="h-5 w-5 text-yellow-500" />
-                    Compétition cette semaine
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-lg font-semibold">{upcomingCompetition.name}</h3>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {format(new Date(upcomingCompetition.date), "d MMMM yyyy", { locale: fr })}
-                      </p>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      <p>{upcomingCompetition.distance}m • {
-                        upcomingCompetition.level === "local" ? "Local" :
-                        upcomingCompetition.level === "regional" ? "Régional" :
-                        upcomingCompetition.level === "national" ? "National" :
-                        "International"
-                      }</p>
-                      {upcomingCompetition.location && (
-                        <p className="mt-1">Lieu : {upcomingCompetition.location}</p>
-                      )}
-                      {upcomingCompetition.time && (
-                        <p className="mt-1">Heure : {upcomingCompetition.time}</p>
-                      )}
-                    </div>
+          {upcomingCompetition && (
+            <Card className="h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Trophy className="h-5 w-5 text-yellow-500" />
+                  Compétition cette semaine
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold">{upcomingCompetition.name}</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {format(new Date(upcomingCompetition.date), "d MMMM yyyy", { locale: fr })}
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CalendarDays className="h-5 w-5" />
-                Calendrier des séances
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ProgramWorkoutCalendar
-                workouts={sharedPrograms.workouts}
-                competitions={sharedPrograms.competitions}
-                programId={null}
-              />
-            </CardContent>
-          </Card>
+                  <div className="text-sm text-muted-foreground">
+                    <p>{upcomingCompetition.distance}m • {
+                      upcomingCompetition.level === "local" ? "Local" :
+                      upcomingCompetition.level === "regional" ? "Régional" :
+                      upcomingCompetition.level === "national" ? "National" :
+                      "International"
+                    }</p>
+                    {upcomingCompetition.location && (
+                      <p className="mt-1">Lieu : {upcomingCompetition.location}</p>
+                    )}
+                    {upcomingCompetition.time && (
+                      <p className="mt-1">Heure : {upcomingCompetition.time}</p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       ) : (
         <Card>
