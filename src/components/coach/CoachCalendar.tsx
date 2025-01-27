@@ -91,6 +91,8 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
         return directWorkouts || [];
       }
 
+      const programIds = sharedPrograms.map(sp => sp.program_id);
+
       // Then get workouts from these shared programs
       const { data: sharedWorkouts, error: workoutsError } = await supabase
         .from("workouts")
@@ -115,7 +117,7 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
           )
         `)
         .eq("date", formattedDate)
-        .in("program_id", sharedPrograms.map(sp => sp.program_id));
+        .in("program_id", programIds);
 
       if (workoutsError) {
         console.error("Error fetching workouts from shared programs:", workoutsError);
@@ -144,7 +146,7 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
       const athleteIds = coachAthletes.map(row => row.athlete_id);
 
       // Get all workouts for direct programs
-      const { data: directWorkouts, error: directError } = await supabase
+      const { data: directWorkouts } = await supabase
         .from("workouts")
         .select(`
           date,
@@ -154,13 +156,20 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
         `)
         .in("program.user_id", athleteIds);
 
-      if (directError) {
-        console.error("Error fetching direct workouts:", directError);
-        return [];
+      // Get shared programs IDs first
+      const { data: sharedPrograms } = await supabase
+        .from("shared_programs")
+        .select("program_id")
+        .in("athlete_id", athleteIds);
+
+      if (!sharedPrograms?.length) {
+        return directWorkouts || [];
       }
 
+      const programIds = sharedPrograms.map(sp => sp.program_id);
+
       // Get all workouts for shared programs
-      const { data: sharedWorkouts, error: sharedError } = await supabase
+      const { data: sharedWorkouts } = await supabase
         .from("workouts")
         .select(`
           date,
@@ -168,15 +177,7 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
             user_id
           )
         `)
-        .in(
-          "program_id",
-          athleteIds.map(id => `(select program_id from shared_programs where athlete_id = '${id}')`)
-        );
-
-      if (sharedError) {
-        console.error("Error fetching shared workouts:", sharedError);
-        return [];
-      }
+        .in("program_id", programIds);
 
       return [...(directWorkouts || []), ...(sharedWorkouts || [])];
     },
@@ -225,7 +226,7 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
         locale={fr}
         components={{
           DayContent: ({ date }) => {
-            const hasWorkouts = workouts?.some(
+            const hasWorkouts = allWorkouts?.some(
               workout => format(new Date(workout.date), "yyyy-MM-dd") === format(date, "yyyy-MM-dd")
             );
 
