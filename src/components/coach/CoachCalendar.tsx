@@ -42,7 +42,7 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
 
       const athleteIds = coachAthletes.map(row => row.athlete_id);
 
-      // Get workouts for programs owned by athletes and shared programs
+      // Get workouts for both owned and shared programs
       const { data, error } = await supabase
         .from("workouts")
         .select(`
@@ -66,7 +66,9 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
           )
         `)
         .eq("date", format(selectedDate, "yyyy-MM-dd"))
-        .in("program.user_id", athleteIds);
+        .or(`program.user_id.in.(${athleteIds.join(",")}),program.id.in.(
+          select program_id from shared_programs where athlete_id in (${athleteIds.join(",")})
+        )`);
 
       if (error) {
         console.error("Error fetching workouts:", error);
@@ -101,7 +103,9 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
             user_id
           )
         `)
-        .in("program.user_id", athleteIds);
+        .or(`program.user_id.in.(${athleteIds.join(",")}),program.id.in.(
+          select program_id from shared_programs where athlete_id in (${athleteIds.join(",")})
+        )`);
 
       if (error) {
         console.error("Error fetching all workouts:", error);
@@ -134,7 +138,11 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
     
     // Add shared program athletes if they exist
     if (workout.program?.shared_programs) {
-      athletes.push(...workout.program.shared_programs.map((sp: any) => sp.athlete));
+      workout.program.shared_programs.forEach((sp: any) => {
+        if (sp.athlete) {
+          athletes.push(sp.athlete);
+        }
+      });
     }
     
     return athletes;
