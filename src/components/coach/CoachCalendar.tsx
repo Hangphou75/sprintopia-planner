@@ -10,7 +10,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { format } from "date-fns";
+import { format, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,7 +32,7 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
     queryFn: async () => {
       if (!coachId || !selectedDate) return [];
 
-      const formattedDate = format(selectedDate, "yyyy-MM-dd");
+      const formattedDate = format(startOfDay(selectedDate), "yyyy-MM-dd");
       console.log("Fetching workouts for date:", formattedDate);
 
       // First get all athlete IDs for this coach
