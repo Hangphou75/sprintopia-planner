@@ -36,24 +36,25 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
 
       const athleteIds = coachAthletes.map(row => row.athlete_id);
 
-      // Then get all workouts for these athletes on the selected date
+      // Get workouts for programs owned by athletes and shared programs
       const { data, error } = await supabase
         .from("workouts")
         .select(`
           *,
           program:programs (
             name,
+            user_id,
+            athlete:profiles!programs_user_id_fkey (
+              id,
+              first_name,
+              last_name
+            ),
             shared_programs (
               athlete:profiles!shared_programs_athlete_id_fkey (
                 id,
                 first_name,
                 last_name
               )
-            ),
-            athlete:profiles!programs_user_id_fkey (
-              id,
-              first_name,
-              last_name
             )
           )
         `)
@@ -82,7 +83,7 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
 
       const athleteIds = coachAthletes.map(row => row.athlete_id);
 
-      // Get all workouts for these athletes
+      // Get all workouts for these athletes' programs
       const { data, error } = await supabase
         .from("workouts")
         .select(`
