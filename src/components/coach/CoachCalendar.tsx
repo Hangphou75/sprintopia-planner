@@ -54,6 +54,7 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
         .in("program.user_id", athleteIds);
 
       if (error) throw error;
+      console.log("Workouts for date:", data);
       return data;
     },
     enabled: !!coachId && !!selectedDate,
@@ -159,12 +160,26 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
                     {workout.program?.name}
                   </span>
                 </div>
-                <p className="text-sm font-medium">{workout.title}</p>
-                {workout.description && (
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {workout.description}
-                  </p>
-                )}
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">{workout.title}</p>
+                  {workout.description && (
+                    <p className="text-sm text-muted-foreground">
+                      {workout.description}
+                    </p>
+                  )}
+                  {workout.theme && (
+                    <p className="text-sm">
+                      <span className="font-medium">Type :</span>{" "}
+                      <span className="text-muted-foreground">{workout.theme}</span>
+                    </p>
+                  )}
+                  {workout.duration && (
+                    <p className="text-sm">
+                      <span className="font-medium">Durée :</span>{" "}
+                      <span className="text-muted-foreground">{workout.duration}</span>
+                    </p>
+                  )}
+                </div>
               </div>
             ))}
             {(!workouts || workouts.length === 0) && (

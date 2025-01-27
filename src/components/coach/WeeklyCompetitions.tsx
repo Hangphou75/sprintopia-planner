@@ -46,6 +46,7 @@ export const WeeklyCompetitions = ({ coachId }: WeeklyCompetitionsProps) => {
         .in("program.user_id", athleteIds);
 
       if (error) throw error;
+      console.log("Weekly competitions:", data);
       return data;
     },
     enabled: !!coachId,
