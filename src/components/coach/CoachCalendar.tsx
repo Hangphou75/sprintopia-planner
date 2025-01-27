@@ -10,7 +10,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { format, startOfDay, parseISO } from "date-fns";
+import { format, startOfDay, parseISO, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,8 +32,14 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
     queryFn: async () => {
       if (!coachId || !selectedDate) return [];
 
-      const formattedDate = format(startOfDay(selectedDate), "yyyy-MM-dd");
-      console.log("Fetching workouts for date:", formattedDate);
+      // Convert selected date to UTC for database comparison
+      const startDate = startOfDay(selectedDate);
+      const endDate = addDays(startDate, 1);
+      
+      const formattedStartDate = startDate.toISOString();
+      const formattedEndDate = endDate.toISOString();
+      
+      console.log("Fetching workouts between:", formattedStartDate, "and", formattedEndDate);
 
       // First get all athlete IDs for this coach
       const { data: coachAthletes, error: athletesError } = await supabase
@@ -68,8 +74,8 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
             )
           )
         `)
-        .gte('date', `${formattedDate}T00:00:00`)
-        .lt('date', `${formattedDate}T23:59:59`)
+        .gte('date', formattedStartDate)
+        .lt('date', formattedEndDate)
         .in("program.user_id", athleteIds);
 
       if (directError) {
@@ -124,8 +130,8 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
           )
         `)
         .in("program_id", programIds)
-        .gte('date', `${formattedDate}T00:00:00`)
-        .lt('date', `${formattedDate}T23:59:59`);
+        .gte('date', formattedStartDate)
+        .lt('date', formattedEndDate);
 
       if (workoutsError) {
         console.error("Error fetching workouts from shared programs:", workoutsError);
@@ -239,6 +245,7 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
           DayContent: ({ date }) => {
             const hasWorkouts = allWorkouts?.some(
               workout => {
+                if (!workout.date) return false;
                 const workoutDate = startOfDay(parseISO(workout.date));
                 const currentDate = startOfDay(date);
                 return workoutDate.getTime() === currentDate.getTime();
