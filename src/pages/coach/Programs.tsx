@@ -80,6 +80,12 @@ const Programs = () => {
     if (!user?.id || !selectedProgramId) return;
 
     try {
+      console.log("Sharing program:", {
+        program_id: selectedProgramId,
+        athlete_id: athleteId,
+        coach_id: user.id,
+      });
+
       const { error } = await supabase
         .from("shared_programs")
         .insert({
@@ -88,7 +94,10 @@ const Programs = () => {
           coach_id: user.id,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error sharing program:", error);
+        throw error;
+      }
 
       toast.success("Programme partagé avec succès");
       setIsShareDialogOpen(false);
@@ -97,6 +106,12 @@ const Programs = () => {
       console.error("Error sharing program:", error);
       toast.error("Erreur lors du partage du programme");
     }
+  };
+
+  const onShareProgram = (programId: string) => {
+    console.log("Opening share dialog for program:", programId);
+    setSelectedProgramId(programId);
+    setIsShareDialogOpen(true);
   };
 
   if (isLoading) {
@@ -129,10 +144,7 @@ const Programs = () => {
               <ProgramCard 
                 key={program.id} 
                 program={program}
-                onShare={() => {
-                  setSelectedProgramId(program.id);
-                  setIsShareDialogOpen(true);
-                }}
+                onShare={onShareProgram}
               />
             ))
           )}
