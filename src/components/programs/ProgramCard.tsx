@@ -29,7 +29,6 @@ export const ProgramCard = ({ program, readOnly = false, onDelete, onShare }: Pr
   };
 
   const handleShare = (e: React.MouseEvent) => {
-    e.preventDefault();
     e.stopPropagation();
     if (onShare && program.id) {
       onShare(program.id);
@@ -37,8 +36,8 @@ export const ProgramCard = ({ program, readOnly = false, onDelete, onShare }: Pr
   };
 
   return (
-    <Card className="flex flex-col">
-      <div onClick={handleClick} className="cursor-pointer hover:shadow-lg transition-shadow flex-grow">
+    <Card className="flex flex-col h-full">
+      <div onClick={handleClick} className="flex-grow cursor-pointer">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -83,7 +82,7 @@ export const ProgramCard = ({ program, readOnly = false, onDelete, onShare }: Pr
         </CardContent>
       </div>
       {user?.role === 'coach' && (
-        <CardFooter className="flex justify-end gap-2 mt-auto">
+        <CardFooter className="mt-auto pt-4 flex justify-end gap-2">
           <Button
             variant="outline"
             size="sm"

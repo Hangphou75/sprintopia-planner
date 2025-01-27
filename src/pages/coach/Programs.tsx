@@ -96,6 +96,7 @@ const Programs = () => {
   };
 
   const onShareProgram = (programId: string) => {
+    console.log("Opening share dialog for program:", programId);
     setSelectedProgramId(programId);
     setIsShareDialogOpen(true);
   };
