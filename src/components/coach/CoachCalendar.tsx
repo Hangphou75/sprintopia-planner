@@ -43,6 +43,13 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
           *,
           program:programs (
             name,
+            shared_programs (
+              athlete:profiles!shared_programs_athlete_id_fkey (
+                id,
+                first_name,
+                last_name
+              )
+            ),
             athlete:profiles!programs_user_id_fkey (
               id,
               first_name,
@@ -81,7 +88,10 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
         .select(`
           date,
           program:programs (
-            user_id
+            user_id,
+            shared_programs (
+              athlete_id
+            )
           )
         `)
         .in("program.user_id", athleteIds);
@@ -144,44 +154,57 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
           </SheetHeader>
 
           <div className="mt-6 space-y-6">
-            {workouts?.map((workout) => (
-              <div
-                key={workout.id}
-                className={cn(
-                  "rounded-lg border p-4",
-                  "hover:border-primary transition-colors"
-                )}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold">
-                    {workout.program?.athlete?.first_name} {workout.program?.athlete?.last_name}
-                  </h3>
-                  <span className="text-sm text-muted-foreground">
-                    {workout.program?.name}
-                  </span>
+            {workouts?.map((workout) => {
+              // Combine athletes from program owner and shared programs
+              const athletes = [
+                workout.program?.athlete,
+                ...(workout.program?.shared_programs?.map(sp => sp.athlete) || [])
+              ].filter(Boolean);
+
+              return (
+                <div
+                  key={workout.id}
+                  className={cn(
+                    "rounded-lg border p-4",
+                    "hover:border-primary transition-colors"
+                  )}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="space-y-1">
+                      <h3 className="font-semibold">Athlètes :</h3>
+                      {athletes.map((athlete) => (
+                        <p key={athlete.id} className="text-sm">
+                          {athlete.first_name} {athlete.last_name}
+                        </p>
+                      ))}
+                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      {workout.program?.name}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">{workout.title}</p>
+                    {workout.description && (
+                      <p className="text-sm text-muted-foreground">
+                        {workout.description}
+                      </p>
+                    )}
+                    {workout.theme && (
+                      <p className="text-sm">
+                        <span className="font-medium">Type :</span>{" "}
+                        <span className="text-muted-foreground">{workout.theme}</span>
+                      </p>
+                    )}
+                    {workout.duration && (
+                      <p className="text-sm">
+                        <span className="font-medium">Durée :</span>{" "}
+                        <span className="text-muted-foreground">{workout.duration}</span>
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">{workout.title}</p>
-                  {workout.description && (
-                    <p className="text-sm text-muted-foreground">
-                      {workout.description}
-                    </p>
-                  )}
-                  {workout.theme && (
-                    <p className="text-sm">
-                      <span className="font-medium">Type :</span>{" "}
-                      <span className="text-muted-foreground">{workout.theme}</span>
-                    </p>
-                  )}
-                  {workout.duration && (
-                    <p className="text-sm">
-                      <span className="font-medium">Durée :</span>{" "}
-                      <span className="text-muted-foreground">{workout.duration}</span>
-                    </p>
-                  )}
-                </div>
-              </div>
-            ))}
+              );
+            })}
             {(!workouts || workouts.length === 0) && (
               <p className="text-center text-muted-foreground">
                 Aucune séance prévue pour ce jour
