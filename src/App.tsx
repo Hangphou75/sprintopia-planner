@@ -11,6 +11,7 @@ import { ForgotPassword } from "./pages/auth/ForgotPassword";
 import { ResetPassword } from "./pages/auth/ResetPassword";
 import AthleteHome from "./pages/athlete/Home";
 import AthletePlanning from "./pages/athlete/Planning";
+import AthleteProfile from "./pages/athlete/Profile";
 import CoachHome from "./pages/coach/Home";
 import Programs from "./pages/coach/Programs";
 import { ProgramWorkouts } from "./pages/coach/ProgramWorkouts";
@@ -19,7 +20,7 @@ import { EditProgram } from "./pages/coach/EditProgram";
 import { CreateWorkout } from "./pages/coach/CreateWorkout";
 import { EditWorkout } from "./pages/coach/EditWorkout";
 import Athletes from "./pages/coach/Athletes";
-import { Profile } from "./pages/Profile";
+import CoachProfile from "./pages/coach/Profile";
 import { WorkoutDetails } from "./pages/athlete/WorkoutDetails";
 import CoachPlanning from "./pages/coach/Planning";
 
@@ -41,6 +42,7 @@ function App() {
                 <Route element={<RoleProtectedRoute allowedRoles={["athlete"]} />}>
                   <Route path="/athlete" element={<AthleteHome />} />
                   <Route path="/athlete/planning" element={<AthletePlanning />} />
+                  <Route path="/athlete/profile" element={<AthleteProfile />} />
                   <Route path="/athlete/programs/:programId/workouts/:workoutId" element={<WorkoutDetails />} />
                 </Route>
 
@@ -54,9 +56,8 @@ function App() {
                   <Route path="/coach/programs/:programId/workouts/:workoutId/edit" element={<EditWorkout />} />
                   <Route path="/coach/athletes" element={<Athletes />} />
                   <Route path="/coach/planning" element={<CoachPlanning />} />
+                  <Route path="/coach/profile" element={<CoachProfile />} />
                 </Route>
-
-                <Route path="/profile" element={<Profile />} />
               </Route>
             </Route>
 
