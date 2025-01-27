@@ -13,29 +13,31 @@ const AthletePlanning = () => {
     queryKey: ["shared-programs-active", user?.id],
     queryFn: async () => {
       const { data: sharedProgramsData, error: sharedError } = await supabase
-        .from("shared_programs")
+        .from("programs")
         .select(`
-          program:programs(
-            *,
-            competitions(*),
-            coach:profiles!programs_user_id_fkey(
+          *,
+          shared_programs (
+            athlete:profiles!shared_programs_athlete_id_fkey (
+              id,
               first_name,
-              last_name
+              last_name,
+              email
             )
+          ),
+          competitions(*),
+          coach:profiles!programs_user_id_fkey(
+            first_name,
+            last_name
           )
         `)
-        .eq("athlete_id", user?.id)
-        .eq("status", "active");
+        .eq("user_id", user?.id);
 
       if (sharedError) {
         console.error("Error fetching shared programs:", sharedError);
         throw sharedError;
       }
 
-      return sharedProgramsData.map((sp: any) => ({
-        ...sp.program,
-        coachName: `${sp.program.coach.first_name} ${sp.program.coach.last_name}`,
-      })) as Program[];
+      return sharedProgramsData as Program[];
     },
     enabled: !!user?.id,
   });
