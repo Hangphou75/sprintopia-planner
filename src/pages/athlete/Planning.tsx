@@ -34,7 +34,7 @@ const AthletePlanning = () => {
           )
         `)
         .eq("user_id", user?.id)
-        .single();
+        .maybeSingle();
 
       if (activeError) {
         console.error("Error fetching active program:", activeError);
@@ -71,13 +71,13 @@ const AthletePlanning = () => {
       }
 
       // Combine active program with shared programs if it exists
-      const programs = activeProgram 
+      const programs = activeProgram?.program 
         ? [activeProgram.program, ...sharedProgramsData.map((sp: any) => sp.program)]
         : sharedProgramsData.map((sp: any) => sp.program);
 
       return programs.map((program: any) => ({
         ...program,
-        coachName: `${program.coach.first_name} ${program.coach.last_name}`,
+        coachName: program.coach ? `${program.coach.first_name} ${program.coach.last_name}` : 'Non assigné',
       })) as Program[];
     },
     enabled: !!user?.id,
