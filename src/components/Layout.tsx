@@ -5,7 +5,8 @@ import {
   SidebarContent, 
   SidebarProvider,
   SidebarTrigger,
-  SidebarHeader
+  SidebarHeader,
+  SidebarInset
 } from "@/components/ui/sidebar";
 import { MainNav } from "@/components/navigation/MainNav";
 import { LogoutButton } from "@/components/navigation/LogoutButton";
@@ -21,11 +22,12 @@ const Layout = () => {
   const basePath = isCoach ? "/coach" : "/athlete";
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <Sidebar>
-          <SidebarContent className="flex flex-col h-full">
-            <SidebarHeader className="p-4">
+    <SidebarProvider defaultOpen={true}>
+      <div className="flex min-h-screen w-full bg-background">
+        <Sidebar variant="sidebar" collapsible="offcanvas">
+          <SidebarContent>
+            <SidebarHeader className="flex items-center justify-between p-4">
+              <span className="font-semibold">Sprintopia</span>
               <SidebarTrigger />
             </SidebarHeader>
             <div className="flex-1 py-6 space-y-4">
@@ -36,9 +38,15 @@ const Layout = () => {
             </div>
           </SidebarContent>
         </Sidebar>
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
-          <Outlet />
-        </main>
+        <SidebarInset>
+          <div className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+            <SidebarTrigger />
+            <div className="flex-1" />
+          </div>
+          <main className="flex-1 overflow-y-auto p-4 md:p-6">
+            <Outlet />
+          </main>
+        </SidebarInset>
       </div>
     </SidebarProvider>
   );
