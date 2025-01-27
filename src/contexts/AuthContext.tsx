@@ -18,15 +18,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { profile, setProfile, fetchProfile } = useProfile();
 
   useEffect(() => {
+    let mounted = true;
+
     const initAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         console.log("Initial session check:", session);
         
-        if (session?.user) {
+        if (session?.user && mounted) {
           console.log("Found existing session, fetching profile for:", session.user.id);
           const userProfile = await fetchProfile(session.user.id);
-          if (userProfile) {
+          if (userProfile && mounted) {
             console.log("Setting profile:", userProfile);
             setProfile(userProfile);
           } else {
@@ -41,7 +43,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error("Auth initialization error:", error);
         setProfile(null);
       } finally {
-        setIsLoading(false);
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -50,11 +54,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session);
       
-      if (event === 'SIGNED_IN' && session?.user) {
+      if (event === 'SIGNED_IN' && session?.user && mounted) {
         try {
           console.log("User signed in, fetching profile for:", session.user.id);
           const userProfile = await fetchProfile(session.user.id);
-          if (userProfile) {
+          if (userProfile && mounted) {
             console.log("Setting profile after sign in:", userProfile);
             setProfile(userProfile);
           } else {
@@ -65,13 +69,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.error("Error fetching profile:", error);
           setProfile(null);
         }
-      } else if (event === 'SIGNED_OUT') {
+      } else if (event === 'SIGNED_OUT' && mounted) {
         console.log("User signed out");
         setProfile(null);
+      } else if (event === 'TOKEN_REFRESHED' && mounted) {
+        console.log("Token refreshed");
       }
     });
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, [fetchProfile, setProfile]);
@@ -110,8 +117,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout,
     isAuthenticated: !!profile
   };
-
-  console.log("Auth context value:", contextValue);
 
   return (
     <AuthContext.Provider value={contextValue}>

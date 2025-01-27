@@ -37,6 +37,9 @@ export const authService = {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      
+      // Clear any stored session data
+      localStorage.removeItem('supabase.auth.token');
     } catch (error) {
       console.error("Auth service: logout error", error);
       throw error;
@@ -54,6 +57,20 @@ export const authService = {
       return session;
     } catch (error) {
       console.error("Error getting session:", error);
+      throw error;
+    }
+  },
+
+  refreshSession: async () => {
+    try {
+      const { data: { session }, error } = await supabase.auth.refreshSession();
+      if (error) {
+        console.error("Error refreshing session:", error);
+        throw error;
+      }
+      return session;
+    } catch (error) {
+      console.error("Error refreshing session:", error);
       throw error;
     }
   }
