@@ -10,6 +10,7 @@ export interface UserProfile {
   email: string | null;
   first_name: string | null;
   last_name: string | null;
+  bio: string | null;
   role: UserRole;
 }
 
@@ -48,6 +49,7 @@ export const useProfile = () => {
         first_name: profileData.first_name,
         last_name: profileData.last_name,
         email: profileData.email,
+        bio: profileData.bio,
         role: profileData.role as UserRole || 'athlete',
       };
 
