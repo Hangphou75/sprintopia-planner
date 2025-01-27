@@ -21,7 +21,7 @@ export const EventDetails = ({
 
   const selectedDateEvents = events.filter(
     (event) =>
-      event.date.toISOString().split("T")[0] ===
+      new Date(event.date).toISOString().split("T")[0] ===
       selectedDate.toISOString().split("T")[0]
   );
 
@@ -58,7 +58,10 @@ export const EventDetails = ({
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => onEventClick(event)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEventClick(event);
+                  }}
                 >
                   <Edit className="h-4 w-4" />
                 </Button>

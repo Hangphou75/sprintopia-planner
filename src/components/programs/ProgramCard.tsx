@@ -2,7 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Program } from "@/types/program";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Users } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 type ProgramCardProps = {
   program: Program;
@@ -40,9 +41,17 @@ export const ProgramCard = ({ program, readOnly = false, onDelete }: ProgramCard
       onClick={handleClick}
     >
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <CalendarDays className="h-5 w-5" />
-          {program.name}
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CalendarDays className="h-5 w-5" />
+            {program.name}
+          </div>
+          {program.shared_programs && program.shared_programs.length > 0 && (
+            <Badge variant="secondary" className="flex items-center gap-1">
+              <Users className="h-4 w-4" />
+              {program.shared_programs.length}
+            </Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
@@ -60,6 +69,18 @@ export const ProgramCard = ({ program, readOnly = false, onDelete }: ProgramCard
             {new Date(program.start_date).toLocaleDateString()}
           </p>
         </div>
+        {program.shared_programs && program.shared_programs.length > 0 && (
+          <div>
+            <p className="text-sm font-medium">Athlètes</p>
+            <div className="space-y-1">
+              {program.shared_programs.map((shared) => (
+                <p key={shared.athlete.id} className="text-sm text-muted-foreground">
+                  {shared.athlete.first_name} {shared.athlete.last_name}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
