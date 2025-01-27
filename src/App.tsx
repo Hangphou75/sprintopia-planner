@@ -20,6 +20,7 @@ import { EditWorkout } from "./pages/coach/EditWorkout";
 import Athletes from "./pages/coach/Athletes";
 import { Profile } from "./pages/Profile";
 import { WorkoutDetails } from "./pages/athlete/WorkoutDetails";
+import CoachPlanning from "./pages/coach/Planning";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ function App() {
                   <Route path="/coach/programs/:programId/workouts/new" element={<CreateWorkout />} />
                   <Route path="/coach/programs/:programId/workouts/:workoutId/edit" element={<EditWorkout />} />
                   <Route path="/coach/athletes" element={<Athletes />} />
+                  <Route path="/coach/planning" element={<CoachPlanning />} />
                 </Route>
 
                 <Route path="/profile" element={<Profile />} />
