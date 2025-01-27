@@ -13,13 +13,22 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { AthleteCard } from "@/components/athletes/AthleteCard";
+import { AthletePrograms } from "@/components/athletes/AthletePrograms";
+import { Profile, Program } from "@/types/database";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 const Athletes = () => {
   const { user } = useAuth();
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
+  const [selectedAthlete, setSelectedAthlete] = useState<Profile | null>(null);
   const queryClient = useQueryClient();
 
   const { data: athletes } = useQuery({
@@ -33,7 +42,8 @@ const Athletes = () => {
             id,
             email,
             first_name,
-            last_name
+            last_name,
+            bio
           )
         `)
         .eq("coach_id", user?.id);
@@ -44,36 +54,32 @@ const Athletes = () => {
     enabled: !!user?.id,
   });
 
-  const { data: invitations } = useQuery({
-    queryKey: ["coach-invitations", user?.id],
+  const { data: athletePrograms } = useQuery({
+    queryKey: ["athlete-programs", selectedAthlete?.id],
     queryFn: async () => {
+      if (!selectedAthlete?.id) return [];
+      
       const { data, error } = await supabase
-        .from("athlete_invitations")
-        .select()
-        .eq("coach_id", user?.id)
-        .order('created_at', { ascending: false });
+        .from("programs")
+        .select("*")
+        .eq("user_id", selectedAthlete.id);
 
       if (error) throw error;
-      return data;
+      return data as Program[];
     },
-    enabled: !!user?.id,
+    enabled: !!selectedAthlete?.id,
   });
 
   const inviteMutation = useMutation({
     mutationFn: async (email: string) => {
       const { error } = await supabase
         .from("athlete_invitations")
-        .insert([
-          {
-            coach_id: user?.id,
-            email,
-          },
-        ]);
+        .insert([{ coach_id: user?.id, email }]);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["coach-invitations"] });
+      queryClient.invalidateQueries({ queryKey: ["coach-athletes"] });
       toast.success("Invitation envoyée avec succès");
       setIsInviteDialogOpen(false);
       setInviteEmail("");
@@ -84,41 +90,44 @@ const Athletes = () => {
     },
   });
 
-  const resendInvitationMutation = useMutation({
-    mutationFn: async (invitationId: string) => {
+  const deleteAthleteMutation = useMutation({
+    mutationFn: async (athleteId: string) => {
       const { error } = await supabase
-        .from("athlete_invitations")
-        .update({ updated_at: new Date().toISOString() })
-        .eq("id", invitationId);
+        .from("coach_athletes")
+        .delete()
+        .eq("athlete_id", athleteId)
+        .eq("coach_id", user?.id);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["coach-invitations"] });
-      toast.success("Invitation renvoyée avec succès");
+      queryClient.invalidateQueries({ queryKey: ["coach-athletes"] });
+      toast.success("Athlète supprimé avec succès");
+      setSelectedAthlete(null);
     },
     onError: (error) => {
-      console.error("Error resending invitation:", error);
-      toast.error("Erreur lors du renvoi de l'invitation");
+      console.error("Error deleting athlete:", error);
+      toast.error("Erreur lors de la suppression de l'athlète");
     },
   });
 
-  const deleteInvitationMutation = useMutation({
-    mutationFn: async (invitationId: string) => {
+  const deleteProgramMutation = useMutation({
+    mutationFn: async (programId: string) => {
       const { error } = await supabase
-        .from("athlete_invitations")
+        .from("shared_programs")
         .delete()
-        .eq("id", invitationId);
+        .eq("program_id", programId)
+        .eq("coach_id", user?.id);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["coach-invitations"] });
-      toast.success("Invitation supprimée avec succès");
+      queryClient.invalidateQueries({ queryKey: ["athlete-programs"] });
+      toast.success("Programme supprimé avec succès");
     },
     onError: (error) => {
-      console.error("Error deleting invitation:", error);
-      toast.error("Erreur lors de la suppression de l'invitation");
+      console.error("Error deleting program:", error);
+      toast.error("Erreur lors de la suppression du programme");
     },
   });
 
@@ -127,8 +136,16 @@ const Athletes = () => {
     inviteMutation.mutate(inviteEmail);
   };
 
-  const getFullName = (athlete: { first_name: string | null; last_name: string | null }) => {
-    return `${athlete.first_name || ''} ${athlete.last_name || ''}`.trim() || 'Athlète';
+  const handleDeleteAthlete = (athlete: Profile) => {
+    if (window.confirm(`Êtes-vous sûr de vouloir supprimer ${athlete.first_name} ${athlete.last_name} ?`)) {
+      deleteAthleteMutation.mutate(athlete.id);
+    }
+  };
+
+  const handleDeleteProgram = (programId: string) => {
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce programme ?")) {
+      deleteProgramMutation.mutate(programId);
+    }
   };
 
   return (
@@ -140,55 +157,16 @@ const Athletes = () => {
         </Button>
       </div>
 
-      <div className="grid gap-4">
-        <h2 className="text-xl font-semibold">Athlètes actifs</h2>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {athletes?.map((relation) => (
-          <div
+          <AthleteCard
             key={relation.id}
-            className="flex items-center justify-between p-4 border rounded-lg"
-          >
-            <div>
-              <p className="font-medium">{getFullName(relation.athlete)}</p>
-              <p className="text-sm text-muted-foreground">
-                {relation.athlete.email}
-              </p>
-            </div>
-          </div>
+            athlete={relation.athlete}
+            onEdit={(athlete) => setSelectedAthlete(athlete)}
+            onDelete={handleDeleteAthlete}
+          />
         ))}
       </div>
-
-      {invitations && invitations.length > 0 && (
-        <div className="grid gap-4">
-          <h2 className="text-xl font-semibold">Invitations en attente</h2>
-          {invitations.map((invitation) => (
-            <div
-              key={invitation.id}
-              className="flex items-center justify-between p-4 border rounded-lg"
-            >
-              <div>
-                <p className="font-medium">{invitation.email}</p>
-                <p className="text-sm text-muted-foreground">
-                  Envoyée le {format(new Date(invitation.created_at), 'dd MMMM yyyy', { locale: fr })}
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline"
-                  onClick={() => resendInvitationMutation.mutate(invitation.id)}
-                >
-                  Relancer
-                </Button>
-                <Button 
-                  variant="destructive"
-                  onClick={() => deleteInvitationMutation.mutate(invitation.id)}
-                >
-                  Supprimer
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
 
       <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
         <DialogContent>
@@ -215,6 +193,27 @@ const Athletes = () => {
           </form>
         </DialogContent>
       </Dialog>
+
+      <Sheet open={!!selectedAthlete} onOpenChange={() => setSelectedAthlete(null)}>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle>
+              {selectedAthlete?.first_name} {selectedAthlete?.last_name}
+            </SheetTitle>
+            <SheetDescription>
+              Programmes de l'athlète
+            </SheetDescription>
+          </SheetHeader>
+          <div className="mt-6">
+            {athletePrograms && (
+              <AthletePrograms
+                programs={athletePrograms}
+                onDeleteProgram={handleDeleteProgram}
+              />
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
