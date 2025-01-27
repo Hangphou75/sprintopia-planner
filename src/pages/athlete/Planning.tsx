@@ -36,7 +36,6 @@ const AthletePlanning = () => {
         throw error;
       }
 
-      // Ajout de logs pour déboguer
       console.log("Active program raw data:", activeProgram);
       return activeProgram?.program;
     },
@@ -44,7 +43,7 @@ const AthletePlanning = () => {
   });
 
   const { data: sharedPrograms, isLoading: isLoadingShared } = useQuery({
-    queryKey: ["shared-programs-active", user?.id],
+    queryKey: ["shared-programs", user?.id],
     queryFn: async () => {
       console.log("Fetching shared programs for user:", user?.id);
       
@@ -69,7 +68,6 @@ const AthletePlanning = () => {
         throw sharedError;
       }
 
-      // Ajout de logs pour déboguer
       console.log("Shared programs raw data:", sharedProgramsData);
       return sharedProgramsData.map((sp: any) => sp.program);
     },
@@ -91,21 +89,40 @@ const AthletePlanning = () => {
   const currentProgram = activeProgram || (sharedPrograms && sharedPrograms[0]);
   console.log("Current program with competitions:", currentProgram);
 
+  if (!currentProgram && (!sharedPrograms || sharedPrograms.length === 0)) {
+    return (
+      <div className="container mx-auto py-6 px-4 max-w-5xl">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold mb-8">Mon planning</h1>
+          <p className="text-muted-foreground">Aucun programme actif ou partagé</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-6 px-4 max-w-5xl h-[calc(100vh-4rem)] flex flex-col">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Mon planning</h1>
       </div>
 
-      {currentProgram ? (
+      {currentProgram && (
         <ProgramWorkoutCalendar
           workouts={currentProgram.workouts || []}
           competitions={currentProgram.competitions || []}
           programId={currentProgram.id}
         />
-      ) : (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">Aucun programme actif</p>
+      )}
+
+      {sharedPrograms && sharedPrograms.length > 0 && !currentProgram && (
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          {sharedPrograms.map((program) => (
+            <ProgramCard 
+              key={program.id} 
+              program={program}
+              readOnly
+            />
+          ))}
         </div>
       )}
     </div>
