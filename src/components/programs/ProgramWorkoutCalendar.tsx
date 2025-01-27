@@ -48,8 +48,6 @@ export const ProgramWorkoutCalendar = ({
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
 
   // Combine workouts and competitions into events
   const events: Event[] = [
