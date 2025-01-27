@@ -99,6 +99,22 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
       const programIds = [...new Set(sharedPrograms.map(sp => sp.program_id))];
       console.log("Program IDs:", programIds);
 
+      // Debug: Get all workouts for these programs to check dates
+      const { data: allWorkouts, error: allWorkoutsError } = await supabase
+        .from("workouts")
+        .select("*")
+        .in("program_id", programIds);
+
+      console.log("Debug - All workouts:", allWorkouts);
+      if (allWorkouts?.length) {
+        console.log("Debug - Sample workout date:", allWorkouts[0].date);
+        console.log("Debug - Date comparison:", {
+          workoutDate: allWorkouts[0].date,
+          formattedDate,
+          isEqual: allWorkouts[0].date === formattedDate
+        });
+      }
+
       // Get workouts from shared programs for the specific date
       const { data: sharedWorkouts, error: workoutsError } = await supabase
         .from("workouts")
@@ -123,7 +139,7 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
           )
         `)
         .in("program_id", programIds)
-        .ilike("date", `${formattedDate}%`); // Use ILIKE to match the date part only
+        .eq("date", formattedDate);
 
       if (workoutsError) {
         console.error("Error fetching workouts from shared programs:", workoutsError);
@@ -132,9 +148,9 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
 
       console.log("Shared workouts:", sharedWorkouts);
 
-      const allWorkouts = [...(directWorkouts || []), ...(sharedWorkouts || [])];
-      console.log("All workouts:", allWorkouts);
-      return allWorkouts;
+      const allWorkoutsResult = [...(directWorkouts || []), ...(sharedWorkouts || [])];
+      console.log("All workouts:", allWorkoutsResult);
+      return allWorkoutsResult;
     },
     enabled: !!coachId && !!selectedDate,
   });
