@@ -63,13 +63,31 @@ const Athletes = () => {
     queryFn: async () => {
       if (!selectedAthlete?.id) return [];
       
-      const { data, error } = await supabase
-        .from("programs")
-        .select("*")
-        .eq("user_id", selectedAthlete.id);
+      // Récupérer à la fois les programmes créés par l'athlète et les programmes partagés
+      const { data: sharedPrograms, error: sharedError } = await supabase
+        .from("shared_programs")
+        .select(`
+          program:programs (
+            id,
+            name,
+            duration,
+            objectives,
+            start_date,
+            created_at,
+            updated_at,
+            user_id
+          )
+        `)
+        .eq("athlete_id", selectedAthlete.id);
 
-      if (error) throw error;
-      return data as Program[];
+      if (sharedError) throw sharedError;
+
+      // Transformer les données pour n'avoir que les programmes
+      const programs = sharedPrograms
+        .map(sp => sp.program)
+        .filter((program): program is Program => program !== null);
+
+      return programs;
     },
     enabled: !!selectedAthlete?.id,
   });
