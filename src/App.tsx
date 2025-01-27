@@ -43,6 +43,7 @@ function App() {
                   <Route path="/athlete" element={<AthleteHome />} />
                   <Route path="/athlete/planning" element={<AthletePlanning />} />
                   <Route path="/athlete/profile" element={<AthleteProfile />} />
+                  <Route path="/athlete/programs/:programId/workouts" element={<ProgramWorkouts />} />
                   <Route path="/athlete/programs/:programId/workouts/:workoutId" element={<WorkoutDetails />} />
                 </Route>
 

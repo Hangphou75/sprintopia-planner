@@ -28,7 +28,7 @@ export const ProgramCard = ({ program, readOnly = false, onDelete }: ProgramCard
     });
 
     const path = user.role === 'athlete' 
-      ? `/athlete/workouts/${program.id}`
+      ? `/athlete/programs/${program.id}/workouts`
       : `/coach/programs/${program.id}/workouts`;
 
     console.log("Navigation path:", path);
