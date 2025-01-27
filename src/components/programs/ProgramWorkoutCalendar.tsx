@@ -1,14 +1,13 @@
-import { useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { Timer, Trophy, Dumbbell, Activity, Zap, Flame } from "lucide-react";
 import { CalendarView } from "./calendar/CalendarView";
 import { EventDetails } from "./calendar/EventDetails";
 import { EventFilters } from "./calendar/EventFilters";
-import { Event, ThemeOption } from "./types";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { ThemeOption } from "./types";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEvents } from "./hooks/useEvents";
+import { useWorkoutActions } from "./hooks/useWorkoutActions";
+import { useCalendarNavigation } from "./hooks/useCalendarNavigation";
 
 type ProgramWorkoutCalendarProps = {
   workouts: any[];
@@ -41,130 +40,23 @@ export const ProgramWorkoutCalendar = ({
   competitions,
   programId,
 }: ProgramWorkoutCalendarProps) => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const { user } = useAuth();
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
-  const [isProcessingClick, setIsProcessingClick] = useState(false);
 
-  // Combine workouts and competitions into events
-  const events: Event[] = [
-    ...workouts.map((workout) => ({
-      id: workout.id,
-      title: workout.title,
-      date: new Date(workout.date),
-      type: "workout" as const,
-      theme: workout.theme,
-      description: workout.description,
-      time: workout.time,
-      details: workout.details,
-    })),
-    ...competitions.map((competition) => ({
-      id: competition.id,
-      title: competition.name,
-      date: new Date(competition.date),
-      type: "competition" as const,
-      time: competition.time,
-    })),
-  ];
-
-  const handleDuplicateWorkout = async (event: Event) => {
-    if (event.type !== "workout" || user?.role !== 'coach') return;
-    
-    try {
-      const { data, error } = await supabase
-        .from("workouts")
-        .insert({
-          program_id: programId,
-          title: `${event.title} (copie)`,
-          description: event.description,
-          date: event.date.toISOString(),
-          time: event.time,
-          theme: event.theme,
-          details: event.details,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      await queryClient.invalidateQueries({ queryKey: ["workouts", programId] });
-
-      toast({
-        title: "Séance dupliquée",
-        description: "La séance a été dupliquée avec succès.",
-      });
-    } catch (error) {
-      console.error("Error duplicating workout:", error);
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la duplication de la séance.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDeleteWorkout = async (event: Event) => {
-    if (event.type !== "workout" || user?.role !== 'coach') return;
-    
-    try {
-      const { error } = await supabase
-        .from("workouts")
-        .delete()
-        .eq("id", event.id);
-
-      if (error) throw error;
-
-      await queryClient.invalidateQueries({ queryKey: ["workouts", programId] });
-
-      toast({
-        title: "Séance supprimée",
-        description: "La séance a été supprimée avec succès.",
-      });
-    } catch (error) {
-      console.error("Error deleting workout:", error);
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la suppression de la séance.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleEventClick = useCallback((event: Event) => {
-    if (isProcessingClick || event.type !== "workout") return;
-    
-    setIsProcessingClick(true);
-    
-    try {
-      if (user?.role === 'athlete') {
-        navigate(`/athlete/programs/${programId}/workouts/${event.id}`);
-      } else {
-        navigate(`/coach/programs/${programId}/workouts/${event.id}/edit`);
-      }
-    } catch (error) {
-      console.error("Navigation error:", error);
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la navigation.",
-        variant: "destructive",
-      });
-    } finally {
-      // Reset after a short delay to prevent double clicks
-      setTimeout(() => {
-        setIsProcessingClick(false);
-      }, 500);
-    }
-  }, [navigate, programId, user?.role, isProcessingClick, toast]);
-
-  const handleDateSelect = useCallback((date: Date | undefined) => {
-    if (!isProcessingClick) {
-      setSelectedDate(date);
-    }
-  }, [isProcessingClick]);
+  const events = useEvents({ workouts, competitions });
+  const { handleDuplicateWorkout, handleDeleteWorkout } = useWorkoutActions({
+    programId,
+    userRole: user?.role,
+  });
+  const {
+    selectedDate,
+    handleEventClick,
+    handleDateSelect,
+  } = useCalendarNavigation({
+    programId,
+    userRole: user?.role,
+  });
 
   let filteredWorkouts = events.filter(event => event.type === "workout");
   if (selectedTheme) {

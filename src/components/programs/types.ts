@@ -7,6 +7,9 @@ export type Event = {
   description?: string;
   time?: string;
   details?: any;
+  location?: string;
+  distance?: string;
+  level?: string;
 };
 
 export type ThemeOption = {
