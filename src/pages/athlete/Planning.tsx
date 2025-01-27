@@ -17,8 +17,25 @@ const AthletePlanning = () => {
           program:programs (
             id,
             name,
-            workouts (*),
-            competitions (*)
+            workouts (
+              id,
+              title,
+              description,
+              date,
+              time,
+              theme,
+              details
+            ),
+            competitions (
+              id,
+              name,
+              date,
+              location,
+              distance,
+              level,
+              is_main,
+              time
+            )
           )
         `)
         .eq("athlete_id", user?.id)
@@ -30,7 +47,24 @@ const AthletePlanning = () => {
       }
 
       console.log("Shared programs data:", sharedProgramsData);
-      return sharedProgramsData.map((sp: any) => sp.program);
+      
+      // S'assurer que nous avons un tableau valide avant d'utiliser flatMap
+      const programs = sharedProgramsData?.map(sp => sp.program) || [];
+      const allWorkouts = programs.reduce((acc, program) => {
+        return acc.concat(program?.workouts || []);
+      }, []);
+      const allCompetitions = programs.reduce((acc, program) => {
+        return acc.concat(program?.competitions || []);
+      }, []);
+
+      console.log("All workouts:", allWorkouts);
+      console.log("All competitions:", allCompetitions);
+
+      return {
+        programs,
+        workouts: allWorkouts,
+        competitions: allCompetitions
+      };
     },
     enabled: !!user?.id,
   });
@@ -45,24 +79,17 @@ const AthletePlanning = () => {
     );
   }
 
-  // Combine all workouts and competitions from shared programs
-  const allWorkouts = sharedPrograms?.flatMap(program => program.workouts || []) || [];
-  const allCompetitions = sharedPrograms?.flatMap(program => program.competitions || []) || [];
-
-  // Use the first program's ID as a reference (needed for routing)
-  const firstProgramId = sharedPrograms?.[0]?.id;
-
   return (
     <div className="container mx-auto py-6 px-4 max-w-5xl h-[calc(100vh-4rem)] flex flex-col">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Mon planning</h1>
       </div>
 
-      {firstProgramId ? (
+      {sharedPrograms?.programs?.length > 0 ? (
         <ProgramWorkoutCalendar
-          workouts={allWorkouts}
-          competitions={allCompetitions}
-          programId={firstProgramId}
+          workouts={sharedPrograms.workouts}
+          competitions={sharedPrograms.competitions}
+          programId={sharedPrograms.programs[0]?.id}
         />
       ) : (
         <div className="text-center">
