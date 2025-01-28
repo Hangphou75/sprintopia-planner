@@ -24,7 +24,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initAuth = async () => {
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        console.log("Initial session check:", session);
         
         if (sessionError) {
           console.error("Session error:", sessionError);
@@ -36,22 +35,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (session?.user && mounted) {
-          console.log("Found existing session, fetching profile for:", session.user.id);
           try {
             const userProfile = await fetchProfile(session.user.id);
-            if (userProfile && mounted) {
-              console.log("Setting profile:", userProfile);
+            if (mounted) {
               setProfile(userProfile);
-            } else {
-              console.log("No profile found for user");
-              setProfile(null);
             }
           } catch (error) {
             console.error("Error fetching profile:", error);
             setProfile(null);
           }
         } else {
-          console.log("No session found");
           setProfile(null);
         }
       } catch (error) {
@@ -67,33 +60,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session);
-      
       if (event === 'SIGNED_IN' && session?.user && mounted) {
-        setIsLoading(true);
         try {
-          console.log("User signed in, fetching profile for:", session.user.id);
           const userProfile = await fetchProfile(session.user.id);
-          if (userProfile && mounted) {
-            console.log("Setting profile after sign in:", userProfile);
+          if (mounted) {
             setProfile(userProfile);
-          } else {
-            console.log("No profile found after sign in");
-            setProfile(null);
           }
         } catch (error) {
-          console.error("Error fetching profile:", error);
+          console.error("Error fetching profile after sign in:", error);
           setProfile(null);
-        } finally {
-          if (mounted) {
-            setIsLoading(false);
-          }
         }
       } else if (event === 'SIGNED_OUT' && mounted) {
-        console.log("User signed out");
         setProfile(null);
-      } else if (event === 'TOKEN_REFRESHED') {
-        console.log("Token refreshed successfully");
       }
     });
 
@@ -104,18 +82,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [fetchProfile, setProfile]);
 
   const login = async (email: string, password: string, role: string) => {
+    setIsLoading(true);
     try {
-      console.log("Attempting login with:", { email, role });
       await authService.login(email, password, role);
       toast.success("Connexion réussie");
     } catch (error: any) {
       console.error("Login error:", error);
-      toast.error("Erreur de connexion: " + (error.message || "Email ou mot de passe incorrect"));
+      toast.error(error.message || "Erreur de connexion");
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const logout = async () => {
+    setIsLoading(true);
     try {
       await authService.logout();
       setProfile(null);
@@ -124,10 +105,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("Logout error:", error);
       toast.error("Erreur lors de la déconnexion");
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const contextValue = {
+  const value = {
     user: profile,
     login,
     logout,
@@ -136,7 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={contextValue}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
