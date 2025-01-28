@@ -23,17 +23,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const initAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         console.log("Initial session check:", session);
         
+        if (sessionError) {
+          console.error("Session error:", sessionError);
+          if (mounted) {
+            setProfile(null);
+            setIsLoading(false);
+          }
+          return;
+        }
+
         if (session?.user && mounted) {
           console.log("Found existing session, fetching profile for:", session.user.id);
-          const userProfile = await fetchProfile(session.user.id);
-          if (userProfile && mounted) {
-            console.log("Setting profile:", userProfile);
-            setProfile(userProfile);
-          } else {
-            console.log("No profile found for user");
+          try {
+            const userProfile = await fetchProfile(session.user.id);
+            if (userProfile && mounted) {
+              console.log("Setting profile:", userProfile);
+              setProfile(userProfile);
+            } else {
+              console.log("No profile found for user");
+              setProfile(null);
+            }
+          } catch (error) {
+            console.error("Error fetching profile:", error);
             setProfile(null);
           }
         } else {
@@ -78,6 +92,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else if (event === 'SIGNED_OUT' && mounted) {
         console.log("User signed out");
         setProfile(null);
+        // Clear any stored session data
+        localStorage.removeItem('supabase.auth.token');
+      } else if (event === 'TOKEN_REFRESHED') {
+        console.log("Token refreshed successfully");
       }
     });
 
@@ -103,6 +121,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await authService.logout();
       setProfile(null);
+      // Clear any stored session data
+      localStorage.removeItem('supabase.auth.token');
       toast.success("Déconnexion réussie");
     } catch (error) {
       console.error("Logout error:", error);
