@@ -9,6 +9,7 @@ interface AuthContextType {
   login: (email: string, password: string, role: string) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -55,6 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("Auth state changed:", event, session);
       
       if (event === 'SIGNED_IN' && session?.user && mounted) {
+        setIsLoading(true);
         try {
           console.log("User signed in, fetching profile for:", session.user.id);
           const userProfile = await fetchProfile(session.user.id);
@@ -68,6 +70,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (error) {
           console.error("Error fetching profile:", error);
           setProfile(null);
+        } finally {
+          if (mounted) {
+            setIsLoading(false);
+          }
         }
       } else if (event === 'SIGNED_OUT' && mounted) {
         console.log("User signed out");
@@ -105,15 +111,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  if (isLoading) {
-    return <div className="flex items-center justify-center h-screen">Chargement...</div>;
-  }
-
   const contextValue = {
     user: profile,
     login,
     logout,
-    isAuthenticated: !!profile
+    isAuthenticated: !!profile,
+    isLoading
   };
 
   return (
