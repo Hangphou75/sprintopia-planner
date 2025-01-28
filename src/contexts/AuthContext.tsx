@@ -92,8 +92,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else if (event === 'SIGNED_OUT' && mounted) {
         console.log("User signed out");
         setProfile(null);
-        // Clear any stored session data
-        localStorage.removeItem('supabase.auth.token');
       } else if (event === 'TOKEN_REFRESHED') {
         console.log("Token refreshed successfully");
       }
@@ -121,8 +119,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await authService.logout();
       setProfile(null);
-      // Clear any stored session data
-      localStorage.removeItem('supabase.auth.token');
       toast.success("Déconnexion réussie");
     } catch (error) {
       console.error("Logout error:", error);

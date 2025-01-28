@@ -37,9 +37,6 @@ export const authService = {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      
-      // Clear any stored session data
-      localStorage.removeItem('supabase.auth.token');
     } catch (error) {
       console.error("Auth service: logout error", error);
       throw error;
