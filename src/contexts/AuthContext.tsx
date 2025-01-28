@@ -1,5 +1,5 @@
 import React, { createContext, useContext } from "react";
-import { useProfile } from "@/hooks/useProfile";
+import { useProfile, UserProfile } from "@/hooks/useProfile";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { useAuthInit } from "@/hooks/useAuthInit";
 
