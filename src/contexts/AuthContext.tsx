@@ -17,6 +17,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const { profile, setProfile, fetchProfile } = useProfile();
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -53,6 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } finally {
         if (mounted) {
           setIsLoading(false);
+          setIsInitialized(true);
         }
       }
     };
@@ -60,7 +62,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!isInitialized) return;
+      
       if (event === 'SIGNED_IN' && session?.user && mounted) {
+        setIsLoading(true);
         try {
           const userProfile = await fetchProfile(session.user.id);
           if (mounted) {
@@ -69,6 +74,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (error) {
           console.error("Error fetching profile after sign in:", error);
           setProfile(null);
+        } finally {
+          if (mounted) {
+            setIsLoading(false);
+          }
         }
       } else if (event === 'SIGNED_OUT' && mounted) {
         setProfile(null);
@@ -79,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [fetchProfile, setProfile]);
+  }, [fetchProfile, setProfile, isInitialized]);
 
   const login = async (email: string, password: string, role: string) => {
     setIsLoading(true);
