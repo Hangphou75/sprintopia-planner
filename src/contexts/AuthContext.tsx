@@ -1,8 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { toast } from "sonner";
-import { useProfile, UserProfile } from "@/hooks/useProfile";
-import { authService } from "@/services/auth.service";
-import { supabase } from "@/integrations/supabase/client";
+import React, { createContext, useContext } from "react";
+import { useProfile } from "@/hooks/useProfile";
+import { useAuthSession } from "@/hooks/useAuthSession";
+import { useAuthInit } from "@/hooks/useAuthInit";
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -15,108 +14,20 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isLoading, setIsLoading] = useState(true);
   const { profile, setProfile, fetchProfile } = useProfile();
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const initAuth = async () => {
-      try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error("Session error:", sessionError);
-          if (mounted) {
-            setProfile(null);
-            setIsLoading(false);
-          }
-          return;
-        }
-
-        if (session?.user && mounted) {
-          try {
-            const userProfile = await fetchProfile(session.user.id);
-            if (mounted) {
-              setProfile(userProfile);
-            }
-          } catch (error) {
-            console.error("Error fetching profile:", error);
-            setProfile(null);
-          }
-        } else {
-          setProfile(null);
-        }
-      } catch (error) {
-        console.error("Auth initialization error:", error);
-        setProfile(null);
-      } finally {
-        if (mounted) {
-          setIsLoading(false);
-          setIsInitialized(true);
-        }
-      }
-    };
-
-    initAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!isInitialized) return;
-      
-      if (event === 'SIGNED_IN' && session?.user && mounted) {
-        setIsLoading(true);
-        try {
-          const userProfile = await fetchProfile(session.user.id);
-          if (mounted) {
-            setProfile(userProfile);
-          }
-        } catch (error) {
-          console.error("Error fetching profile after sign in:", error);
-          setProfile(null);
-        } finally {
-          if (mounted) {
-            setIsLoading(false);
-          }
-        }
-      } else if (event === 'SIGNED_OUT' && mounted) {
-        setProfile(null);
-      }
-    });
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, [fetchProfile, setProfile, isInitialized]);
+  const { login: authLogin, logout: authLogout, isLoading: sessionLoading } = useAuthSession();
+  const { isLoading: initLoading } = useAuthInit({
+    onProfileUpdate: setProfile,
+    fetchProfile,
+  });
 
   const login = async (email: string, password: string, role: string) => {
-    setIsLoading(true);
-    try {
-      await authService.login(email, password, role);
-      toast.success("Connexion réussie");
-    } catch (error: any) {
-      console.error("Login error:", error);
-      toast.error(error.message || "Erreur de connexion");
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
+    await authLogin(email, password, role);
   };
 
   const logout = async () => {
-    setIsLoading(true);
-    try {
-      await authService.logout();
-      setProfile(null);
-      toast.success("Déconnexion réussie");
-    } catch (error) {
-      console.error("Logout error:", error);
-      toast.error("Erreur lors de la déconnexion");
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
+    await authLogout();
+    setProfile(null);
   };
 
   const value = {
@@ -124,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login,
     logout,
     isAuthenticated: !!profile,
-    isLoading
+    isLoading: initLoading || sessionLoading
   };
 
   return (
