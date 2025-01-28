@@ -72,7 +72,7 @@ export const ProgramWorkouts = () => {
   return (
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Séances d'entraînement</h1>
+        <h1 className="text-2xl font-bold">Séances</h1>
         {user?.role === 'coach' && (
           <Button onClick={() => navigate(`/coach/programs/${programId}/workouts/new`)}>
             <Plus className="mr-2 h-4 w-4" />
