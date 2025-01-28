@@ -55,7 +55,9 @@ const Layout = () => {
             <SidebarTrigger className="h-10 w-10 md:hidden">
               <Menu className="h-6 w-6" />
             </SidebarTrigger>
-            <div className="flex-1" />
+            <div className="flex-1 md:hidden">
+              <span className="text-lg font-semibold text-primary">Sprintopia</span>
+            </div>
           </div>
           <main className="flex-1 overflow-y-auto p-4 md:p-6">
             <Outlet />
