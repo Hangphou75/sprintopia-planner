@@ -5,12 +5,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { ProgramCard } from "@/components/programs/ProgramCard";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { Program } from "@/types/program";
 
 const IndividualAthletePlanning = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const { data: programs, isLoading } = useQuery({
+  const { data: programs = [], isLoading } = useQuery<Program[]>({
     queryKey: ["programs", user?.id],
     queryFn: async () => {
       console.log("Fetching programs for planning page, user:", user?.id);
