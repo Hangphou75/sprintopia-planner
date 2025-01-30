@@ -16,9 +16,11 @@ export const useWorkoutActions = ({ programId, userRole }: UseWorkoutActionsProp
   const queryClient = useQueryClient();
 
   const handleDuplicateWorkout = async (event: Event) => {
-    if (event.type !== "workout" || userRole !== 'coach') return;
+    // Allow both coaches and individual athletes to duplicate workouts
+    if (event.type !== "workout" || (userRole !== 'coach' && userRole !== 'individual_athlete')) return;
     
     try {
+      console.log("Attempting to duplicate workout:", event);
       const { data, error } = await supabase
         .from("workouts")
         .insert({
@@ -33,8 +35,12 @@ export const useWorkoutActions = ({ programId, userRole }: UseWorkoutActionsProp
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error duplicating workout:", error);
+        throw error;
+      }
 
+      console.log("Workout duplicated successfully:", data);
       await queryClient.invalidateQueries({ queryKey: ["workouts", programId] });
 
       toast({
@@ -52,16 +58,22 @@ export const useWorkoutActions = ({ programId, userRole }: UseWorkoutActionsProp
   };
 
   const handleDeleteWorkout = async (event: Event) => {
-    if (event.type !== "workout" || userRole !== 'coach') return;
+    // Allow both coaches and individual athletes to delete workouts
+    if (event.type !== "workout" || (userRole !== 'coach' && userRole !== 'individual_athlete')) return;
     
     try {
+      console.log("Attempting to delete workout:", event);
       const { error } = await supabase
         .from("workouts")
         .delete()
         .eq("id", event.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error deleting workout:", error);
+        throw error;
+      }
 
+      console.log("Workout deleted successfully");
       await queryClient.invalidateQueries({ queryKey: ["workouts", programId] });
 
       toast({
