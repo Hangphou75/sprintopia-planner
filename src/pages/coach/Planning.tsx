@@ -8,11 +8,13 @@ import { ProgramCard } from "@/components/programs/ProgramCard";
 import { Program } from "@/types/program";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const CoachPlanning = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
 
   const { data: programs, isLoading } = useQuery({
     queryKey: ["programs"],
@@ -161,8 +163,12 @@ const CoachPlanning = () => {
     <div className="container mx-auto py-6 px-4 max-w-5xl h-[calc(100vh-4rem)] flex flex-col">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Mes programmes</h1>
-        <Button onClick={() => navigate("/coach/programs/new")}>
-          Nouveau programme
+        <Button 
+          onClick={() => navigate("/coach/programs/new")}
+          size={isMobile ? "icon" : "default"}
+        >
+          <Plus className="h-4 w-4" />
+          {!isMobile && "Nouveau programme"}
         </Button>
       </div>
 
