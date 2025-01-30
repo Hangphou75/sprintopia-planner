@@ -2,19 +2,34 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Program } from "@/types/program";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarDays, Users } from "lucide-react";
+import { CalendarDays, Users, Copy, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreVertical } from "lucide-react";
 
 type ProgramCardProps = {
   program: Program;
   readOnly?: boolean;
-  onDelete?: () => void;
+  onDelete?: (programId: string) => void;
+  onDuplicate?: (programId: string) => void;
   onShare?: (programId: string) => void;
 };
 
-export const ProgramCard = ({ program, readOnly = false }: ProgramCardProps) => {
+export const ProgramCard = ({ 
+  program, 
+  readOnly = false,
+  onDelete,
+  onDuplicate,
+  onShare 
+}: ProgramCardProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -46,23 +61,61 @@ export const ProgramCard = ({ program, readOnly = false }: ProgramCardProps) => 
     navigate(path);
   };
 
+  const showActions = !readOnly && (onDelete || onDuplicate || onShare);
+
   return (
     <Card 
-      className="h-full hover:shadow-md transition-shadow duration-200 cursor-pointer"
-      onClick={handleClick}
+      className="h-full hover:shadow-md transition-shadow duration-200"
     >
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between text-xl">
-          <div className="flex items-center gap-2">
+          <div 
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={handleClick}
+          >
             <CalendarDays className="h-5 w-5 text-primary" />
             <span className="font-semibold">{program.name}</span>
           </div>
-          {program.shared_programs && program.shared_programs.length > 0 && (
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <Users className="h-4 w-4" />
-              {program.shared_programs.length}
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {program.shared_programs && program.shared_programs.length > 0 && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <Users className="h-4 w-4" />
+                {program.shared_programs.length}
+              </Badge>
+            )}
+            {showActions && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {onDuplicate && (
+                    <DropdownMenuItem onClick={() => onDuplicate(program.id)}>
+                      <Copy className="h-4 w-4 mr-2" />
+                      Dupliquer
+                    </DropdownMenuItem>
+                  )}
+                  {onShare && (
+                    <DropdownMenuItem onClick={() => onShare(program.id)}>
+                      <Users className="h-4 w-4 mr-2" />
+                      Partager
+                    </DropdownMenuItem>
+                  )}
+                  {onDelete && (
+                    <DropdownMenuItem 
+                      onClick={() => onDelete(program.id)}
+                      className="text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Supprimer
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
