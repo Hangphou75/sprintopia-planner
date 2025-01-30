@@ -11,6 +11,7 @@ import {
 import { MainNav } from "@/components/navigation/MainNav";
 import { LogoutButton } from "@/components/navigation/LogoutButton";
 import { Menu } from "lucide-react";
+import { Logo } from "@/components/ui/logo";
 
 const Layout = () => {
   const { user, isLoading } = useAuth();
@@ -39,7 +40,7 @@ const Layout = () => {
         <Sidebar variant="sidebar" collapsible="offcanvas">
           <SidebarContent className="bg-white dark:bg-gray-900 shadow-lg">
             <SidebarHeader className="flex items-center justify-between border-b bg-white dark:bg-gray-900 p-4">
-              <span className="text-lg font-semibold text-primary">Sprintopia</span>
+              <Logo />
               <SidebarTrigger className="md:hidden" />
             </SidebarHeader>
             <div className="flex-1 space-y-6 py-6">
@@ -56,7 +57,7 @@ const Layout = () => {
               <Menu className="h-6 w-6" />
             </SidebarTrigger>
             <div className="flex-1 md:hidden">
-              <span className="text-lg font-semibold text-primary">Sprintopia</span>
+              <Logo />
             </div>
           </div>
           <main className="flex-1 overflow-y-auto p-4 md:p-6">
