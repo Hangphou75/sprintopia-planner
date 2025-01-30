@@ -82,7 +82,7 @@ export const IndividualEditWorkout = () => {
     time: workout.time || "09:00",
     theme: workout.theme || "",
     recovery: workout.recovery || "",
-    details: workout.details || "",
+    details: typeof workout.details === 'string' ? workout.details : JSON.stringify(workout.details || ""),
     phase: workout.phase || undefined,
     type: workout.type || undefined,
     intensity: workout.intensity || undefined,
