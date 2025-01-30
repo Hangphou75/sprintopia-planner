@@ -6,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-type UserRole = "athlete" | "coach";
+type UserRole = "athlete" | "coach" | "individual_athlete";
 
 export const SignUpForm = () => {
   const [email, setEmail] = useState("");
@@ -145,6 +145,10 @@ export const SignUpForm = () => {
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="athlete" id="signup-athlete" />
             <Label htmlFor="signup-athlete">Athlète</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="individual_athlete" id="signup-individual-athlete" />
+            <Label htmlFor="signup-individual-athlete">Athlète individuel</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="coach" id="signup-coach" />

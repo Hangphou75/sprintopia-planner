@@ -21,6 +21,9 @@ import Athletes from "./pages/coach/Athletes";
 import CoachProfile from "./pages/coach/Profile";
 import { WorkoutDetails } from "./pages/athlete/WorkoutDetails";
 import CoachPlanning from "./pages/coach/Planning";
+import IndividualAthleteHome from "./pages/individual-athlete/Home";
+import IndividualAthletePlanning from "./pages/individual-athlete/Planning";
+import IndividualAthleteProfile from "./pages/individual-athlete/Profile";
 
 function App() {
   return (
@@ -52,6 +55,18 @@ function App() {
               <Route path="/coach/athletes" element={<Athletes />} />
               <Route path="/coach/planning" element={<CoachPlanning />} />
               <Route path="/coach/profile" element={<CoachProfile />} />
+            </Route>
+
+            <Route element={<RoleProtectedRoute allowedRoles={["individual_athlete"]} />}>
+              <Route path="/individual-athlete" element={<IndividualAthleteHome />} />
+              <Route path="/individual-athlete/planning" element={<IndividualAthletePlanning />} />
+              <Route path="/individual-athlete/profile" element={<IndividualAthleteProfile />} />
+              <Route path="/individual-athlete/programs/:programId/workouts" element={<ProgramWorkouts />} />
+              <Route path="/individual-athlete/programs/:programId/workouts/:workoutId" element={<WorkoutDetails />} />
+              <Route path="/individual-athlete/programs/new" element={<CreateProgram />} />
+              <Route path="/individual-athlete/programs/:programId/edit" element={<EditProgram />} />
+              <Route path="/individual-athlete/programs/:programId/workouts/new" element={<CreateWorkout />} />
+              <Route path="/individual-athlete/programs/:programId/workouts/:workoutId/edit" element={<EditWorkout />} />
             </Route>
           </Route>
         </Route>
