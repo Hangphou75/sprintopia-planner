@@ -1,13 +1,13 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const themes = [
   { value: "aerobic", label: "Aérobie" },
@@ -20,8 +20,9 @@ const themes = [
 ];
 
 export const WorkoutDetails = () => {
-  const { workoutId } = useParams();
+  const { workoutId, programId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const { data: workout, isLoading } = useQuery({
     queryKey: ["workout", workoutId],
@@ -59,16 +60,34 @@ export const WorkoutDetails = () => {
 
   const themeLabel = themes.find(t => t.value === workout.theme)?.label || workout.theme;
 
+  const handleEditClick = () => {
+    if (user?.role === "individual_athlete") {
+      navigate(`/individual-athlete/programs/${programId}/workouts/${workoutId}/edit`);
+    }
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-6 max-w-3xl">
-      <Button
-        variant="outline"
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-2"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Retour
-      </Button>
+      <div className="flex justify-between items-center">
+        <Button
+          variant="outline"
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Retour
+        </Button>
+        
+        {user?.role === "individual_athlete" && (
+          <Button
+            onClick={handleEditClick}
+            className="flex items-center gap-2"
+          >
+            <Pencil className="h-4 w-4" />
+            Modifier
+          </Button>
+        )}
+      </div>
 
       <Card className={cn(
         "border-2",
