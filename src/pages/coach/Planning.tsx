@@ -1,5 +1,5 @@
 import { Plus } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -7,12 +7,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ProgramCard } from "@/components/programs/ProgramCard";
 import { Program } from "@/types/program";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const CoachPlanning = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const { data: programs, refetch } = useQuery({
+  const { data: programs, isLoading } = useQuery({
     queryKey: ["programs"],
     queryFn: async () => {
       console.log("Fetching programs for user:", user?.id);
@@ -31,6 +33,29 @@ const CoachPlanning = () => {
       return data as Program[];
     },
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (programId: string) => {
+      const { error } = await supabase
+        .from("programs")
+        .delete()
+        .eq("id", programId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["programs"] });
+      toast.success("Programme supprimé avec succès");
+    },
+    onError: (error) => {
+      console.error("Error deleting program:", error);
+      toast.error("Erreur lors de la suppression du programme");
+    },
+  });
+
+  const handleDeleteProgram = (programId: string) => {
+    deleteMutation.mutate(programId);
+  };
 
   return (
     <div className="container mx-auto py-6 px-4 max-w-5xl h-[calc(100vh-4rem)] flex flex-col">
@@ -56,7 +81,7 @@ const CoachPlanning = () => {
               <ProgramCard 
                 key={program.id} 
                 program={program} 
-                onDelete={refetch}
+                onDelete={handleDeleteProgram}
               />
             ))
           )}
