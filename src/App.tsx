@@ -26,6 +26,7 @@ import IndividualAthletePlanning from "./pages/individual-athlete/Planning";
 import IndividualAthleteProfile from "./pages/individual-athlete/Profile";
 import { IndividualCreateWorkout } from "./pages/individual-athlete/CreateWorkout";
 import { IndividualEditWorkout } from "./pages/individual-athlete/EditWorkout";
+import { IndividualProgramWorkouts } from "./pages/individual-athlete/ProgramWorkouts";
 
 function App() {
   return (
@@ -63,7 +64,7 @@ function App() {
               <Route path="/individual-athlete" element={<IndividualAthleteHome />} />
               <Route path="/individual-athlete/planning" element={<IndividualAthletePlanning />} />
               <Route path="/individual-athlete/profile" element={<IndividualAthleteProfile />} />
-              <Route path="/individual-athlete/programs/:programId/workouts" element={<ProgramWorkouts />} />
+              <Route path="/individual-athlete/programs/:programId/workouts" element={<IndividualProgramWorkouts />} />
               <Route path="/individual-athlete/programs/:programId/workouts/:workoutId" element={<WorkoutDetails />} />
               <Route path="/individual-athlete/programs/new" element={<CreateProgram />} />
               <Route path="/individual-athlete/programs/:programId/edit" element={<EditProgram />} />

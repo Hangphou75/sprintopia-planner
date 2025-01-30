@@ -2,13 +2,15 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Settings } from "lucide-react";
 import { ProgramWorkoutCalendar } from "@/components/programs/ProgramWorkoutCalendar";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const IndividualProgramWorkouts = () => {
   const { programId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const { data: workouts = [], isLoading: isLoadingWorkouts, error: workoutsError } = useQuery({
     queryKey: ["workouts", programId],
@@ -71,10 +73,19 @@ export const IndividualProgramWorkouts = () => {
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Séances</h1>
-        <Button onClick={() => navigate(`/individual-athlete/programs/${programId}/workouts/new`)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Nouvelle séance
-        </Button>
+        <div className="flex gap-4">
+          <Button 
+            variant="outline"
+            onClick={() => navigate(`/individual-athlete/programs/${programId}/edit`)}
+          >
+            <Settings className="mr-2 h-4 w-4" />
+            Paramètres du programme
+          </Button>
+          <Button onClick={() => navigate(`/individual-athlete/programs/${programId}/workouts/new`)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Nouvelle séance
+          </Button>
+        </div>
       </div>
 
       <ProgramWorkoutCalendar
