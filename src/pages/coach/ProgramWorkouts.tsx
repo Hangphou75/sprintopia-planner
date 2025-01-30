@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Settings } from "lucide-react";
 import { ProgramWorkoutCalendar } from "@/components/programs/ProgramWorkoutCalendar";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -73,12 +73,19 @@ export const ProgramWorkouts = () => {
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Séances</h1>
-        {user?.role === 'coach' && (
+        <div className="flex gap-4">
+          <Button 
+            variant="outline"
+            onClick={() => navigate(`/coach/programs/${programId}/edit`)}
+          >
+            <Settings className="mr-2 h-4 w-4" />
+            Paramètres du programme
+          </Button>
           <Button onClick={() => navigate(`/coach/programs/${programId}/workouts/new`)}>
             <Plus className="mr-2 h-4 w-4" />
             Nouvelle séance
           </Button>
-        )}
+        </div>
       </div>
 
       <ProgramWorkoutCalendar
