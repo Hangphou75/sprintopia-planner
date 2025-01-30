@@ -63,6 +63,8 @@ export const WorkoutDetails = () => {
   const handleEditClick = () => {
     if (user?.role === "individual_athlete") {
       navigate(`/individual-athlete/programs/${programId}/workouts/${workoutId}/edit`);
+    } else if (user?.role === "coach") {
+      navigate(`/coach/programs/${programId}/workouts/${workoutId}/edit`);
     }
   };
 
@@ -78,7 +80,7 @@ export const WorkoutDetails = () => {
           Retour
         </Button>
         
-        {user?.role === "individual_athlete" && (
+        {(user?.role === "individual_athlete" || user?.role === "coach") && (
           <Button
             onClick={handleEditClick}
             className="flex items-center gap-2"

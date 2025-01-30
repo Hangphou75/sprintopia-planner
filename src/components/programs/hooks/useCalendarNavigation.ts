@@ -14,7 +14,7 @@ export const useCalendarNavigation = ({ programId, userRole }: UseCalendarNaviga
   const handleEventClick = (event: Event) => {
     if (event.type === "workout") {
       if (userRole === "coach") {
-        navigate(`/coach/programs/${programId}/workouts/${event.id}/edit`);
+        navigate(`/coach/programs/${programId}/workouts/${event.id}`);
       } else if (userRole === "individual_athlete") {
         navigate(`/individual-athlete/programs/${programId}/workouts/${event.id}`);
       } else if (userRole === "athlete") {
