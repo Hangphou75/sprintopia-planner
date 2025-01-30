@@ -49,17 +49,10 @@ const IndividualAthleteHome = () => {
 
       console.log("Programs data:", programsData);
       
-      const allWorkouts = programsData?.reduce((acc, program) => {
-        return acc.concat(program?.workouts || []);
-      }, []);
-      const allCompetitions = programsData?.reduce((acc, program) => {
-        return acc.concat(program?.competitions || []);
-      }, []);
-
       return {
         programs: programsData || [],
-        workouts: allWorkouts || [],
-        competitions: allCompetitions || []
+        workouts: programsData?.[0]?.workouts || [],
+        competitions: programsData?.[0]?.competitions || []
       };
     },
     enabled: !!user?.id,
@@ -85,7 +78,7 @@ const IndividualAthleteHome = () => {
         </Button>
       </div>
 
-      {programs?.programs?.length > 0 ? (
+      {programs?.programs && programs.programs.length > 0 ? (
         <ProgramWorkoutCalendar
           workouts={programs.workouts}
           competitions={programs.competitions}
