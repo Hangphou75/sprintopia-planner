@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export type UserRole = "athlete" | "coach";
+export type UserRole = "athlete" | "coach" | "individual_athlete";
 
 export interface UserProfile {
   id: string;
