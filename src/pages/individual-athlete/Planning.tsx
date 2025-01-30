@@ -15,7 +15,6 @@ const IndividualAthletePlanning = () => {
     queryFn: async () => {
       console.log("Fetching programs for user:", user?.id);
       
-      // Récupérer directement les programmes de l'athlète individuel
       const { data: programsData, error } = await supabase
         .from("programs")
         .select(`
@@ -89,14 +88,14 @@ const IndividualAthletePlanning = () => {
               variant="outline"
               size="icon"
               className="md:hidden"
-              onClick={() => navigate(`/individual-athlete/programs/${sharedPrograms.programs[0]?.id}/settings`)}
+              onClick={() => navigate(`/individual-athlete/programs/${sharedPrograms.programs[0]?.id}/edit`)}
             >
               <Settings className="h-4 w-4" />
             </Button>
             <Button
               variant="outline"
               className="hidden md:inline-flex"
-              onClick={() => navigate(`/individual-athlete/programs/${sharedPrograms.programs[0]?.id}/settings`)}
+              onClick={() => navigate(`/individual-athlete/programs/${sharedPrograms.programs[0]?.id}/edit`)}
             >
               <Settings className="h-4 w-4 mr-2" />
               Paramètres
