@@ -89,17 +89,19 @@ export const ProgramWorkouts = () => {
           <Button 
             variant="outline"
             className="w-full md:w-auto"
+            size={isMobile ? "icon" : "default"}
             onClick={() => navigate(`/coach/programs/${programId}/edit`)}
           >
-            <Settings className="mr-2 h-4 w-4" />
-            Paramètres du programme
+            <Settings className="h-4 w-4" />
+            {!isMobile && "Paramètres du programme"}
           </Button>
           <Button 
             className="w-full md:w-auto"
+            size={isMobile ? "icon" : "default"}
             onClick={() => navigate(`/coach/programs/${programId}/workouts/new`)}
           >
-            <Plus className="mr-2 h-4 w-4" />
-            Nouvelle séance
+            <Plus className="h-4 w-4" />
+            {!isMobile && "Nouvelle séance"}
           </Button>
         </div>
       </div>
