@@ -74,35 +74,35 @@ export const ProgramWorkouts = () => {
   return (
     <div className="container mx-auto p-6">
       <div className="flex flex-col gap-4 mb-6">
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-2xl font-bold">Séances</h1>
-        </div>
-        
-        <div className={`flex ${isMobile ? 'flex-col' : ''} gap-4`}>
-          <Button 
-            variant="outline"
-            className="w-full md:w-auto"
-            size={isMobile ? "icon" : "default"}
-            onClick={() => navigate(`/coach/programs/${programId}/edit`)}
-          >
-            <Settings className="h-4 w-4" />
-            {!isMobile && "Paramètres du programme"}
-          </Button>
-          <Button 
-            className="w-full md:w-auto"
-            size={isMobile ? "icon" : "default"}
-            onClick={() => navigate(`/coach/programs/${programId}/workouts/new`)}
-          >
-            <Plus className="h-4 w-4" />
-            {!isMobile && "Nouvelle séance"}
-          </Button>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={() => navigate(-1)}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="text-2xl font-bold">Séances</h1>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button 
+              variant="outline"
+              size={isMobile ? "icon" : "default"}
+              onClick={() => navigate(`/coach/programs/${programId}/edit`)}
+            >
+              <Settings className="h-4 w-4" />
+              {!isMobile && "Paramètres du programme"}
+            </Button>
+            <Button 
+              size={isMobile ? "icon" : "default"}
+              onClick={() => navigate(`/coach/programs/${programId}/workouts/new`)}
+            >
+              <Plus className="h-4 w-4" />
+              {!isMobile && "Nouvelle séance"}
+            </Button>
+          </div>
         </div>
       </div>
 
