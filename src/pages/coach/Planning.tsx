@@ -72,16 +72,15 @@ const CoachPlanning = () => {
 
       if (fetchError) throw fetchError;
 
-      // Create new program
+      // Create new program with the current user as owner
       const { data: newProgram, error: createError } = await supabase
         .from("programs")
         .insert({
-          ...program,
-          id: undefined,
           name: `${program.name} (copie)`,
+          duration: program.duration,
+          objectives: program.objectives,
+          start_date: program.start_date,
           user_id: user?.id,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
         })
         .select()
         .single();
