@@ -2,15 +2,17 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, Settings } from "lucide-react";
+import { Plus, Settings, ArrowLeft } from "lucide-react";
 import { ProgramWorkoutCalendar } from "@/components/programs/ProgramWorkoutCalendar";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const ProgramWorkouts = () => {
   const { programId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isMobile = useIsMobile();
 
   const { data: workouts, isLoading: isLoadingWorkouts, error: workoutsError } = useQuery({
     queryKey: ["workouts", programId],
@@ -71,17 +73,31 @@ export const ProgramWorkouts = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Séances</h1>
-        <div className="flex gap-4">
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={() => navigate(-1)}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-2xl font-bold">Séances</h1>
+        </div>
+        
+        <div className={`flex ${isMobile ? 'flex-col' : ''} gap-4`}>
           <Button 
             variant="outline"
+            className="w-full md:w-auto"
             onClick={() => navigate(`/coach/programs/${programId}/edit`)}
           >
             <Settings className="mr-2 h-4 w-4" />
             Paramètres du programme
           </Button>
-          <Button onClick={() => navigate(`/coach/programs/${programId}/workouts/new`)}>
+          <Button 
+            className="w-full md:w-auto"
+            onClick={() => navigate(`/coach/programs/${programId}/workouts/new`)}
+          >
             <Plus className="mr-2 h-4 w-4" />
             Nouvelle séance
           </Button>
