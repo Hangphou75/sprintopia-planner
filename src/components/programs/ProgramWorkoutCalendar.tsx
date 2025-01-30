@@ -40,15 +40,24 @@ export const ProgramWorkoutCalendar = ({
   competitions,
   programId,
 }: ProgramWorkoutCalendarProps) => {
+  console.log("ProgramWorkoutCalendar - Props received:", {
+    workouts,
+    competitions,
+    programId
+  });
+
   const { user } = useAuth();
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
 
   const events = useEvents({ workouts, competitions });
+  console.log("ProgramWorkoutCalendar - Processed events:", events);
+
   const { handleDuplicateWorkout, handleDeleteWorkout } = useWorkoutActions({
     programId,
     userRole: user?.role,
   });
+
   const {
     selectedDate,
     handleEventClick,
@@ -59,8 +68,11 @@ export const ProgramWorkoutCalendar = ({
   });
 
   let filteredWorkouts = events.filter(event => event.type === "workout");
+  console.log("ProgramWorkoutCalendar - Filtered workouts before theme:", filteredWorkouts);
+
   if (selectedTheme) {
     filteredWorkouts = filteredWorkouts.filter((event) => event.theme === selectedTheme);
+    console.log("ProgramWorkoutCalendar - Filtered workouts after theme filter:", filteredWorkouts);
   }
 
   filteredWorkouts.sort((a, b) => {
@@ -68,6 +80,8 @@ export const ProgramWorkoutCalendar = ({
     const dateB = new Date(b.date).getTime();
     return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
   });
+
+  console.log("ProgramWorkoutCalendar - Final filtered and sorted workouts:", filteredWorkouts);
 
   return (
     <div className="space-y-8">
