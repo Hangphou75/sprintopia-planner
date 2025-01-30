@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Timer, Trophy, Dumbbell, Activity, Zap, Flame } from "lucide-react";
+import { Timer, Trophy, Dumbbell, Activity, Zap, Flame, Settings, Plus } from "lucide-react";
 import { CalendarView } from "./calendar/CalendarView";
 import { EventDetails } from "./calendar/EventDetails";
 import { EventFilters } from "./calendar/EventFilters";
@@ -9,6 +9,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useEvents } from "./hooks/useEvents";
 import { useWorkoutActions } from "./hooks/useWorkoutActions";
 import { useCalendarNavigation } from "./hooks/useCalendarNavigation";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 type ProgramWorkoutCalendarProps = {
   workouts: any[];
@@ -42,6 +44,7 @@ export const ProgramWorkoutCalendar = ({
   programId,
 }: ProgramWorkoutCalendarProps) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
 
@@ -72,8 +75,29 @@ export const ProgramWorkoutCalendar = ({
     return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
   });
 
+  const basePath = user?.role === 'coach' ? '/coach' : '/individual-athlete';
+
   return (
     <div className="space-y-8">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Séances</h1>
+        {(user?.role === 'coach' || user?.role === 'individual_athlete') && (
+          <div className="flex gap-4">
+            <Button 
+              variant="outline"
+              onClick={() => navigate(`${basePath}/programs/${programId}/edit`)}
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              Paramètres du programme
+            </Button>
+            <Button onClick={() => navigate(`${basePath}/programs/${programId}/workouts/new`)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Nouvelle séance
+            </Button>
+          </div>
+        )}
+      </div>
+
       <div className="grid md:grid-cols-2 gap-4">
         <CalendarView
           events={events}
