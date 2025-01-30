@@ -67,14 +67,17 @@ export const ProgramCard = ({
 
   return (
     <Card 
-      className="h-full hover:shadow-md transition-shadow duration-200"
+      className="h-full hover:shadow-md transition-shadow duration-200 cursor-pointer"
+      onClick={(e) => {
+        // Only handle click if it's not on a button or dropdown
+        if (!(e.target as HTMLElement).closest('button')) {
+          handleClick();
+        }
+      }}
     >
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between text-xl">
-          <div 
-            className="flex items-center gap-2 cursor-pointer"
-            onClick={handleClick}
-          >
+          <div className="flex items-center gap-2">
             <CalendarDays className="h-5 w-5 text-primary" />
             <span className="font-semibold">{program.name}</span>
           </div>
