@@ -262,6 +262,7 @@ const Programs = () => {
                 onShare={onShareProgram}
                 onDelete={handleDelete}
                 onDuplicate={(id) => duplicateMutation.mutate(id)}
+                onEdit={(id) => navigate(`/coach/programs/${id}/edit`)}
               />
             ))
           )}
