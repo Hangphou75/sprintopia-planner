@@ -24,8 +24,25 @@ export const ProgramCard = ({ program, readOnly = false }: ProgramCardProps) => 
       return;
     }
 
-    const basePath = user.role === 'athlete' ? '/athlete' : '/coach';
-    const path = `${basePath}/programs/${program.id}/workouts`;
+    console.log("Handling program card click for role:", user.role);
+    
+    let path;
+    switch (user.role) {
+      case 'individual_athlete':
+        path = `/individual-athlete/programs/${program.id}/workouts`;
+        break;
+      case 'athlete':
+        path = `/athlete/programs/${program.id}/workouts`;
+        break;
+      case 'coach':
+        path = `/coach/programs/${program.id}/workouts`;
+        break;
+      default:
+        console.error("Unknown user role:", user.role);
+        return;
+    }
+
+    console.log("Navigating to:", path);
     navigate(path);
   };
 
