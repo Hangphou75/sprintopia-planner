@@ -13,50 +13,47 @@ const IndividualAthletePlanning = () => {
   const { data: sharedPrograms, isLoading } = useQuery({
     queryKey: ["shared-programs", user?.id],
     queryFn: async () => {
-      console.log("Fetching shared programs for user:", user?.id);
+      console.log("Fetching programs for user:", user?.id);
       
-      const { data: sharedProgramsData, error } = await supabase
-        .from("shared_programs")
+      // Récupérer directement les programmes de l'athlète individuel
+      const { data: programsData, error } = await supabase
+        .from("programs")
         .select(`
-          program:programs (
+          id,
+          name,
+          workouts (
+            id,
+            title,
+            description,
+            date,
+            time,
+            theme,
+            details
+          ),
+          competitions (
             id,
             name,
-            workouts (
-              id,
-              title,
-              description,
-              date,
-              time,
-              theme,
-              details
-            ),
-            competitions (
-              id,
-              name,
-              date,
-              location,
-              distance,
-              level,
-              is_main,
-              time
-            )
+            date,
+            location,
+            distance,
+            level,
+            is_main,
+            time
           )
         `)
-        .eq("athlete_id", user?.id)
-        .eq("status", "active");
+        .eq("user_id", user?.id);
 
       if (error) {
-        console.error("Error fetching shared programs:", error);
+        console.error("Error fetching programs:", error);
         throw error;
       }
 
-      console.log("Shared programs data:", sharedProgramsData);
+      console.log("Programs data:", programsData);
       
-      const programs = sharedProgramsData?.map(sp => sp.program) || [];
-      const allWorkouts = programs.reduce((acc, program) => {
+      const allWorkouts = programsData?.reduce((acc, program) => {
         return acc.concat(program?.workouts || []);
       }, []);
-      const allCompetitions = programs.reduce((acc, program) => {
+      const allCompetitions = programsData?.reduce((acc, program) => {
         return acc.concat(program?.competitions || []);
       }, []);
 
@@ -64,9 +61,9 @@ const IndividualAthletePlanning = () => {
       console.log("All competitions:", allCompetitions);
 
       return {
-        programs,
-        workouts: allWorkouts,
-        competitions: allCompetitions
+        programs: programsData || [],
+        workouts: allWorkouts || [],
+        competitions: allCompetitions || []
       };
     },
     enabled: !!user?.id,
@@ -130,7 +127,7 @@ const IndividualAthletePlanning = () => {
         />
       ) : (
         <div className="text-center">
-          <p className="text-muted-foreground">Aucun programme partagé</p>
+          <p className="text-muted-foreground">Aucun programme</p>
         </div>
       )}
     </div>
