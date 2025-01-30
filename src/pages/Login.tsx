@@ -12,7 +12,17 @@ const Login = () => {
   console.log("Login page - Auth state:", { user, isAuthenticated });
 
   if (isAuthenticated && user) {
-    const basePath = user.role === 'coach' ? '/coach' : '/athlete';
+    let basePath;
+    switch (user.role) {
+      case 'coach':
+        basePath = '/coach';
+        break;
+      case 'individual_athlete':
+        basePath = '/individual-athlete';
+        break;
+      default:
+        basePath = '/athlete';
+    }
     return <Navigate to={basePath} replace />;
   }
 
