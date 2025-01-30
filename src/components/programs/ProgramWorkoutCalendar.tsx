@@ -79,25 +79,6 @@ export const ProgramWorkoutCalendar = ({
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Séances</h1>
-        {(user?.role === 'coach' || user?.role === 'individual_athlete') && (
-          <div className="flex gap-4">
-            <Button 
-              variant="outline"
-              onClick={() => navigate(`${basePath}/programs/${programId}/edit`)}
-            >
-              <Settings className="mr-2 h-4 w-4" />
-              Paramètres du programme
-            </Button>
-            <Button onClick={() => navigate(`${basePath}/programs/${programId}/workouts/new`)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Nouvelle séance
-            </Button>
-          </div>
-        )}
-      </div>
-
       <div className="grid md:grid-cols-2 gap-4">
         <CalendarView
           events={events}
