@@ -141,7 +141,7 @@ export const ProgramWorkoutCalendar = ({
                       )}
                     </div>
                   </div>
-                  {user?.role === 'coach' && (
+                  {(user?.role === 'coach' || user?.role === 'individual_athlete') && (
                     <div className="flex gap-2">
                       <button
                         className="p-2 hover:bg-gray-100 rounded-full"
