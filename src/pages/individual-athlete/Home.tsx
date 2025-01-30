@@ -2,9 +2,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ProgramWorkoutCalendar } from "@/components/programs/ProgramWorkoutCalendar";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const IndividualAthleteHome = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const { data: programs, isLoading } = useQuery({
     queryKey: ["programs", user?.id],
@@ -75,6 +79,10 @@ const IndividualAthleteHome = () => {
     <div className="container mx-auto py-6 px-4 max-w-5xl h-[calc(100vh-4rem)] flex flex-col">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Mon tableau de bord</h1>
+        <Button onClick={() => navigate("/individual-athlete/programs/new")}>
+          <Plus className="h-4 w-4 mr-2" />
+          Créer un programme
+        </Button>
       </div>
 
       {programs?.programs?.length > 0 ? (
@@ -85,7 +93,15 @@ const IndividualAthleteHome = () => {
         />
       ) : (
         <div className="text-center">
-          <p className="text-muted-foreground">Aucun programme créé</p>
+          <p className="text-muted-foreground">Vous n'avez pas encore créé de programme</p>
+          <Button 
+            variant="outline" 
+            className="mt-4"
+            onClick={() => navigate("/individual-athlete/programs/new")}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Créer mon premier programme
+          </Button>
         </div>
       )}
     </div>
