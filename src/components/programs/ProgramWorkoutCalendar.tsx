@@ -75,8 +75,6 @@ export const ProgramWorkoutCalendar = ({
     return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
   });
 
-  const basePath = user?.role === 'coach' ? '/coach' : '/individual-athlete';
-
   return (
     <div className="space-y-8">
       <div className="grid md:grid-cols-2 gap-4">
