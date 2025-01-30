@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 
-type UserRole = "athlete" | "coach";
+type UserRole = "athlete" | "coach" | "individual_athlete";
 
 export const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -69,6 +69,10 @@ export const LoginForm = () => {
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="athlete" id="athlete" disabled={isLoading} />
             <Label htmlFor="athlete">Athlète</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="individual_athlete" id="individual_athlete" disabled={isLoading} />
+            <Label htmlFor="individual_athlete">Athlète individuel</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="coach" id="coach" disabled={isLoading} />
