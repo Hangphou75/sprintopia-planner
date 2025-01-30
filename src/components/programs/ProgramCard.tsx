@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Program } from "@/types/program";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarDays, Users, Copy, Trash2 } from "lucide-react";
+import { CalendarDays, Users, Copy, Trash2, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -21,6 +21,7 @@ type ProgramCardProps = {
   onDelete?: (programId: string) => void;
   onDuplicate?: (programId: string) => void;
   onShare?: (programId: string) => void;
+  onEdit?: (programId: string) => void;
 };
 
 export const ProgramCard = ({ 
@@ -28,7 +29,8 @@ export const ProgramCard = ({
   readOnly = false,
   onDelete,
   onDuplicate,
-  onShare 
+  onShare,
+  onEdit
 }: ProgramCardProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -61,7 +63,7 @@ export const ProgramCard = ({
     navigate(path);
   };
 
-  const showActions = !readOnly && (onDelete || onDuplicate || onShare);
+  const showActions = !readOnly && (onDelete || onDuplicate || onShare || onEdit);
 
   return (
     <Card 
@@ -91,6 +93,12 @@ export const ProgramCard = ({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  {onEdit && (
+                    <DropdownMenuItem onClick={() => onEdit(program.id)}>
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Modifier
+                    </DropdownMenuItem>
+                  )}
                   {onDuplicate && (
                     <DropdownMenuItem onClick={() => onDuplicate(program.id)}>
                       <Copy className="h-4 w-4 mr-2" />
