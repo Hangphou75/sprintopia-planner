@@ -83,15 +83,16 @@ export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
 
   const currentTheme = themes.find(t => t.value === selectedTheme);
   const ThemeIcon = currentTheme?.icon || Timer;
+  const isEditMode = !!initialValues?.title;
 
   const handleSubmit = async (values: WorkoutFormValues) => {
     try {
       setIsSubmitting(true);
       await onSubmit(values);
-      toast.success("Séance créée avec succès");
+      toast.success(isEditMode ? "Séance modifiée avec succès" : "Séance créée avec succès");
     } catch (error) {
       console.error("Error creating workout:", error);
-      toast.error("Erreur lors de la création de la séance");
+      toast.error(isEditMode ? "Erreur lors de la modification de la séance" : "Erreur lors de la création de la séance");
     } finally {
       setIsSubmitting(false);
     }
@@ -279,7 +280,9 @@ export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
             className="min-w-32"
           >
             <ThemeIcon className="mr-2 h-4 w-4" />
-            {isSubmitting ? "Création..." : "Créer la séance"}
+            {isSubmitting 
+              ? (isEditMode ? "Modification..." : "Création...") 
+              : (isEditMode ? "Modifier la séance" : "Créer la séance")}
           </Button>
         </div>
       </form>
