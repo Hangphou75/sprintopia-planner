@@ -20,18 +20,26 @@ const CoachPlanning = () => {
       console.log("Fetching programs for user:", user?.id);
       const { data, error } = await supabase
         .from("programs")
-        .select("*, competitions(*)")
+        .select(`
+          *,
+          competitions(*),
+          shared_programs(
+            athlete:profiles!shared_programs_athlete_id_fkey(
+              id,
+              first_name,
+              last_name,
+              email
+            )
+          )
+        `)
         .eq("user_id", user?.id)
         .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Error fetching programs:", error);
-        throw error;
-      }
-
+      if (error) throw error;
       console.log("Programs fetched:", data);
       return data as Program[];
     },
+    enabled: !!user?.id,
   });
 
   const deleteMutation = useMutation({
@@ -53,25 +61,114 @@ const CoachPlanning = () => {
     },
   });
 
+  const duplicateMutation = useMutation({
+    mutationFn: async (programId: string) => {
+      // Fetch the program to duplicate
+      const { data: program, error: fetchError } = await supabase
+        .from("programs")
+        .select("*")
+        .eq("id", programId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Create new program
+      const { data: newProgram, error: createError } = await supabase
+        .from("programs")
+        .insert({
+          ...program,
+          id: undefined,
+          name: `${program.name} (copie)`,
+          user_id: user?.id,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (createError) throw createError;
+
+      // Duplicate competitions
+      const { data: competitions, error: compFetchError } = await supabase
+        .from("competitions")
+        .select("*")
+        .eq("program_id", programId);
+
+      if (compFetchError) throw compFetchError;
+
+      if (competitions && competitions.length > 0) {
+        const { error: compCreateError } = await supabase
+          .from("competitions")
+          .insert(
+            competitions.map((comp) => ({
+              ...comp,
+              id: undefined,
+              program_id: newProgram.id,
+            }))
+          );
+
+        if (compCreateError) throw compCreateError;
+      }
+
+      // Duplicate workouts
+      const { data: workouts, error: workoutFetchError } = await supabase
+        .from("workouts")
+        .select("*")
+        .eq("program_id", programId);
+
+      if (workoutFetchError) throw workoutFetchError;
+
+      if (workouts && workouts.length > 0) {
+        const { error: workoutCreateError } = await supabase
+          .from("workouts")
+          .insert(
+            workouts.map((workout) => ({
+              ...workout,
+              id: undefined,
+              program_id: newProgram.id,
+            }))
+          );
+
+        if (workoutCreateError) throw workoutCreateError;
+      }
+
+      return newProgram;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["programs"] });
+      toast.success("Programme dupliqué avec succès");
+    },
+    onError: (error) => {
+      console.error("Error duplicating program:", error);
+      toast.error("Erreur lors de la duplication du programme");
+    },
+  });
+
   const handleDeleteProgram = (programId: string) => {
     deleteMutation.mutate(programId);
   };
 
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-6 px-4">
+        <div className="text-center">
+          <p className="text-muted-foreground">Chargement des programmes...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-6 px-4 max-w-5xl h-[calc(100vh-4rem)] flex flex-col">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold">Planning</h1>
-        <Button 
-          onClick={() => navigate("/coach/programs/new")}
-          size="lg"
-          className="w-full sm:w-auto bg-[#0F172A] text-white hover:bg-[#1E293B]"
-        >
-          <Plus className="mr-2 h-5 w-5" />
-          Nouveau Programme
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Mes programmes</h1>
+        <Button onClick={() => navigate("/coach/programs/new")}>
+          Nouveau programme
         </Button>
       </div>
+
       <ScrollArea className="flex-1 px-1">
-        <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {!programs || programs.length === 0 ? (
             <p className="text-muted-foreground col-span-full text-center py-8">
               Aucun programme créé
@@ -80,8 +177,9 @@ const CoachPlanning = () => {
             programs.map((program) => (
               <ProgramCard 
                 key={program.id} 
-                program={program} 
+                program={program}
                 onDelete={handleDeleteProgram}
+                onDuplicate={(id) => duplicateMutation.mutate(id)}
               />
             ))
           )}
