@@ -5,12 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { ProgramWorkoutCalendar } from "@/components/programs/ProgramWorkoutCalendar";
 import { toast } from "sonner";
-import { useAuth } from "@/contexts/AuthContext";
 
 export const IndividualProgramWorkouts = () => {
   const { programId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   const { data: workouts = [], isLoading: isLoadingWorkouts, error: workoutsError } = useQuery({
     queryKey: ["workouts", programId],
