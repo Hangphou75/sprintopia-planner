@@ -31,7 +31,7 @@ const Layout = () => {
   }
 
   const isCoach = user.role === "coach";
-  const basePath = isCoach ? "/coach" : "/athlete";
+  const basePath = user.role === "individual_athlete" ? "/individual-athlete" : isCoach ? "/coach" : "/athlete";
 
   return (
     <SidebarProvider defaultOpen={true}>
