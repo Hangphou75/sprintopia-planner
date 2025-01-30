@@ -229,6 +229,11 @@ const Programs = () => {
     setIsShareDialogOpen(true);
   };
 
+  const handleEdit = (programId: string) => {
+    console.log("Navigating to edit program:", programId);
+    navigate(`/coach/programs/${programId}/edit`);
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto py-6 px-4">
@@ -262,7 +267,7 @@ const Programs = () => {
                 onShare={onShareProgram}
                 onDelete={handleDelete}
                 onDuplicate={(id) => duplicateMutation.mutate(id)}
-                onEdit={(id) => navigate(`/coach/programs/${id}/edit`)}
+                onEdit={handleEdit}
               />
             ))
           )}
