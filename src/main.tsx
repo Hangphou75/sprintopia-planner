@@ -23,13 +23,13 @@ const init = async () => {
     
     root.render(
       <StrictMode>
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
+        <BrowserRouter>
+          <QueryClientProvider client={queryClient}>
             <AuthProvider>
               <App />
             </AuthProvider>
-          </BrowserRouter>
-        </QueryClientProvider>
+          </QueryClientProvider>
+        </BrowserRouter>
       </StrictMode>
     )
     
