@@ -19,7 +19,7 @@ export const IndividualAthletePrograms = () => {
         .select(`
           *,
           shared_programs (
-            athlete:athlete_id (
+            athlete:profiles!shared_programs_athlete_id_fkey (
               id,
               first_name,
               last_name,
