@@ -22,8 +22,17 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
       }
 
       if (session?.user) {
+        const cachedProfile = localStorage.getItem(`userProfile_${session.user.id}`);
+        if (cachedProfile) {
+          onProfileUpdate(JSON.parse(cachedProfile));
+          setIsLoading(false);
+        }
+        
         const userProfile = await fetchProfile(session.user.id);
-        onProfileUpdate(userProfile);
+        if (userProfile) {
+          localStorage.setItem(`userProfile_${session.user.id}`, JSON.stringify(userProfile));
+          onProfileUpdate(userProfile);
+        }
       } else {
         onProfileUpdate(null);
       }
@@ -45,21 +54,25 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
       if (!isInitialized || !mounted) return;
       
       if (event === 'SIGNED_IN' && session?.user) {
-        setIsLoading(true);
+        const cachedProfile = localStorage.getItem(`userProfile_${session.user.id}`);
+        if (cachedProfile) {
+          onProfileUpdate(JSON.parse(cachedProfile));
+        }
+        
         try {
           const userProfile = await fetchProfile(session.user.id);
           if (mounted) {
-            onProfileUpdate(userProfile);
+            if (userProfile) {
+              localStorage.setItem(`userProfile_${session.user.id}`, JSON.stringify(userProfile));
+              onProfileUpdate(userProfile);
+            }
           }
         } catch (error) {
           console.error("Error fetching profile after sign in:", error);
           onProfileUpdate(null);
-        } finally {
-          if (mounted) {
-            setIsLoading(false);
-          }
         }
       } else if (event === 'SIGNED_OUT' && mounted) {
+        localStorage.removeItem('userProfile');
         onProfileUpdate(null);
       }
     });

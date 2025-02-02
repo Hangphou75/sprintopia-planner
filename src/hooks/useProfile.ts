@@ -13,7 +13,14 @@ export interface UserProfile {
 }
 
 export function useProfile() {
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(() => {
+    const session = supabase.auth.getSession();
+    if (session) {
+      const cachedProfile = localStorage.getItem('userProfile');
+      return cachedProfile ? JSON.parse(cachedProfile) : null;
+    }
+    return null;
+  });
 
   const fetchProfile = useCallback(async (userId: string): Promise<UserProfile | null> => {
     try {
@@ -52,6 +59,7 @@ export function useProfile() {
       };
 
       console.log("Processed user profile:", userProfile);
+      localStorage.setItem('userProfile', JSON.stringify(userProfile));
       setProfile(userProfile);
       return userProfile;
     } catch (error: any) {
