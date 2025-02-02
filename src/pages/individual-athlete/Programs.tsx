@@ -40,10 +40,6 @@ export const IndividualAthletePrograms = () => {
     enabled: !!user?.id,
   });
 
-  const handleProgramClick = (programId: string) => {
-    navigate(`/individual-athlete/planning/${programId}`);
-  };
-
   const handleCreateProgram = () => {
     navigate("/individual-athlete/programs/new");
   };
@@ -74,7 +70,6 @@ export const IndividualAthletePrograms = () => {
             <ProgramCard
               key={program.id}
               program={program}
-              onClick={() => handleProgramClick(program.id)}
             />
           ))}
         </div>
