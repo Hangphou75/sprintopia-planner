@@ -3,13 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InvitationsList } from "@/components/athlete/InvitationsList";
-import { format, startOfWeek, endOfWeek, isWithinInterval, isSameDay } from "date-fns";
+import { format, startOfWeek, endOfWeek, isWithinInterval, isSameDay, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Trophy, Timer } from "lucide-react";
+import { Trophy, Timer, ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ProgramWorkoutCalendar } from "@/components/programs/ProgramWorkoutCalendar";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 const Home = () => {
   const { user } = useAuth();
@@ -29,7 +30,7 @@ const Home = () => {
       "power": "Puissance",
       "competition": "Compétition",
       "recovery": "Récupération",
-      "technique": "Technique",
+      "technical": "Technique",
       "speed": "Vitesse",
       "endurance": "Endurance",
       "alactic": "Anaérobie alactique",
@@ -142,72 +143,98 @@ const Home = () => {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {todayWorkout && (
-              <Card className="h-full">
+              <Card className={cn(
+                "h-full border-2",
+                todayWorkout.theme && `border-theme-${todayWorkout.theme}`
+              )}>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Timer className="h-5 w-5" />
-                    Séance du jour
+                  <CardTitle className="text-2xl">
+                    {todayWorkout.title}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-lg font-semibold">{todayWorkout.title}</h3>
-                      {todayWorkout.theme && (
-                        <Badge variant="outline" className="mt-1">
-                          {getThemeLabel(todayWorkout.theme)}
-                        </Badge>
-                      )}
-                    </div>
-                    {todayWorkout.description && (
-                      <p className="text-muted-foreground whitespace-pre-wrap">{todayWorkout.description}</p>
-                    )}
-                    <div className="space-y-2">
-                      {todayWorkout.intensity && (
-                        <p className="text-sm">
-                          <span className="font-medium">Intensité :</span>{" "}
-                          <span className="text-muted-foreground">{todayWorkout.intensity}</span>
-                        </p>
-                      )}
-                      {todayWorkout.recovery && (
-                        <p className="text-sm">
-                          <span className="font-medium">Récupération :</span>{" "}
-                          <span className="text-muted-foreground">{todayWorkout.recovery}</span>
-                        </p>
-                      )}
-                      {todayWorkout.duration && (
-                        <p className="text-sm">
-                          <span className="font-medium">Durée :</span>{" "}
-                          <span className="text-muted-foreground">{todayWorkout.duration}</span>
-                        </p>
-                      )}
-                      {todayWorkout.time && (
-                        <p className="text-sm">
-                          <span className="font-medium">Heure :</span>{" "}
-                          <span className="text-muted-foreground">{todayWorkout.time}</span>
-                        </p>
-                      )}
-                    </div>
-                    {todayWorkout.details && (
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
                       <div>
-                        <h4 className="font-medium mb-2">Détails de la séance</h4>
-                        <div className="bg-muted rounded-lg p-4">
-                          <pre className="text-sm whitespace-pre-wrap">
-                            {typeof todayWorkout.details === 'string' 
-                              ? todayWorkout.details 
-                              : JSON.stringify(todayWorkout.details, null, 2)}
-                          </pre>
-                        </div>
+                        <h3 className="font-semibold mb-1">Date et heure</h3>
+                        <p className="text-muted-foreground">
+                          {format(parseISO(todayWorkout.date), 'd MMMM yyyy', { locale: fr })}
+                          {todayWorkout.time && ` à ${todayWorkout.time}`}
+                        </p>
                       </div>
-                    )}
-                    <Button 
-                      variant="outline" 
-                      className="w-full"
-                      onClick={() => handleWorkoutClick(todayWorkout.id, sharedPrograms.programs[0]?.id)}
-                    >
-                      Voir les détails
-                    </Button>
+
+                      {todayWorkout.theme && (
+                        <div>
+                          <h3 className="font-semibold mb-1">Type de séance</h3>
+                          <p className="text-muted-foreground">
+                            {getThemeLabel(todayWorkout.theme)}
+                          </p>
+                        </div>
+                      )}
+
+                      {todayWorkout.phase && (
+                        <div>
+                          <h3 className="font-semibold mb-1">Phase</h3>
+                          <p className="text-muted-foreground capitalize">
+                            {todayWorkout.phase}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-4">
+                      {todayWorkout.intensity && (
+                        <div>
+                          <h3 className="font-semibold mb-1">Intensité</h3>
+                          <p className="text-muted-foreground">{todayWorkout.intensity}</p>
+                        </div>
+                      )}
+
+                      {todayWorkout.recovery && (
+                        <div>
+                          <h3 className="font-semibold mb-1">Récupération</h3>
+                          <p className="text-muted-foreground">{todayWorkout.recovery}</p>
+                        </div>
+                      )}
+
+                      {todayWorkout.duration && (
+                        <div>
+                          <h3 className="font-semibold mb-1">Durée</h3>
+                          <p className="text-muted-foreground">{todayWorkout.duration}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
+
+                  {todayWorkout.description && (
+                    <div>
+                      <h3 className="font-semibold mb-2">Description</h3>
+                      <p className="text-muted-foreground whitespace-pre-wrap">
+                        {todayWorkout.description}
+                      </p>
+                    </div>
+                  )}
+
+                  {todayWorkout.details && (
+                    <div>
+                      <h3 className="font-semibold mb-2">Détails de la séance</h3>
+                      <div className="bg-muted p-4 rounded-lg">
+                        <pre className="text-sm whitespace-pre-wrap">
+                          {typeof todayWorkout.details === 'string' 
+                            ? todayWorkout.details 
+                            : JSON.stringify(todayWorkout.details, null, 2)}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => handleWorkoutClick(todayWorkout.id, sharedPrograms.programs[0]?.id)}
+                  >
+                    Voir les détails
+                  </Button>
                 </CardContent>
               </Card>
             )}
