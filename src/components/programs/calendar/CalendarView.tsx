@@ -58,7 +58,12 @@ export const CalendarView = ({
                     {dayEvents.map((event, index) => (
                       <div
                         key={index}
-                        className="h-1 w-1 rounded-full bg-foreground"
+                        className={cn(
+                          "h-1 w-1 rounded-full",
+                          event.type === "competition" 
+                            ? "bg-competition" 
+                            : "bg-foreground"
+                        )}
                       />
                     ))}
                   </div>
