@@ -8,12 +8,35 @@ import { fr } from "date-fns/locale";
 import { Trophy, Timer } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ProgramWorkoutCalendar } from "@/components/programs/ProgramWorkoutCalendar";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const today = new Date();
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
+
+  const getThemeLabel = (theme: string) => {
+    const themeMap: { [key: string]: string } = {
+      "aerobic": "Aérobie",
+      "anaerobic-lactic": "Anaérobie lactique",
+      "anaerobic-alactic": "Anaérobie alactique",
+      "mobility": "Mobilité",
+      "conditioning": "Préparation physique",
+      "strength": "Force",
+      "power": "Puissance",
+      "competition": "Compétition",
+      "recovery": "Récupération",
+      "technique": "Technique",
+      "speed": "Vitesse",
+      "endurance": "Endurance",
+      "alactic": "Anaérobie alactique",
+      "lactic": "Anaérobie lactique"
+    };
+    return themeMap[theme] || theme;
+  };
 
   const { data: sharedPrograms, isLoading: isLoadingShared } = useQuery({
     queryKey: ["shared-programs", user?.id],
@@ -33,7 +56,11 @@ const Home = () => {
               date,
               time,
               theme,
-              details
+              details,
+              intensity,
+              recovery,
+              duration,
+              phase
             ),
             competitions (
               id,
@@ -88,25 +115,6 @@ const Home = () => {
     })
   );
 
-  const getThemeLabel = (theme: string) => {
-    const themeMap: { [key: string]: string } = {
-      "aerobic": "Aérobie",
-      "anaerobic-lactic": "Anaérobie lactique",
-      "anaerobic-alactic": "Anaérobie alactique",
-      "mobility": "Mobilité",
-      "conditioning": "Préparation physique",
-      "power": "Force",
-      "competition": "Compétition",
-      "recovery": "Récupération",
-      "technique": "Technique",
-      "speed": "Vitesse",
-      "endurance": "Endurance",
-      "alactic": "Anaérobie alactique",
-      "lactic": "Anaérobie lactique"
-    };
-    return themeMap[theme] || theme;
-  };
-
   if (isLoadingShared) {
     return (
       <div className="space-y-6">
@@ -119,6 +127,10 @@ const Home = () => {
       </div>
     );
   }
+
+  const handleWorkoutClick = (workoutId: string, programId: string) => {
+    navigate(`/athlete/programs/${programId}/workouts/${workoutId}`);
+  };
 
   return (
     <div className="space-y-6">
@@ -148,13 +160,53 @@ const Home = () => {
                       )}
                     </div>
                     {todayWorkout.description && (
-                      <p className="text-muted-foreground">{todayWorkout.description}</p>
+                      <p className="text-muted-foreground whitespace-pre-wrap">{todayWorkout.description}</p>
                     )}
-                    {todayWorkout.time && (
-                      <p className="text-sm text-muted-foreground">
-                        Heure : {todayWorkout.time}
-                      </p>
+                    <div className="space-y-2">
+                      {todayWorkout.intensity && (
+                        <p className="text-sm">
+                          <span className="font-medium">Intensité :</span>{" "}
+                          <span className="text-muted-foreground">{todayWorkout.intensity}</span>
+                        </p>
+                      )}
+                      {todayWorkout.recovery && (
+                        <p className="text-sm">
+                          <span className="font-medium">Récupération :</span>{" "}
+                          <span className="text-muted-foreground">{todayWorkout.recovery}</span>
+                        </p>
+                      )}
+                      {todayWorkout.duration && (
+                        <p className="text-sm">
+                          <span className="font-medium">Durée :</span>{" "}
+                          <span className="text-muted-foreground">{todayWorkout.duration}</span>
+                        </p>
+                      )}
+                      {todayWorkout.time && (
+                        <p className="text-sm">
+                          <span className="font-medium">Heure :</span>{" "}
+                          <span className="text-muted-foreground">{todayWorkout.time}</span>
+                        </p>
+                      )}
+                    </div>
+                    {todayWorkout.details && (
+                      <div>
+                        <h4 className="font-medium mb-2">Détails de la séance</h4>
+                        <div className="bg-muted rounded-lg p-4">
+                          <pre className="text-sm whitespace-pre-wrap">
+                            {typeof todayWorkout.details === 'string' 
+                              ? todayWorkout.details 
+                              : JSON.stringify(todayWorkout.details, null, 2)}
+                          </pre>
+                        </div>
+                      </div>
                     )}
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => handleWorkoutClick(todayWorkout.id, sharedPrograms.programs[0]?.id)}
+                    >
+                      Voir les détails
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
