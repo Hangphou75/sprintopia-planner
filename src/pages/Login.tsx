@@ -13,15 +13,21 @@ const Login = () => {
   console.log("Login page - Auth state:", { user, isAuthenticated });
 
   if (isAuthenticated && user) {
-    // Si nous avons une URL de redirection stockée, l'utiliser
-    const redirectTo = location.state?.from || (user.role === 'individual_athlete' 
+    // Si nous avons une URL de redirection stockée dans location.state, l'utiliser
+    if (location.state?.from) {
+      console.log("Redirecting to stored location:", location.state.from);
+      return <Navigate to={location.state.from} replace />;
+    }
+
+    // Sinon, rediriger vers la page par défaut selon le rôle
+    const defaultPath = user.role === 'individual_athlete' 
       ? '/individual-athlete/planning'
       : user.role === 'coach'
         ? '/coach'
-        : '/athlete');
+        : '/athlete';
         
-    console.log("Redirecting authenticated user to:", redirectTo);
-    return <Navigate to={redirectTo} replace />;
+    console.log("Redirecting to default path:", defaultPath);
+    return <Navigate to={defaultPath} replace />;
   }
 
   return (
