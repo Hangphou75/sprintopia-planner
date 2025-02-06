@@ -4,22 +4,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { SignUpForm } from "@/components/auth/SignUpForm";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 
 const Login = () => {
   const { user, isAuthenticated } = useAuth();
+  const location = useLocation();
 
   console.log("Login page - Auth state:", { user, isAuthenticated });
 
   if (isAuthenticated && user) {
-    const redirectPath = user.role === 'individual_athlete' 
+    // Si nous avons une URL de redirection stockée, l'utiliser
+    const redirectTo = location.state?.from || (user.role === 'individual_athlete' 
       ? '/individual-athlete/planning'
       : user.role === 'coach'
         ? '/coach'
-        : '/athlete';
+        : '/athlete');
         
-    console.log("Redirecting authenticated user to:", redirectPath);
-    return <Navigate to={redirectPath} replace />;
+    console.log("Redirecting authenticated user to:", redirectTo);
+    return <Navigate to={redirectTo} replace />;
   }
 
   return (
