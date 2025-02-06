@@ -76,7 +76,7 @@ const IndividualAthletePlanning = () => {
 
   const handleGenerateProgram = () => {
     console.log("Navigating to program generation...");
-    navigate("/individual-athlete/programs/generate");
+    navigate("/individual-athlete/programs/generate", { replace: true });
   };
 
   if (isLoading) {
@@ -132,4 +132,3 @@ const IndividualAthletePlanning = () => {
 };
 
 export default IndividualAthletePlanning;
-
