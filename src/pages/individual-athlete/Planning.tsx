@@ -1,10 +1,11 @@
+
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ProgramWorkoutCalendar } from "@/components/programs/ProgramWorkoutCalendar";
 import { Button } from "@/components/ui/button";
-import { Plus, Settings } from "lucide-react";
+import { Plus, Settings, Wand2 } from "lucide-react";
 
 const IndividualAthletePlanning = () => {
   const { user } = useAuth();
@@ -99,6 +100,22 @@ const IndividualAthletePlanning = () => {
             >
               <Settings className="h-4 w-4 mr-2" />
               Paramètres
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="md:hidden"
+              onClick={() => navigate("/individual-athlete/programs/generate")}
+            >
+              <Wand2 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              className="hidden md:inline-flex"
+              onClick={() => navigate("/individual-athlete/programs/generate")}
+            >
+              <Wand2 className="h-4 w-4 mr-2" />
+              Générer un programme
             </Button>
             <Button
               size="icon"
