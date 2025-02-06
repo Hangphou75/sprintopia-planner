@@ -1,29 +1,25 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { SignUpForm } from "@/components/auth/SignUpForm";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 
 const Login = () => {
   const { user, isAuthenticated } = useAuth();
-  const location = useLocation();
 
   console.log("Login page - Auth state:", { user, isAuthenticated });
 
   if (isAuthenticated && user) {
-    let basePath;
-    switch (user.role) {
-      case 'coach':
-        basePath = '/coach';
-        break;
-      case 'individual_athlete':
-        basePath = '/individual-athlete';
-        break;
-      default:
-        basePath = '/athlete';
-    }
-    return <Navigate to={basePath} replace />;
+    const redirectPath = user.role === 'individual_athlete' 
+      ? '/individual-athlete/planning'
+      : user.role === 'coach'
+        ? '/coach'
+        : '/athlete';
+        
+    console.log("Redirecting authenticated user to:", redirectPath);
+    return <Navigate to={redirectPath} replace />;
   }
 
   return (
