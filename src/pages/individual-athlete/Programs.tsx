@@ -1,10 +1,11 @@
+
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProgramCard } from "@/components/programs/ProgramCard";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const IndividualAthletePrograms = () => {
@@ -44,6 +45,10 @@ export const IndividualAthletePrograms = () => {
     navigate("/individual-athlete/programs/new");
   };
 
+  const handleGenerateProgram = () => {
+    navigate("/individual-athlete/programs/generate");
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto py-6 px-4">
@@ -58,10 +63,16 @@ export const IndividualAthletePrograms = () => {
     <div className="container mx-auto py-6 px-4 max-w-5xl">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Mes programmes</h1>
-        <Button onClick={handleCreateProgram}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nouveau programme
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleGenerateProgram}>
+            <Wand2 className="h-4 w-4 mr-2" />
+            Générer un programme
+          </Button>
+          <Button onClick={handleCreateProgram}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nouveau programme
+          </Button>
+        </div>
       </div>
 
       {programs && programs.length > 0 ? (
@@ -79,10 +90,16 @@ export const IndividualAthletePrograms = () => {
           <p className="text-muted-foreground mb-8">
             Vous n'avez pas encore créé de programme d'entraînement.
           </p>
-          <Button onClick={handleCreateProgram}>
-            <Plus className="h-4 w-4 mr-2" />
-            Créer mon premier programme
-          </Button>
+          <div className="flex justify-center gap-4">
+            <Button variant="outline" onClick={handleGenerateProgram}>
+              <Wand2 className="h-4 w-4 mr-2" />
+              Générer un programme
+            </Button>
+            <Button onClick={handleCreateProgram}>
+              <Plus className="h-4 w-4 mr-2" />
+              Créer mon premier programme
+            </Button>
+          </div>
         </div>
       )}
     </div>
