@@ -69,6 +69,16 @@ const IndividualAthletePlanning = () => {
     enabled: !!user?.id,
   });
 
+  const handleNewProgram = () => {
+    console.log("Navigating to new program form...");
+    navigate("/individual-athlete/programs/new");
+  };
+
+  const handleGenerateProgram = () => {
+    console.log("Navigating to program generation...");
+    navigate("/individual-athlete/programs/generate");
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto py-6 px-4">
@@ -88,14 +98,14 @@ const IndividualAthletePlanning = () => {
             <>
               <Button
                 variant="outline"
-                onClick={() => navigate("/individual-athlete/programs/generate")}
+                onClick={handleGenerateProgram}
                 className="flex items-center gap-2"
               >
                 <Wand2 className="h-4 w-4" />
                 <span className="hidden sm:inline">Générer un programme</span>
               </Button>
               <Button
-                onClick={() => navigate("/individual-athlete/programs/new")}
+                onClick={handleNewProgram}
                 className="flex items-center gap-2"
               >
                 <Plus className="h-4 w-4" />
@@ -122,3 +132,4 @@ const IndividualAthletePlanning = () => {
 };
 
 export default IndividualAthletePlanning;
+
