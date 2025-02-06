@@ -84,26 +84,6 @@ const IndividualAthletePlanning = () => {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Mon planning</h1>
         <div className="flex gap-2">
-          {sharedPrograms?.programs?.length > 0 && (
-            <>
-              <Button
-                variant="outline"
-                size="icon"
-                className="md:hidden"
-                onClick={() => navigate(`/individual-athlete/programs/${sharedPrograms.programs[0]?.id}/edit`)}
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                className="hidden md:inline-flex"
-                onClick={() => navigate(`/individual-athlete/programs/${sharedPrograms.programs[0]?.id}/edit`)}
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                Paramètres
-              </Button>
-            </>
-          )}
           <Button
             variant="outline"
             size="icon"
@@ -122,6 +102,22 @@ const IndividualAthletePlanning = () => {
           </Button>
           {sharedPrograms?.programs?.length > 0 && (
             <>
+              <Button
+                variant="outline"
+                size="icon"
+                className="md:hidden"
+                onClick={() => navigate(`/individual-athlete/programs/${sharedPrograms.programs[0]?.id}/edit`)}
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                className="hidden md:inline-flex"
+                onClick={() => navigate(`/individual-athlete/programs/${sharedPrograms.programs[0]?.id}/edit`)}
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Paramètres
+              </Button>
               <Button
                 size="icon"
                 className="md:hidden"
