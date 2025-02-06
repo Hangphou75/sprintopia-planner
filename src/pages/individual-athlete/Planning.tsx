@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ProgramWorkoutCalendar } from "@/components/programs/ProgramWorkoutCalendar";
 import { Button } from "@/components/ui/button";
-import { Plus, Settings, Wand2 } from "lucide-react";
+import { Plus, Wand2 } from "lucide-react";
 
 const IndividualAthletePlanning = () => {
   const { user } = useAuth();
@@ -84,21 +84,25 @@ const IndividualAthletePlanning = () => {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Mes programmes</h1>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            className="flex items-center gap-2"
-            onClick={() => navigate("/individual-athlete/programs/generate")}
-          >
-            <Wand2 className="h-4 w-4" />
-            <span className="hidden md:inline">Générer un programme</span>
-          </Button>
-          <Button
-            className="flex items-center gap-2"
-            onClick={() => navigate("/individual-athlete/programs/new")}
-          >
-            <Plus className="h-4 w-4" />
-            <span className="hidden md:inline">Nouveau programme</span>
-          </Button>
+          {user?.role === "individual_athlete" && (
+            <>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/individual-athlete/programs/generate")}
+                className="flex items-center gap-2"
+              >
+                <Wand2 className="h-4 w-4" />
+                <span className="hidden sm:inline">Générer un programme</span>
+              </Button>
+              <Button
+                onClick={() => navigate("/individual-athlete/programs/new")}
+                className="flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">Nouveau programme</span>
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
