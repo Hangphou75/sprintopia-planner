@@ -86,33 +86,18 @@ const IndividualAthletePlanning = () => {
         <div className="flex gap-2">
           <Button
             variant="outline"
-            className="hidden md:inline-flex"
-            onClick={() => navigate("/individual-athlete/programs/generate")}
-          >
-            <Wand2 className="h-4 w-4 mr-2" />
-            Générer un programme
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className="md:hidden"
+            className="flex items-center gap-2"
             onClick={() => navigate("/individual-athlete/programs/generate")}
           >
             <Wand2 className="h-4 w-4" />
+            <span className="hidden md:inline">Générer un programme</span>
           </Button>
           <Button
-            className="hidden md:inline-flex"
-            onClick={() => navigate("/individual-athlete/programs/new")}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Nouveau programme
-          </Button>
-          <Button
-            className="md:hidden"
-            size="icon"
+            className="flex items-center gap-2"
             onClick={() => navigate("/individual-athlete/programs/new")}
           >
             <Plus className="h-4 w-4" />
+            <span className="hidden md:inline">Nouveau programme</span>
           </Button>
         </div>
       </div>
