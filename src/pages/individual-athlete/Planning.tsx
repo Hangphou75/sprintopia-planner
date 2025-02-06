@@ -83,56 +83,62 @@ const IndividualAthletePlanning = () => {
     <div className="container mx-auto py-6 px-4 max-w-5xl h-[calc(100vh-4rem)] flex flex-col">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Mon planning</h1>
-        {sharedPrograms?.programs?.length > 0 && (
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              className="md:hidden"
-              onClick={() => navigate(`/individual-athlete/programs/${sharedPrograms.programs[0]?.id}/edit`)}
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              className="hidden md:inline-flex"
-              onClick={() => navigate(`/individual-athlete/programs/${sharedPrograms.programs[0]?.id}/edit`)}
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Paramètres
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="md:hidden"
-              onClick={() => navigate("/individual-athlete/programs/generate")}
-            >
-              <Wand2 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              className="hidden md:inline-flex"
-              onClick={() => navigate("/individual-athlete/programs/generate")}
-            >
-              <Wand2 className="h-4 w-4 mr-2" />
-              Générer un programme
-            </Button>
-            <Button
-              size="icon"
-              className="md:hidden"
-              onClick={() => navigate(`/individual-athlete/programs/${sharedPrograms.programs[0]?.id}/workouts/new`)}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-            <Button
-              className="hidden md:inline-flex"
-              onClick={() => navigate(`/individual-athlete/programs/${sharedPrograms.programs[0]?.id}/workouts/new`)}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Nouvelle séance
-            </Button>
-          </div>
-        )}
+        <div className="flex gap-2">
+          {sharedPrograms?.programs?.length > 0 && (
+            <>
+              <Button
+                variant="outline"
+                size="icon"
+                className="md:hidden"
+                onClick={() => navigate(`/individual-athlete/programs/${sharedPrograms.programs[0]?.id}/edit`)}
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                className="hidden md:inline-flex"
+                onClick={() => navigate(`/individual-athlete/programs/${sharedPrograms.programs[0]?.id}/edit`)}
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Paramètres
+              </Button>
+            </>
+          )}
+          <Button
+            variant="outline"
+            size="icon"
+            className="md:hidden"
+            onClick={() => navigate("/individual-athlete/programs/generate")}
+          >
+            <Wand2 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            className="hidden md:inline-flex"
+            onClick={() => navigate("/individual-athlete/programs/generate")}
+          >
+            <Wand2 className="h-4 w-4 mr-2" />
+            Générer un programme
+          </Button>
+          {sharedPrograms?.programs?.length > 0 && (
+            <>
+              <Button
+                size="icon"
+                className="md:hidden"
+                onClick={() => navigate(`/individual-athlete/programs/${sharedPrograms.programs[0]?.id}/workouts/new`)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+              <Button
+                className="hidden md:inline-flex"
+                onClick={() => navigate(`/individual-athlete/programs/${sharedPrograms.programs[0]?.id}/workouts/new`)}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Nouvelle séance
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       {sharedPrograms?.programs?.length > 0 ? (
