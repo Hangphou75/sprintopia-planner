@@ -212,6 +212,36 @@ export type Database = {
         }
         Relationships: []
       }
+      program_phase_descriptions: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          objectives: string[]
+          phase: Database["public"]["Enums"]["training_phase_description"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          objectives: string[]
+          phase: Database["public"]["Enums"]["training_phase_description"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          objectives?: string[]
+          phase?: Database["public"]["Enums"]["training_phase_description"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       programs: {
         Row: {
           created_at: string
@@ -438,6 +468,11 @@ export type Database = {
       competition_level: "local" | "regional" | "national" | "international"
       sprint_distance: "60" | "100" | "200" | "400"
       training_phase: "preparation" | "specific" | "competition"
+      training_phase_description:
+        | "preparation_generale"
+        | "preparation_specifique"
+        | "preparation_competition"
+        | "saison_championnats"
       workout_theme:
         | "aerobic"
         | "lactic"
