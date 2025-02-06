@@ -216,9 +216,11 @@ export type Database = {
         Row: {
           created_at: string
           duration: number
+          generated: boolean | null
           id: string
           name: string
           objectives: string | null
+          phase: string | null
           start_date: string
           updated_at: string
           user_id: string | null
@@ -226,9 +228,11 @@ export type Database = {
         Insert: {
           created_at?: string
           duration: number
+          generated?: boolean | null
           id?: string
           name: string
           objectives?: string | null
+          phase?: string | null
           start_date: string
           updated_at?: string
           user_id?: string | null
@@ -236,9 +240,11 @@ export type Database = {
         Update: {
           created_at?: string
           duration?: number
+          generated?: boolean | null
           id?: string
           name?: string
           objectives?: string | null
+          phase?: string | null
           start_date?: string
           updated_at?: string
           user_id?: string | null
