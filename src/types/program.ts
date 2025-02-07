@@ -12,6 +12,8 @@ export type Program = {
   phase_duration: number | null;
   main_distance: string | null;
   phase: string | null;
+  sessions_per_week: number | null;
+  training_days: string[] | null;
   main_competition: {
     name: string;
     date: string;
@@ -32,3 +34,4 @@ export type Program = {
     };
   }[];
 };
+
