@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Calendar } from "@/components/ui/calendar";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 type Competition = {
   name: string;
@@ -34,6 +35,7 @@ type FormValues = {
   startDate: Date;
   mainCompetition: Competition;
   intermediateCompetitions: Competition[];
+  trainingDays: string[];
 };
 
 const PHASE_OPTIONS = [
@@ -49,6 +51,16 @@ const DISTANCE_OPTIONS = [
   { value: "100", label: "100m" },
   { value: "200", label: "200m" },
   { value: "400", label: "400m" },
+];
+
+const DAYS_OF_WEEK = [
+  { value: "monday", label: "Lun" },
+  { value: "tuesday", label: "Mar" },
+  { value: "wednesday", label: "Mer" },
+  { value: "thursday", label: "Jeu" },
+  { value: "friday", label: "Ven" },
+  { value: "saturday", label: "Sam" },
+  { value: "sunday", label: "Dim" },
 ];
 
 const GenerateProgram = () => {
@@ -68,12 +80,15 @@ const GenerateProgram = () => {
         location: "",
       },
       intermediateCompetitions: [],
+      trainingDays: [],
     },
   });
 
   const selectedPhase = PHASE_OPTIONS.find(
     (phase) => phase.value === form.watch("trainingPhase")
   );
+
+  const selectedTrainingDays = form.watch("trainingDays");
 
   const onSubmit = async (data: FormValues) => {
     if (!user) return;
@@ -92,6 +107,8 @@ const GenerateProgram = () => {
           generated: true,
           start_date: data.startDate.toISOString(),
           duration: parseInt(data.phaseDuration) * 7, // Convertir les semaines en jours
+          training_days: data.trainingDays,
+          sessions_per_week: data.trainingDays.length,
         },
       ]);
 
@@ -217,30 +234,62 @@ const GenerateProgram = () => {
             />
 
             {selectedPhase && (
-              <FormField
-                control={form.control}
-                name="phaseDuration"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Durée de la phase</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <>
+                <FormField
+                  control={form.control}
+                  name="phaseDuration"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Durée de la phase</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionnez une durée" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {selectedPhase.durations.map((duration) => (
+                            <SelectItem key={duration} value={duration}>
+                              {duration} semaines
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="trainingDays"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Jours d'entraînement ({selectedTrainingDays.length} séances/semaine)</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionnez une durée" />
-                        </SelectTrigger>
+                        <ToggleGroup
+                          type="multiple"
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          className="flex flex-wrap gap-2"
+                        >
+                          {DAYS_OF_WEEK.map((day) => (
+                            <ToggleGroupItem
+                              key={day.value}
+                              value={day.value}
+                              aria-label={day.label}
+                              className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                            >
+                              {day.label}
+                            </ToggleGroupItem>
+                          ))}
+                        </ToggleGroup>
                       </FormControl>
-                      <SelectContent>
-                        {selectedPhase.durations.map((duration) => (
-                          <SelectItem key={duration} value={duration}>
-                            {duration} semaines
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
             )}
 
             <Separator className="my-6" />

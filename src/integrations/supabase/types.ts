@@ -255,7 +255,9 @@ export type Database = {
           objectives: string | null
           phase: string | null
           phase_duration: number | null
+          sessions_per_week: number | null
           start_date: string
+          training_days: string[] | null
           training_phase: string | null
           updated_at: string
           user_id: string | null
@@ -272,7 +274,9 @@ export type Database = {
           objectives?: string | null
           phase?: string | null
           phase_duration?: number | null
+          sessions_per_week?: number | null
           start_date: string
+          training_days?: string[] | null
           training_phase?: string | null
           updated_at?: string
           user_id?: string | null
@@ -289,7 +293,9 @@ export type Database = {
           objectives?: string | null
           phase?: string | null
           phase_duration?: number | null
+          sessions_per_week?: number | null
           start_date?: string
+          training_days?: string[] | null
           training_phase?: string | null
           updated_at?: string
           user_id?: string | null
