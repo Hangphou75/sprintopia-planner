@@ -81,6 +81,8 @@ export const useWorkoutActions = ({ programId, userRole, onSuccess }: UseWorkout
 
       console.log("Workout deleted successfully");
       await queryClient.invalidateQueries({ queryKey: ["workouts", programId] });
+      // Invalider également la requête des programmes pour mettre à jour la vue
+      await queryClient.invalidateQueries({ queryKey: ["shared-programs"] });
 
       toast({
         title: "Séance supprimée",
@@ -90,9 +92,6 @@ export const useWorkoutActions = ({ programId, userRole, onSuccess }: UseWorkout
       if (onSuccess) {
         onSuccess();
       }
-
-      // Redirection vers la page des programmes après la suppression
-      navigate("/individual-athlete/programs");
     } catch (error) {
       console.error("Error deleting workout:", error);
       toast({
