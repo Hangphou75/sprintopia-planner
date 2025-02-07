@@ -1,4 +1,3 @@
-
 import { Database } from "@/integrations/supabase/types";
 
 export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];
@@ -49,3 +48,6 @@ export type TrainingPhase = Enums<'training_phase'>;
 export type WorkoutTheme = Enums<'workout_theme'>;
 export type WorkoutType = Enums<'workout_type'>;
 export type TrainingPhaseDescription = Enums<'training_phase_description'>;
+
+export type WorkoutPhase = "preparation" | "specific" | "competition";
+export type WorkoutType = "resistance" | "speed" | "endurance" | "mobility" | "technical";
