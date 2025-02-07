@@ -15,6 +15,7 @@ export default function Programs() {
   const { user } = useAuth();
   const { data: programs, isLoading, refetch } = useAthletePrograms(user?.id);
   const [programToDelete, setProgramToDelete] = useState<string | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const handleCreateProgram = () => {
     navigate("/individual-athlete/programs/new");
@@ -129,11 +130,14 @@ export default function Programs() {
       if (programError) throw programError;
 
       toast.success("Programme supprimé avec succès");
+      setIsDeleteDialogOpen(false);
       setProgramToDelete(null);
-      refetch();
+      await refetch(); // Attendre que le refetch soit terminé
     } catch (error) {
       console.error("Erreur lors de la suppression du programme:", error);
       toast.error("Erreur lors de la suppression du programme");
+      setIsDeleteDialogOpen(false);
+      setProgramToDelete(null);
     }
   };
 
@@ -169,7 +173,10 @@ export default function Programs() {
             <ProgramCard
               key={program.id}
               program={program}
-              onDelete={(id) => setProgramToDelete(id)}
+              onDelete={(id) => {
+                setProgramToDelete(id);
+                setIsDeleteDialogOpen(true);
+              }}
               onEdit={handleEditProgram}
               onDuplicate={handleDuplicateProgram}
             />
@@ -195,7 +202,7 @@ export default function Programs() {
       )}
 
       <DeleteProgramDialog
-        isOpen={!!programToDelete}
+        isOpen={isDeleteDialogOpen}
         onOpenChange={(open) => !open && setProgramToDelete(null)}
         onConfirm={handleDeleteProgram}
       />
