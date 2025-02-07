@@ -23,9 +23,9 @@ export const useAthletePrograms = (userId: string | undefined) => {
       const transformedData = (data || []).map(program => ({
         ...program,
         main_competition: program.main_competition ? {
-          name: program.main_competition.name || '',
-          date: program.main_competition.date || '',
-          location: program.main_competition.location || '',
+          name: (program.main_competition as any).name || '',
+          date: (program.main_competition as any).date || '',
+          location: (program.main_competition as any).location || '',
         } : null,
         intermediate_competitions: program.intermediate_competitions ? 
           program.intermediate_competitions.map((comp: any) => ({

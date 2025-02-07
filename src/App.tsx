@@ -1,3 +1,4 @@
+
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "./components/ui/toaster";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
@@ -27,7 +28,7 @@ import IndividualAthleteProfile from "./pages/individual-athlete/Profile";
 import { IndividualCreateWorkout } from "./pages/individual-athlete/CreateWorkout";
 import { IndividualEditWorkout } from "./pages/individual-athlete/EditWorkout";
 import { IndividualProgramWorkouts } from "./pages/individual-athlete/ProgramWorkouts";
-import { IndividualAthletePrograms } from "./pages/individual-athlete/Programs";
+import Programs from "./pages/individual-athlete/Programs";
 import GenerateProgram from "./pages/individual-athlete/GenerateProgram";
 
 function App() {
@@ -65,7 +66,7 @@ function App() {
 
             <Route element={<RoleProtectedRoute allowedRoles={["individual_athlete"]} />}>
               <Route path="/individual-athlete" element={<IndividualAthleteHome />} />
-              <Route path="/individual-athlete/planning" element={<IndividualAthletePrograms />} />
+              <Route path="/individual-athlete/planning" element={<Programs />} />
               <Route path="/individual-athlete/planning/:programId" element={<IndividualAthletePlanning />} />
               <Route path="/individual-athlete/profile" element={<IndividualAthleteProfile />} />
               <Route path="/individual-athlete/programs/:programId/workouts" element={<IndividualProgramWorkouts />} />

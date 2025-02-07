@@ -1,5 +1,4 @@
 
-```typescript
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProgramCard } from "@/components/programs/ProgramCard";
@@ -7,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Wand2 } from "lucide-react";
 import { useAthletePrograms } from "@/hooks/useAthletePrograms";
 
-export const IndividualAthletePrograms = () => {
+export default function Programs() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: programs, isLoading } = useAthletePrograms(user?.id);
@@ -75,5 +74,4 @@ export const IndividualAthletePrograms = () => {
       )}
     </div>
   );
-};
-```
+}
