@@ -90,6 +90,9 @@ export const useWorkoutActions = ({ programId, userRole, onSuccess }: UseWorkout
       if (onSuccess) {
         onSuccess();
       }
+
+      // Redirection vers la page des programmes après la suppression
+      navigate("/individual-athlete/programs");
     } catch (error) {
       console.error("Error deleting workout:", error);
       toast({
