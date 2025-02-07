@@ -84,7 +84,8 @@ const GenerateProgram = () => {
     if (!user) return;
 
     try {
-      const { error } = await supabase.from("programs").insert([
+      // 1. Créer le programme
+      const { data: programData, error: programError } = await supabase.from("programs").insert([
         {
           user_id: user.id,
           name: `Programme ${data.mainDistance}m - ${selectedPhase?.label}`,
@@ -100,9 +101,51 @@ const GenerateProgram = () => {
           training_days: data.trainingDays,
           sessions_per_week: data.trainingDays.length,
         },
-      ]);
+      ]).select().single();
 
-      if (error) throw error;
+      if (programError) throw programError;
+
+      // 2. Récupérer les templates de séances correspondant au nombre de sessions par semaine
+      const { data: workoutTemplates, error: templatesError } = await supabase
+        .from("workouts")
+        .select("*")
+        .ilike('title', `%${data.trainingDays.length}/semaine%`);
+
+      if (templatesError) throw templatesError;
+
+      // 3. Créer les séances pour chaque semaine du programme
+      const workouts = [];
+      const programDuration = parseInt(data.phaseDuration) * 7; // durée en jours
+      const startDate = new Date(data.startDate);
+
+      for (let week = 0; week < parseInt(data.phaseDuration); week++) {
+        // Pour chaque template de séance
+        for (let i = 0; i < workoutTemplates.length; i++) {
+          const template = workoutTemplates[i];
+          const dayIndex = i % data.trainingDays.length;
+          const workoutDate = new Date(startDate);
+          workoutDate.setDate(startDate.getDate() + (week * 7) + dayIndex);
+
+          workouts.push({
+            program_id: programData.id,
+            title: template.title.replace(` (${data.trainingDays.length}/semaine)`, ''),
+            theme: template.theme,
+            description: template.description,
+            recovery: template.recovery,
+            phase: template.phase,
+            type: template.type,
+            date: workoutDate.toISOString(),
+            time: "09:00",
+          });
+        }
+      }
+
+      // 4. Insérer toutes les séances
+      const { error: workoutsError } = await supabase
+        .from("workouts")
+        .insert(workouts);
+
+      if (workoutsError) throw workoutsError;
 
       toast({
         title: "Programme créé avec succès",
