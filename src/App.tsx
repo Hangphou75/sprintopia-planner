@@ -12,7 +12,7 @@ import AthleteHome from "./pages/athlete/Home";
 import AthletePlanning from "./pages/athlete/Planning";
 import AthleteProfile from "./pages/athlete/Profile";
 import CoachHome from "./pages/coach/Home";
-import Programs from "./pages/coach/Programs";
+import CoachPrograms from "./pages/coach/Programs";
 import { ProgramWorkouts } from "./pages/coach/ProgramWorkouts";
 import CreateProgram from "./pages/coach/CreateProgram";
 import { EditProgram } from "./pages/coach/EditProgram";
@@ -52,7 +52,7 @@ function App() {
 
             <Route element={<RoleProtectedRoute allowedRoles={["coach"]} />}>
               <Route path="/coach" element={<CoachHome />} />
-              <Route path="/coach/programs" element={<Programs />} />
+              <Route path="/coach/programs" element={<CoachPrograms />} />
               <Route path="/coach/programs/new" element={<CreateProgram />} />
               <Route path="/coach/programs/:programId/edit" element={<EditProgram />} />
               <Route path="/coach/programs/:programId/workouts" element={<ProgramWorkouts />} />
