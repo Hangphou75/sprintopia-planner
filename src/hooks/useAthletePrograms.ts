@@ -1,5 +1,4 @@
 
-```typescript
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Program } from "@/types/program";
@@ -11,17 +10,7 @@ export const useAthletePrograms = (userId: string | undefined) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("programs")
-        .select(`
-          *,
-          shared_programs (
-            athlete:profiles!shared_programs_athlete_id_fkey (
-              id,
-              first_name,
-              last_name,
-              email
-            )
-          )
-        `)
+        .select("*, shared_programs(athlete:profiles!shared_programs_athlete_id_fkey(id, first_name, last_name, email))")
         .eq("user_id", userId);
 
       if (error) {
@@ -51,4 +40,3 @@ export const useAthletePrograms = (userId: string | undefined) => {
     enabled: !!userId,
   });
 };
-```
