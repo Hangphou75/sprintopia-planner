@@ -248,10 +248,15 @@ export type Database = {
           duration: number
           generated: boolean | null
           id: string
+          intermediate_competitions: Json[] | null
+          main_competition: Json | null
+          main_distance: string | null
           name: string
           objectives: string | null
           phase: string | null
+          phase_duration: number | null
           start_date: string
+          training_phase: string | null
           updated_at: string
           user_id: string | null
         }
@@ -260,10 +265,15 @@ export type Database = {
           duration: number
           generated?: boolean | null
           id?: string
+          intermediate_competitions?: Json[] | null
+          main_competition?: Json | null
+          main_distance?: string | null
           name: string
           objectives?: string | null
           phase?: string | null
+          phase_duration?: number | null
           start_date: string
+          training_phase?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -272,10 +282,15 @@ export type Database = {
           duration?: number
           generated?: boolean | null
           id?: string
+          intermediate_competitions?: Json[] | null
+          main_competition?: Json | null
+          main_distance?: string | null
           name?: string
           objectives?: string | null
           phase?: string | null
+          phase_duration?: number | null
           start_date?: string
+          training_phase?: string | null
           updated_at?: string
           user_id?: string | null
         }

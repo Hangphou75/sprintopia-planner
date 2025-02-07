@@ -1,3 +1,4 @@
+
 export type Program = {
   id: string;
   name: string;
@@ -7,6 +8,20 @@ export type Program = {
   created_at: string;
   updated_at: string;
   user_id: string | null;
+  training_phase: string | null;
+  phase_duration: number | null;
+  main_distance: string | null;
+  main_competition: {
+    name: string;
+    date: string;
+    location: string;
+  } | null;
+  intermediate_competitions: {
+    name: string;
+    date: string;
+    location: string;
+  }[] | null;
+  generated: boolean | null;
   shared_programs?: {
     athlete: {
       id: string;

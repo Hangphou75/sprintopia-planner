@@ -14,30 +14,100 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
+import { Separator } from "@/components/ui/separator";
+
+type Competition = {
+  name: string;
+  date: string;
+  location: string;
+};
 
 type FormValues = {
   objective: string;
-  competitionDistance: string;
-  level: string;
-  trainingDaysPerWeek: number;
-  duration: number;
+  mainDistance: string;
+  trainingPhase: string;
+  phaseDuration: string;
+  mainCompetition: Competition;
+  intermediateCompetitions: Competition[];
 };
+
+const PHASE_OPTIONS = [
+  { value: "preparation_generale", label: "Phase de préparation générale", durations: ["2", "3", "4"] },
+  { value: "preparation_specifique", label: "Phase de préparation spécifique", durations: ["2", "3", "4"] },
+  { value: "preparation_competition_mid", label: "Phase de préparation de compétition (mi-saison)", durations: ["2", "3"] },
+  { value: "preparation_competition_end", label: "Phase de préparation de compétition (fin de saison)", durations: ["2", "3"] },
+  { value: "championnat", label: "Phase de championnat", durations: ["4"] },
+];
+
+const DISTANCE_OPTIONS = [
+  { value: "60", label: "60m" },
+  { value: "100", label: "100m" },
+  { value: "200", label: "200m" },
+  { value: "400", label: "400m" },
+];
 
 const GenerateProgram = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const form = useForm<FormValues>({
     defaultValues: {
       objective: "",
-      competitionDistance: "100",
-      level: "intermediate",
-      trainingDaysPerWeek: 4,
-      duration: 12,
+      mainDistance: "",
+      trainingPhase: "",
+      phaseDuration: "",
+      mainCompetition: {
+        name: "",
+        date: "",
+        location: "",
+      },
+      intermediateCompetitions: [],
     },
   });
 
+  const selectedPhase = PHASE_OPTIONS.find(
+    (phase) => phase.value === form.watch("trainingPhase")
+  );
+
   const onSubmit = async (data: FormValues) => {
-    console.log("Form data:", data);
-    // La logique de génération sera implémentée plus tard
+    if (!user) return;
+
+    try {
+      const { error } = await supabase.from("programs").insert([
+        {
+          user_id: user.id,
+          name: `Programme ${data.mainDistance}m - ${selectedPhase?.label}`,
+          objectives: data.objective,
+          main_distance: data.mainDistance,
+          training_phase: data.trainingPhase,
+          phase_duration: parseInt(data.phaseDuration),
+          main_competition: data.mainCompetition,
+          intermediate_competitions: data.intermediateCompetitions,
+          generated: true,
+          start_date: new Date().toISOString(),
+          duration: parseInt(data.phaseDuration) * 7, // Convertir les semaines en jours
+        },
+      ]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Programme créé avec succès",
+        description: "Votre programme d'entraînement a été généré.",
+      });
+
+      navigate("/individual-athlete/planning");
+    } catch (error) {
+      console.error("Error creating program:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la création du programme.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -74,10 +144,10 @@ const GenerateProgram = () => {
 
             <FormField
               control={form.control}
-              name="competitionDistance"
+              name="mainDistance"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Distance de compétition</FormLabel>
+                  <FormLabel>Distance travaillée</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -85,10 +155,11 @@ const GenerateProgram = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="60">60m</SelectItem>
-                      <SelectItem value="100">100m</SelectItem>
-                      <SelectItem value="200">200m</SelectItem>
-                      <SelectItem value="400">400m</SelectItem>
+                      {DISTANCE_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -98,20 +169,22 @@ const GenerateProgram = () => {
 
             <FormField
               control={form.control}
-              name="level"
+              name="trainingPhase"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Niveau</FormLabel>
+                  <FormLabel>Phase à travailler</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Sélectionnez votre niveau" />
+                        <SelectValue placeholder="Sélectionnez une phase" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="beginner">Débutant</SelectItem>
-                      <SelectItem value="intermediate">Intermédiaire</SelectItem>
-                      <SelectItem value="advanced">Avancé</SelectItem>
+                      {PHASE_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -119,45 +192,79 @@ const GenerateProgram = () => {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="trainingDaysPerWeek"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Jours d'entraînement par semaine</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="number" 
-                      min={2} 
-                      max={6} 
-                      {...field}
-                      onChange={e => field.onChange(parseInt(e.target.value, 10))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {selectedPhase && (
+              <FormField
+                control={form.control}
+                name="phaseDuration"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Durée de la phase</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionnez une durée" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {selectedPhase.durations.map((duration) => (
+                          <SelectItem key={duration} value={duration}>
+                            {duration} semaines
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
-            <FormField
-              control={form.control}
-              name="duration"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Durée du programme (semaines)</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="number" 
-                      min={4} 
-                      max={24} 
-                      {...field}
-                      onChange={e => field.onChange(parseInt(e.target.value, 10))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <Separator className="my-6" />
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Compétition principale</h3>
+              <div className="grid grid-cols-1 gap-4">
+                <FormField
+                  control={form.control}
+                  name="mainCompetition.name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nom de la compétition</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="mainCompetition.date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="mainCompetition.location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Lieu</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
 
             <Button type="submit" className="w-full">
               Générer le programme
