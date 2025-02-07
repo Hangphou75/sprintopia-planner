@@ -19,8 +19,16 @@ export const useProgramGeneration = () => {
     try {
       console.log("Creating program with data:", data);
 
+      // Map training phase values
+      const trainingPhaseMap: { [key: string]: string } = {
+        'preparation_generale': 'preparation',
+        'preparation_specifique': 'specific',
+        'preparation_competition': 'competition'
+      };
+
       // Cast mainDistance to SprintDistance to ensure type safety
       const mainDistance = data.mainDistance as SprintDistance;
+      const mappedTrainingPhase = trainingPhaseMap[data.trainingPhase] || data.trainingPhase;
 
       // 1. Créer le programme
       const { data: programData, error: programError } = await supabase.from("programs").insert([
@@ -29,7 +37,7 @@ export const useProgramGeneration = () => {
           name: `Programme ${mainDistance}m - ${selectedPhaseLabel}`,
           objectives: data.objective,
           main_distance: mainDistance,
-          training_phase: data.trainingPhase,
+          training_phase: mappedTrainingPhase,
           phase_duration: parseInt(data.phaseDuration),
           main_competition: data.mainCompetition,
           intermediate_competitions: data.intermediateCompetitions,
@@ -49,16 +57,11 @@ export const useProgramGeneration = () => {
         .from("workout_templates")
         .select("*")
         .eq('sessions_per_week', data.trainingDays.length)
-        .eq('training_phase', data.trainingPhase)
+        .eq('training_phase', mappedTrainingPhase)
         .eq('distance', mainDistance);
 
       if (templatesError) throw templatesError;
       console.log("Workout templates found:", workoutTemplates);
-
-      // 3. Créer les séances pour chaque semaine du programme
-      const workouts = [];
-      const programDuration = parseInt(data.phaseDuration);
-      const startDate = new Date(data.startDate);
 
       // Helper function to get the next date for a specific day of the week
       const getNextDayDate = (date: Date, targetDay: string) => {
@@ -90,6 +93,11 @@ export const useProgramGeneration = () => {
       }, {} as { [key: string]: typeof workoutTemplates });
 
       console.log("Templates by week type:", templatesByWeekType);
+
+      // 3. Créer les séances pour chaque semaine du programme
+      const workouts = [];
+      const programDuration = parseInt(data.phaseDuration);
+      const startDate = new Date(data.startDate);
 
       // Pour chaque semaine du programme
       for (let week = 0; week < programDuration; week++) {
