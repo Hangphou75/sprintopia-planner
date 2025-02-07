@@ -5,11 +5,16 @@ import { ProgramCard } from "@/components/programs/ProgramCard";
 import { Button } from "@/components/ui/button";
 import { Plus, Wand2 } from "lucide-react";
 import { useAthletePrograms } from "@/hooks/useAthletePrograms";
+import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
+import { DeleteProgramDialog } from "./components/DeleteProgramDialog";
+import { toast } from "sonner";
 
 export default function Programs() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { data: programs, isLoading } = useAthletePrograms(user?.id);
+  const { data: programs, isLoading, refetch } = useAthletePrograms(user?.id);
+  const [programToDelete, setProgramToDelete] = useState<string | null>(null);
 
   const handleCreateProgram = () => {
     navigate("/individual-athlete/programs/new");
@@ -17,6 +22,119 @@ export default function Programs() {
 
   const handleGenerateProgram = () => {
     navigate("/individual-athlete/programs/generate");
+  };
+
+  const handleEditProgram = (programId: string) => {
+    navigate(`/individual-athlete/programs/${programId}/edit`);
+  };
+
+  const handleDuplicateProgram = async (programId: string) => {
+    try {
+      const programToDuplicate = programs?.find(p => p.id === programId);
+      if (!programToDuplicate) return;
+
+      // Dupliquer le programme
+      const { data: newProgram, error: programError } = await supabase
+        .from("programs")
+        .insert({
+          ...programToDuplicate,
+          id: undefined,
+          name: `${programToDuplicate.name} (copie)`,
+          user_id: user?.id,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (programError) throw programError;
+
+      // Dupliquer les compétitions associées
+      const { data: competitions } = await supabase
+        .from("competitions")
+        .select("*")
+        .eq("program_id", programId);
+
+      if (competitions && competitions.length > 0) {
+        const newCompetitions = competitions.map(comp => ({
+          ...comp,
+          id: undefined,
+          program_id: newProgram.id,
+          created_at: new Date().toISOString()
+        }));
+
+        const { error: competitionsError } = await supabase
+          .from("competitions")
+          .insert(newCompetitions);
+
+        if (competitionsError) throw competitionsError;
+      }
+
+      // Dupliquer les séances associées
+      const { data: workouts } = await supabase
+        .from("workouts")
+        .select("*")
+        .eq("program_id", programId);
+
+      if (workouts && workouts.length > 0) {
+        const newWorkouts = workouts.map(workout => ({
+          ...workout,
+          id: undefined,
+          program_id: newProgram.id,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }));
+
+        const { error: workoutsError } = await supabase
+          .from("workouts")
+          .insert(newWorkouts);
+
+        if (workoutsError) throw workoutsError;
+      }
+
+      toast.success("Programme dupliqué avec succès");
+      refetch();
+    } catch (error) {
+      console.error("Erreur lors de la duplication du programme:", error);
+      toast.error("Erreur lors de la duplication du programme");
+    }
+  };
+
+  const handleDeleteProgram = async () => {
+    if (!programToDelete) return;
+
+    try {
+      // Supprimer les séances associées
+      const { error: workoutsError } = await supabase
+        .from("workouts")
+        .delete()
+        .eq("program_id", programToDelete);
+
+      if (workoutsError) throw workoutsError;
+
+      // Supprimer les compétitions associées
+      const { error: competitionsError } = await supabase
+        .from("competitions")
+        .delete()
+        .eq("program_id", programToDelete);
+
+      if (competitionsError) throw competitionsError;
+
+      // Supprimer le programme
+      const { error: programError } = await supabase
+        .from("programs")
+        .delete()
+        .eq("id", programToDelete);
+
+      if (programError) throw programError;
+
+      toast.success("Programme supprimé avec succès");
+      setProgramToDelete(null);
+      refetch();
+    } catch (error) {
+      console.error("Erreur lors de la suppression du programme:", error);
+      toast.error("Erreur lors de la suppression du programme");
+    }
   };
 
   if (isLoading) {
@@ -51,6 +169,9 @@ export default function Programs() {
             <ProgramCard
               key={program.id}
               program={program}
+              onDelete={(id) => setProgramToDelete(id)}
+              onEdit={handleEditProgram}
+              onDuplicate={handleDuplicateProgram}
             />
           ))}
         </div>
@@ -72,6 +193,12 @@ export default function Programs() {
           </div>
         </div>
       )}
+
+      <DeleteProgramDialog
+        isOpen={!!programToDelete}
+        onOpenChange={(open) => !open && setProgramToDelete(null)}
+        onConfirm={handleDeleteProgram}
+      />
     </div>
   );
 }
