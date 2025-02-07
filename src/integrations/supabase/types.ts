@@ -494,6 +494,7 @@ export type Database = {
         | "preparation_specifique"
         | "preparation_competition"
         | "saison_championnats"
+      workout_phase: "preparation" | "specific" | "competition"
       workout_theme:
         | "aerobic"
         | "lactic"
