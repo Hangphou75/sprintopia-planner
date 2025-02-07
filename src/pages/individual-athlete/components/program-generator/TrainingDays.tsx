@@ -1,8 +1,7 @@
-
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { UseFormReturn } from "react-hook-form";
-import { FormValues } from "../../GenerateProgram";
+import { FormValues } from "../../types/programTypes";
 
 interface TrainingDaysProps {
   form: UseFormReturn<FormValues>;

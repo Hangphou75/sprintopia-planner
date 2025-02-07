@@ -1,10 +1,9 @@
-
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { UseFormReturn } from "react-hook-form";
-import { FormValues } from "../../GenerateProgram";
+import { FormValues } from "../../types/programTypes";
 
 interface BasicProgramInfoProps {
   form: UseFormReturn<FormValues>;

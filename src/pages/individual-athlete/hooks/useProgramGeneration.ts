@@ -4,6 +4,9 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { FormValues } from "../types/programTypes";
+import { Database } from "@/integrations/supabase/types";
+
+type SprintDistance = Database['public']['Enums']['sprint_distance'];
 
 export const useProgramGeneration = () => {
   const { user } = useAuth();
@@ -16,13 +19,16 @@ export const useProgramGeneration = () => {
     try {
       console.log("Creating program with data:", data);
 
+      // Cast mainDistance to SprintDistance to ensure type safety
+      const mainDistance = data.mainDistance as SprintDistance;
+
       // 1. Créer le programme
       const { data: programData, error: programError } = await supabase.from("programs").insert([
         {
           user_id: user.id,
-          name: `Programme ${data.mainDistance}m - ${selectedPhaseLabel}`,
+          name: `Programme ${mainDistance}m - ${selectedPhaseLabel}`,
           objectives: data.objective,
-          main_distance: data.mainDistance,
+          main_distance: mainDistance,
           training_phase: data.trainingPhase,
           phase_duration: parseInt(data.phaseDuration),
           main_competition: data.mainCompetition,
@@ -44,7 +50,7 @@ export const useProgramGeneration = () => {
         .select("*")
         .eq('sessions_per_week', data.trainingDays.length)
         .eq('training_phase', data.trainingPhase)
-        .eq('distance', data.mainDistance);
+        .eq('distance', mainDistance);
 
       if (templatesError) throw templatesError;
       console.log("Workout templates found:", workoutTemplates);
