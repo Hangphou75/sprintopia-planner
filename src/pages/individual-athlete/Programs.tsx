@@ -36,7 +36,23 @@ export const IndividualAthletePrograms = () => {
         throw error;
       }
 
-      return data || [];
+      // Transform the data to match the Program type
+      const transformedData = (data || []).map(program => ({
+        ...program,
+        main_competition: program.main_competition ? {
+          name: program.main_competition.name || '',
+          date: program.main_competition.date || '',
+          location: program.main_competition.location || '',
+        } : null,
+        intermediate_competitions: program.intermediate_competitions ? 
+          program.intermediate_competitions.map((comp: any) => ({
+            name: comp.name || '',
+            date: comp.date || '',
+            location: comp.location || '',
+          })) : null
+      }));
+
+      return transformedData;
     },
     enabled: !!user?.id,
   });

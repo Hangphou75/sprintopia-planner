@@ -24,6 +24,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
+import { Program } from "@/types/program";
 
 const Programs = () => {
   const { user } = useAuth();
@@ -59,8 +60,38 @@ const Programs = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      console.log("Programs fetched:", data);
-      return data;
+
+      // Transform the data to match the Program type
+      const transformedData: Program[] = (data || []).map((program: any) => ({
+        ...program,
+        main_competition: program.main_competition ? {
+          name: program.main_competition.name || '',
+          date: program.main_competition.date || '',
+          location: program.main_competition.location || '',
+        } : null,
+        intermediate_competitions: program.intermediate_competitions ? 
+          program.intermediate_competitions.map((comp: any) => ({
+            name: comp.name || '',
+            date: comp.date || '',
+            location: comp.location || '',
+          })) : null,
+        shared_programs: program.shared_programs,
+        id: program.id,
+        name: program.name,
+        duration: program.duration,
+        objectives: program.objectives,
+        start_date: program.start_date,
+        created_at: program.created_at,
+        updated_at: program.updated_at,
+        user_id: program.user_id,
+        training_phase: program.training_phase,
+        phase_duration: program.phase_duration,
+        main_distance: program.main_distance,
+        generated: program.generated,
+      }));
+
+      console.log("Programs fetched:", transformedData);
+      return transformedData;
     },
     enabled: !!user?.id,
   });
@@ -96,7 +127,7 @@ const Programs = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["programs"] });
+      queryClient.invalidateQueries({ queryKey: ["programs", user?.id] });
       toast.success("Programme supprimé avec succès");
       setIsDeleteDialogOpen(false);
     },
