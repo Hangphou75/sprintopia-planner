@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Timer, Trophy, Dumbbell, Activity, Zap, Flame, Settings, Plus } from "lucide-react";
 import { CalendarView } from "./calendar/CalendarView";
@@ -16,6 +17,7 @@ type ProgramWorkoutCalendarProps = {
   workouts: any[];
   competitions: any[];
   programId: string;
+  onRefresh?: () => void;
 };
 
 const themeOptions: ThemeOption[] = [
@@ -42,6 +44,7 @@ export const ProgramWorkoutCalendar = ({
   workouts,
   competitions,
   programId,
+  onRefresh,
 }: ProgramWorkoutCalendarProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -52,6 +55,7 @@ export const ProgramWorkoutCalendar = ({
   const { handleDuplicateWorkout, handleDeleteWorkout } = useWorkoutActions({
     programId,
     userRole: user?.role,
+    onSuccess: onRefresh,
   });
 
   const {
