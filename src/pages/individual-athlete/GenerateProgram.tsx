@@ -118,10 +118,10 @@ const GenerateProgram = () => {
 
       // 3. Créer les séances pour chaque semaine du programme
       const workouts = [];
-      const programDuration = parseInt(data.phaseDuration) * 7; // durée en jours
+      const programDuration = parseInt(data.phaseDuration);
       const startDate = new Date(data.startDate);
 
-      for (let week = 0; week < parseInt(data.phaseDuration); week++) {
+      for (let week = 0; week < programDuration; week++) {
         // Pour chaque template de séance
         for (let i = 0; i < workoutTemplates.length; i++) {
           const template = workoutTemplates[i];
