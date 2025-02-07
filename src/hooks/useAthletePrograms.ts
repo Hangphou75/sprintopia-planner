@@ -1,37 +1,54 @@
+
+```typescript
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Program } from "@/types/database";
+import { Program } from "@/types/program";
+import { toast } from "sonner";
 
-export const useAthletePrograms = (athleteId: string | undefined) => {
+export const useAthletePrograms = (userId: string | undefined) => {
   return useQuery({
-    queryKey: ["athlete-programs", athleteId],
+    queryKey: ["programs", userId],
     queryFn: async () => {
-      if (!athleteId) return [];
-      
-      const { data: sharedPrograms, error: sharedError } = await supabase
-        .from("shared_programs")
+      const { data, error } = await supabase
+        .from("programs")
         .select(`
-          program:programs (
-            id,
-            name,
-            duration,
-            objectives,
-            start_date,
-            created_at,
-            updated_at,
-            user_id
+          *,
+          shared_programs (
+            athlete:profiles!shared_programs_athlete_id_fkey (
+              id,
+              first_name,
+              last_name,
+              email
+            )
           )
         `)
-        .eq("athlete_id", athleteId);
+        .eq("user_id", userId);
 
-      if (sharedError) throw sharedError;
+      if (error) {
+        console.error("Error fetching programs:", error);
+        toast.error("Erreur lors du chargement des programmes");
+        throw error;
+      }
 
-      const programs = sharedPrograms
-        .map(sp => sp.program)
-        .filter((program): program is Program => program !== null);
+      // Transform the data to match the Program type
+      const transformedData = (data || []).map(program => ({
+        ...program,
+        main_competition: program.main_competition ? {
+          name: program.main_competition.name || '',
+          date: program.main_competition.date || '',
+          location: program.main_competition.location || '',
+        } : null,
+        intermediate_competitions: program.intermediate_competitions ? 
+          program.intermediate_competitions.map((comp: any) => ({
+            name: comp.name || '',
+            date: comp.date || '',
+            location: comp.location || '',
+          })) : null
+      }));
 
-      return programs;
+      return transformedData as Program[];
     },
-    enabled: !!athleteId,
+    enabled: !!userId,
   });
 };
+```
