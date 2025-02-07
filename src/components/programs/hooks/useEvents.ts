@@ -1,3 +1,4 @@
+
 import { Event } from "../types";
 
 type UseEventsProps = {
@@ -6,11 +7,11 @@ type UseEventsProps = {
 };
 
 export const useEvents = ({ workouts, competitions }: UseEventsProps): Event[] => {
-  console.log("Raw workouts:", workouts);
-  console.log("Raw competitions:", competitions);
+  console.log("Raw workouts in useEvents:", workouts);
+  console.log("Raw competitions in useEvents:", competitions);
 
   const events = [
-    ...workouts.map((workout) => ({
+    ...(workouts?.map((workout) => ({
       id: workout.id,
       title: workout.title,
       date: new Date(workout.date),
@@ -19,8 +20,11 @@ export const useEvents = ({ workouts, competitions }: UseEventsProps): Event[] =
       description: workout.description,
       time: workout.time,
       details: workout.details,
-    })),
-    ...competitions.map((competition) => ({
+      phase: workout.phase,
+      intensity: workout.intensity,
+      recovery: workout.recovery,
+    })) || []),
+    ...(competitions?.map((competition) => ({
       id: competition.id,
       title: competition.name,
       date: new Date(competition.date),
@@ -29,7 +33,7 @@ export const useEvents = ({ workouts, competitions }: UseEventsProps): Event[] =
       location: competition.location,
       distance: competition.distance,
       level: competition.level,
-    })),
+    })) || []),
   ];
 
   console.log("Processed events:", events);

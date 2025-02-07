@@ -11,8 +11,8 @@ const IndividualAthletePlanning = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const { data: sharedPrograms, isLoading } = useQuery({
-    queryKey: ["shared-programs", user?.id],
+  const { data: programs, isLoading } = useQuery({
+    queryKey: ["programs", user?.id],
     queryFn: async () => {
       console.log("Fetching programs for user:", user?.id);
       
@@ -28,7 +28,10 @@ const IndividualAthletePlanning = () => {
             date,
             time,
             theme,
-            details
+            details,
+            phase,
+            intensity,
+            recovery
           ),
           competitions (
             id,
@@ -41,7 +44,8 @@ const IndividualAthletePlanning = () => {
             time
           )
         `)
-        .eq("user_id", user?.id);
+        .eq("user_id", user?.id)
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error("Error fetching programs:", error);
@@ -116,11 +120,11 @@ const IndividualAthletePlanning = () => {
         </div>
       </div>
 
-      {sharedPrograms?.programs?.length > 0 ? (
+      {programs?.programs?.length > 0 ? (
         <ProgramWorkoutCalendar
-          workouts={sharedPrograms.workouts}
-          competitions={sharedPrograms.competitions}
-          programId={sharedPrograms.programs[0]?.id}
+          workouts={programs.workouts}
+          competitions={programs.competitions}
+          programId={programs.programs[0]?.id}
         />
       ) : (
         <div className="text-center">
