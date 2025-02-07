@@ -3,31 +3,23 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form } from "@/components/ui/form";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Separator } from "@/components/ui/separator";
-import { Calendar } from "@/components/ui/calendar";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { BasicProgramInfo } from "./components/program-generator/BasicProgramInfo";
+import { TrainingDays } from "./components/program-generator/TrainingDays";
+import { CompetitionInfo } from "./components/program-generator/CompetitionInfo";
 
-type Competition = {
+export type Competition = {
   name: string;
   date: string;
   location: string;
 };
 
-type FormValues = {
+export type FormValues = {
   objective: string;
   mainDistance: string;
   trainingPhase: string;
@@ -88,8 +80,6 @@ const GenerateProgram = () => {
     (phase) => phase.value === form.watch("trainingPhase")
   );
 
-  const selectedTrainingDays = form.watch("trainingDays");
-
   const onSubmit = async (data: FormValues) => {
     if (!user) return;
 
@@ -148,196 +138,22 @@ const GenerateProgram = () => {
       <Card className="p-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="startDate"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Date de début</FormLabel>
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    disabled={(date) =>
-                      date < new Date() || date < new Date("1900-01-01")
-                    }
-                    initialFocus
-                    className="rounded-md border"
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="objective"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Objectif principal</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: Améliorer mon temps sur 100m" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="mainDistance"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Distance travaillée</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionnez une distance" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {DISTANCE_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="trainingPhase"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phase à travailler</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionnez une phase" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {PHASE_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <BasicProgramInfo 
+              form={form} 
+              DISTANCE_OPTIONS={DISTANCE_OPTIONS} 
+              PHASE_OPTIONS={PHASE_OPTIONS} 
             />
 
             {selectedPhase && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="phaseDuration"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Durée de la phase</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Sélectionnez une durée" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {selectedPhase.durations.map((duration) => (
-                            <SelectItem key={duration} value={duration}>
-                              {duration} semaines
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="trainingDays"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Jours d'entraînement ({selectedTrainingDays.length} séances/semaine)</FormLabel>
-                      <FormControl>
-                        <ToggleGroup
-                          type="multiple"
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          className="flex flex-wrap gap-2"
-                        >
-                          {DAYS_OF_WEEK.map((day) => (
-                            <ToggleGroupItem
-                              key={day.value}
-                              value={day.value}
-                              aria-label={day.label}
-                              className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-                            >
-                              {day.label}
-                            </ToggleGroupItem>
-                          ))}
-                        </ToggleGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
+              <TrainingDays 
+                form={form} 
+                DAYS_OF_WEEK={DAYS_OF_WEEK} 
+              />
             )}
 
             <Separator className="my-6" />
 
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Compétition principale</h3>
-              <div className="grid grid-cols-1 gap-4">
-                <FormField
-                  control={form.control}
-                  name="mainCompetition.name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nom de la compétition</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="mainCompetition.date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Date</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="mainCompetition.location"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Lieu</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
+            <CompetitionInfo form={form} />
 
             <Button type="submit" className="w-full">
               Générer le programme
