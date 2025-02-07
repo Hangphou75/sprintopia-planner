@@ -1,5 +1,4 @@
 
-```typescript
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,4 +43,3 @@ export const DeleteProgramDialog = ({
     </AlertDialog>
   );
 };
-```

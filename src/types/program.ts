@@ -11,6 +11,7 @@ export type Program = {
   training_phase: string | null;
   phase_duration: number | null;
   main_distance: string | null;
+  phase: string | null;
   main_competition: {
     name: string;
     date: string;
