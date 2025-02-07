@@ -1,3 +1,4 @@
+
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Event } from "../types";
@@ -8,9 +9,10 @@ import { useQueryClient } from "@tanstack/react-query";
 type UseWorkoutActionsProps = {
   programId: string;
   userRole?: string;
+  onSuccess?: () => void;
 };
 
-export const useWorkoutActions = ({ programId, userRole }: UseWorkoutActionsProps) => {
+export const useWorkoutActions = ({ programId, userRole, onSuccess }: UseWorkoutActionsProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -47,6 +49,10 @@ export const useWorkoutActions = ({ programId, userRole }: UseWorkoutActionsProp
         title: "Séance dupliquée",
         description: "La séance a été dupliquée avec succès.",
       });
+
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
       console.error("Error duplicating workout:", error);
       toast({
@@ -80,6 +86,10 @@ export const useWorkoutActions = ({ programId, userRole }: UseWorkoutActionsProp
         title: "Séance supprimée",
         description: "La séance a été supprimée avec succès.",
       });
+
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
       console.error("Error deleting workout:", error);
       toast({
