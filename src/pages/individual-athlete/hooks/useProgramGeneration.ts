@@ -60,6 +60,26 @@ export const useProgramGeneration = () => {
       const programDuration = parseInt(data.phaseDuration);
       const startDate = new Date(data.startDate);
 
+      // Helper function to get the next date for a specific day of the week
+      const getNextDayDate = (date: Date, targetDay: string) => {
+        const daysMap: { [key: string]: number } = {
+          'monday': 1, 'tuesday': 2, 'wednesday': 3, 'thursday': 4,
+          'friday': 5, 'saturday': 6, 'sunday': 0
+        };
+        
+        const targetDayNum = daysMap[targetDay.toLowerCase()];
+        const currentDay = date.getDay();
+        let daysToAdd = targetDayNum - currentDay;
+        
+        if (daysToAdd <= 0) {
+          daysToAdd += 7;
+        }
+        
+        const nextDate = new Date(date);
+        nextDate.setDate(date.getDate() + daysToAdd);
+        return nextDate;
+      };
+
       // Grouper les templates par type de semaine
       const templatesByWeekType = workoutTemplates.reduce((acc, template) => {
         if (!acc[template.week_type]) {
@@ -82,13 +102,17 @@ export const useProgramGeneration = () => {
         // Trier les templates par ordre de séquence
         weekTemplates.sort((a, b) => a.sequence_order - b.sequence_order);
 
-        // Pour chaque jour d'entraînement de la semaine
-        for (let dayIndex = 0; dayIndex < data.trainingDays.length; dayIndex++) {
-          const template = weekTemplates[dayIndex];
-          if (!template) continue;
+        // Calculer la date de début de la semaine
+        const weekStartDate = new Date(startDate);
+        weekStartDate.setDate(startDate.getDate() + (week * 7));
 
-          const workoutDate = new Date(startDate);
-          workoutDate.setDate(startDate.getDate() + (week * 7) + dayIndex);
+        // Pour chaque jour d'entraînement de la semaine
+        data.trainingDays.forEach((trainingDay, index) => {
+          const template = weekTemplates[index];
+          if (!template) return;
+
+          // Calculer la date du prochain jour d'entraînement
+          const workoutDate = getNextDayDate(weekStartDate, trainingDay);
 
           workouts.push({
             program_id: programData.id,
@@ -103,7 +127,7 @@ export const useProgramGeneration = () => {
             date: workoutDate.toISOString(),
             time: "09:00",
           });
-        }
+        });
       }
 
       console.log("Workouts to create:", workouts);
@@ -122,7 +146,7 @@ export const useProgramGeneration = () => {
         description: "Votre programme d'entraînement a été généré.",
       });
 
-      navigate("/individual-athlete/planning");
+      navigate(`/individual-athlete/programs/${programData.id}/workouts`);
     } catch (error) {
       console.error("Error creating program:", error);
       toast({
