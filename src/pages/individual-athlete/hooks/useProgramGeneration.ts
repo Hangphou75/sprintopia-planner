@@ -21,9 +21,9 @@ export const useProgramGeneration = () => {
 
       // Map training phase values
       const trainingPhaseMap: { [key: string]: string } = {
-        'preparation_generale': 'preparation',
+        'preparation_generale': 'general',
         'preparation_specifique': 'specific',
-        'preparation_competition': 'competition'
+        'preparation_competition': 'championship'
       };
 
       // Cast mainDistance to SprintDistance to ensure type safety
