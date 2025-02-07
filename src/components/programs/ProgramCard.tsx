@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Program } from "@/types/program";
@@ -65,15 +66,15 @@ export const ProgramCard = ({
 
   const showActions = !readOnly && (onDelete || onDuplicate || onShare || onEdit);
 
+  const handleDropdownAction = (e: React.MouseEvent, action: () => void) => {
+    e.stopPropagation();
+    action();
+  };
+
   return (
     <Card 
       className="h-full hover:shadow-md transition-shadow duration-200 cursor-pointer"
-      onClick={(e) => {
-        // Only handle click if it's not on a button or dropdown
-        if (!(e.target as HTMLElement).closest('button')) {
-          handleClick();
-        }
-      }}
+      onClick={handleClick}
     >
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between text-xl">
@@ -90,33 +91,33 @@ export const ProgramCard = ({
             )}
             {showActions && (
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                   <Button variant="ghost" size="icon">
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                   {onEdit && (
-                    <DropdownMenuItem onClick={() => onEdit(program.id)}>
+                    <DropdownMenuItem onClick={(e) => handleDropdownAction(e, () => onEdit(program.id))}>
                       <Pencil className="h-4 w-4 mr-2" />
                       Modifier
                     </DropdownMenuItem>
                   )}
                   {onDuplicate && (
-                    <DropdownMenuItem onClick={() => onDuplicate(program.id)}>
+                    <DropdownMenuItem onClick={(e) => handleDropdownAction(e, () => onDuplicate(program.id))}>
                       <Copy className="h-4 w-4 mr-2" />
                       Dupliquer
                     </DropdownMenuItem>
                   )}
                   {onShare && (
-                    <DropdownMenuItem onClick={() => onShare(program.id)}>
+                    <DropdownMenuItem onClick={(e) => handleDropdownAction(e, () => onShare(program.id))}>
                       <Users className="h-4 w-4 mr-2" />
                       Partager
                     </DropdownMenuItem>
                   )}
                   {onDelete && (
                     <DropdownMenuItem 
-                      onClick={() => onDelete(program.id)}
+                      onClick={(e) => handleDropdownAction(e, () => onDelete(program.id))}
                       className="text-destructive"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
