@@ -1,3 +1,4 @@
+
 import { Event, ThemeOption } from "../types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -18,6 +19,10 @@ export const WorkoutEventCard = ({
   readOnly = false,
   themeOptions = [],
 }: WorkoutEventCardProps) => {
+  const formatDescription = (description: string) => {
+    return description.split(',').map(item => item.trim()).join('\n- ');
+  };
+
   return (
     <Card
       className={cn(
@@ -53,7 +58,9 @@ export const WorkoutEventCard = ({
       </CardHeader>
       <CardContent>
         {event.description && (
-          <p className="text-sm text-muted-foreground">{event.description}</p>
+          <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+            - {formatDescription(event.description)}
+          </p>
         )}
       </CardContent>
     </Card>

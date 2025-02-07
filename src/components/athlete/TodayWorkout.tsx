@@ -31,6 +31,10 @@ export const TodayWorkout = ({ workout, programId }: WorkoutProps) => {
     navigate(`/athlete/programs/${programId}/workouts/${workout.id}`);
   };
 
+  const formatDescription = (description: string) => {
+    return description.split(',').map(item => item.trim()).join('\n- ');
+  };
+
   return (
     <Card className={cn(
       "h-full border-2",
@@ -99,7 +103,7 @@ export const TodayWorkout = ({ workout, programId }: WorkoutProps) => {
           <div>
             <h3 className="font-semibold mb-2">Description</h3>
             <p className="text-muted-foreground whitespace-pre-wrap">
-              {workout.description}
+              - {formatDescription(workout.description)}
             </p>
           </div>
         )}
