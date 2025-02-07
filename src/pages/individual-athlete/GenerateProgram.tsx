@@ -109,9 +109,12 @@ const GenerateProgram = () => {
       const { data: workoutTemplates, error: templatesError } = await supabase
         .from("workouts")
         .select("*")
-        .ilike('title', `%${data.trainingDays.length}/semaine%`);
+        .ilike('title', `%(${data.trainingDays.length}/semaine)%`)
+        .is('program_id', null); // S'assurer que nous ne récupérons que les templates
 
       if (templatesError) throw templatesError;
+
+      console.log("Templates de séances trouvés:", workoutTemplates);
 
       // 3. Créer les séances pour chaque semaine du programme
       const workouts = [];
@@ -139,6 +142,8 @@ const GenerateProgram = () => {
           });
         }
       }
+
+      console.log("Séances à créer:", workouts);
 
       // 4. Insérer toutes les séances
       const { error: workoutsError } = await supabase
