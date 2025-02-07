@@ -23,12 +23,16 @@ export const useProgramGeneration = () => {
       const trainingPhaseMap: { [key: string]: string } = {
         'preparation_generale': 'general',
         'preparation_specifique': 'specific',
-        'preparation_competition': 'championship'
+        'preparation_competition_mid': 'competition',
+        'preparation_competition_end': 'competition',
+        'championnat': 'championship'
       };
 
       // Cast mainDistance to SprintDistance to ensure type safety
       const mainDistance = data.mainDistance as SprintDistance;
       const mappedTrainingPhase = trainingPhaseMap[data.trainingPhase] || data.trainingPhase;
+
+      console.log("Mapped training phase:", mappedTrainingPhase);
 
       // 1. Créer le programme
       const { data: programData, error: programError } = await supabase.from("programs").insert([
