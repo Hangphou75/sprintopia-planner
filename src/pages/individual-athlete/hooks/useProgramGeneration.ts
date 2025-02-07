@@ -14,6 +14,8 @@ export const useProgramGeneration = () => {
     if (!user) return;
 
     try {
+      console.log("Creating program with data:", data);
+
       // 1. Créer le programme
       const { data: programData, error: programError } = await supabase.from("programs").insert([
         {
@@ -34,53 +36,80 @@ export const useProgramGeneration = () => {
       ]).select().single();
 
       if (programError) throw programError;
+      console.log("Program created:", programData);
 
       // 2. Récupérer les templates de séances correspondant au nombre de sessions par semaine
       const { data: workoutTemplates, error: templatesError } = await supabase
-        .from("workouts")
+        .from("workout_templates")
         .select("*")
-        .ilike('title', `%(${data.trainingDays.length}/semaine)%`)
-        .is('program_id', null);
+        .eq('sessions_per_week', data.trainingDays.length)
+        .eq('training_phase', data.trainingPhase)
+        .eq('distance', data.mainDistance);
 
       if (templatesError) throw templatesError;
-
-      console.log("Templates de séances trouvés:", workoutTemplates);
+      console.log("Workout templates found:", workoutTemplates);
 
       // 3. Créer les séances pour chaque semaine du programme
       const workouts = [];
       const programDuration = parseInt(data.phaseDuration);
       const startDate = new Date(data.startDate);
 
+      // Grouper les templates par type de semaine
+      const templatesByWeekType = workoutTemplates.reduce((acc, template) => {
+        if (!acc[template.week_type]) {
+          acc[template.week_type] = [];
+        }
+        acc[template.week_type].push(template);
+        return acc;
+      }, {} as { [key: string]: typeof workoutTemplates });
+
+      console.log("Templates by week type:", templatesByWeekType);
+
+      // Pour chaque semaine du programme
       for (let week = 0; week < programDuration; week++) {
-        // Pour chaque template de séance
-        for (let i = 0; i < workoutTemplates.length; i++) {
-          const template = workoutTemplates[i];
-          const dayIndex = i % data.trainingDays.length;
+        // Alterner entre les types de semaine A et B
+        const weekType = week % 2 === 0 ? 'A' : 'B';
+        const weekTemplates = templatesByWeekType[weekType] || [];
+        
+        console.log(`Creating workouts for week ${week + 1}, type ${weekType}`);
+
+        // Trier les templates par ordre de séquence
+        weekTemplates.sort((a, b) => a.sequence_order - b.sequence_order);
+
+        // Pour chaque jour d'entraînement de la semaine
+        for (let dayIndex = 0; dayIndex < data.trainingDays.length; dayIndex++) {
+          const template = weekTemplates[dayIndex];
+          if (!template) continue;
+
           const workoutDate = new Date(startDate);
           workoutDate.setDate(startDate.getDate() + (week * 7) + dayIndex);
 
           workouts.push({
             program_id: programData.id,
-            title: template.title.replace(` (${data.trainingDays.length}/semaine)`, ''),
+            title: template.title,
             theme: template.theme,
             description: template.description,
-            recovery: template.recovery,
-            phase: template.phase,
             type: template.type,
+            phase: template.phase,
+            recovery: template.recovery,
+            intensity: template.intensity,
+            details: template.details,
             date: workoutDate.toISOString(),
             time: "09:00",
           });
         }
       }
 
-      console.log("Séances à créer:", workouts);
+      console.log("Workouts to create:", workouts);
 
       // 4. Insérer toutes les séances
-      const { error: workoutsError } = await supabase
-        .from("workouts")
-        .insert(workouts);
+      if (workouts.length > 0) {
+        const { error: workoutsError } = await supabase
+          .from("workouts")
+          .insert(workouts);
 
-      if (workoutsError) throw workoutsError;
+        if (workoutsError) throw workoutsError;
+      }
 
       toast({
         title: "Programme créé avec succès",

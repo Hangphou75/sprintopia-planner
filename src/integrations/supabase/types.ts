@@ -407,6 +407,63 @@ export type Database = {
           },
         ]
       }
+      workout_templates: {
+        Row: {
+          created_at: string
+          description: string | null
+          details: Json | null
+          distance: Database["public"]["Enums"]["sprint_distance"] | null
+          id: string
+          intensity: string | null
+          phase: Database["public"]["Enums"]["training_phase"] | null
+          recovery: string | null
+          sequence_order: number
+          sessions_per_week: number
+          theme: string | null
+          title: string
+          training_phase: string | null
+          type: Database["public"]["Enums"]["workout_type"] | null
+          updated_at: string
+          week_type: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          details?: Json | null
+          distance?: Database["public"]["Enums"]["sprint_distance"] | null
+          id?: string
+          intensity?: string | null
+          phase?: Database["public"]["Enums"]["training_phase"] | null
+          recovery?: string | null
+          sequence_order: number
+          sessions_per_week: number
+          theme?: string | null
+          title: string
+          training_phase?: string | null
+          type?: Database["public"]["Enums"]["workout_type"] | null
+          updated_at?: string
+          week_type: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          details?: Json | null
+          distance?: Database["public"]["Enums"]["sprint_distance"] | null
+          id?: string
+          intensity?: string | null
+          phase?: Database["public"]["Enums"]["training_phase"] | null
+          recovery?: string | null
+          sequence_order?: number
+          sessions_per_week?: number
+          theme?: string | null
+          title?: string
+          training_phase?: string | null
+          type?: Database["public"]["Enums"]["workout_type"] | null
+          updated_at?: string
+          week_type?: string
+        }
+        Relationships: []
+      }
       workouts: {
         Row: {
           color: string | null
