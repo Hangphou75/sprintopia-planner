@@ -18,6 +18,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Separator } from "@/components/ui/separator";
+import { Calendar } from "@/components/ui/calendar";
 
 type Competition = {
   name: string;
@@ -30,6 +31,7 @@ type FormValues = {
   mainDistance: string;
   trainingPhase: string;
   phaseDuration: string;
+  startDate: Date;
   mainCompetition: Competition;
   intermediateCompetitions: Competition[];
 };
@@ -59,6 +61,7 @@ const GenerateProgram = () => {
       mainDistance: "",
       trainingPhase: "",
       phaseDuration: "",
+      startDate: new Date(),
       mainCompetition: {
         name: "",
         date: "",
@@ -87,7 +90,7 @@ const GenerateProgram = () => {
           main_competition: data.mainCompetition,
           intermediate_competitions: data.intermediateCompetitions,
           generated: true,
-          start_date: new Date().toISOString(),
+          start_date: data.startDate.toISOString(),
           duration: parseInt(data.phaseDuration) * 7, // Convertir les semaines en jours
         },
       ]);
@@ -128,6 +131,27 @@ const GenerateProgram = () => {
       <Card className="p-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="startDate"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Date de début</FormLabel>
+                  <Calendar
+                    mode="single"
+                    selected={field.value}
+                    onSelect={field.onChange}
+                    disabled={(date) =>
+                      date < new Date() || date < new Date("1900-01-01")
+                    }
+                    initialFocus
+                    className="rounded-md border"
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="objective"
