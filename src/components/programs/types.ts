@@ -22,4 +22,4 @@ export type ThemeOption = {
 };
 
 export type WorkoutPhase = "preparation" | "specific" | "competition";
-export type WorkoutType = "resistance" | "speed" | "endurance" | "mobility" | "technical";
+export type WorkoutTypeValue = "resistance" | "speed" | "endurance" | "mobility" | "technical";
