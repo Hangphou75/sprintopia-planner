@@ -1,7 +1,7 @@
 
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ProgramWorkoutCalendar } from "@/components/programs/ProgramWorkoutCalendar";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Plus, Wand2 } from "lucide-react";
 const IndividualAthletePlanning = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: programs, isLoading } = useQuery({
     queryKey: ["programs", user?.id],
@@ -75,11 +76,13 @@ const IndividualAthletePlanning = () => {
 
   const handleNewProgram = () => {
     console.log("Navigating to new program form...");
+    queryClient.invalidateQueries({ queryKey: ["programs", user?.id] });
     navigate("/individual-athlete/programs/new");
   };
 
   const handleGenerateProgram = () => {
     console.log("Navigating to program generation...");
+    queryClient.invalidateQueries({ queryKey: ["programs", user?.id] });
     navigate("/individual-athlete/programs/generate");
   };
 
@@ -125,6 +128,7 @@ const IndividualAthletePlanning = () => {
           workouts={programs.workouts}
           competitions={programs.competitions}
           programId={programs.programs[0]?.id}
+          onRefresh={() => queryClient.invalidateQueries({ queryKey: ["programs", user?.id] })}
         />
       ) : (
         <div className="text-center">
