@@ -149,6 +149,12 @@ export const useProgramActions = (refetch: () => void) => {
       ]);
       
       console.log("Delete process completed successfully");
+      
+      // Rafraîchir la page après une courte pause pour permettre à la toast de s'afficher
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+      
     } catch (error) {
       console.error("Erreur lors de la suppression du programme:", error);
       toast.error("Erreur lors de la suppression du programme");
