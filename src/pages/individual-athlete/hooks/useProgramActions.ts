@@ -3,9 +3,11 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const useProgramActions = (refetch: () => void) => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [programToDelete, setProgramToDelete] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
@@ -83,6 +85,7 @@ export const useProgramActions = (refetch: () => void) => {
       }
 
       toast.success("Programme dupliqué avec succès");
+      await queryClient.invalidateQueries({ queryKey: ["programs"] });
       refetch();
     } catch (error) {
       console.error("Erreur lors de la duplication du programme:", error);
@@ -94,6 +97,7 @@ export const useProgramActions = (refetch: () => void) => {
     if (!programToDelete) return;
 
     try {
+      // Supprimer d'abord les séances
       const { error: workoutsError } = await supabase
         .from("workouts")
         .delete()
@@ -101,6 +105,7 @@ export const useProgramActions = (refetch: () => void) => {
 
       if (workoutsError) throw workoutsError;
 
+      // Supprimer les compétitions
       const { error: competitionsError } = await supabase
         .from("competitions")
         .delete()
@@ -108,6 +113,7 @@ export const useProgramActions = (refetch: () => void) => {
 
       if (competitionsError) throw competitionsError;
 
+      // Supprimer le programme
       const { error: programError } = await supabase
         .from("programs")
         .delete()
@@ -118,7 +124,15 @@ export const useProgramActions = (refetch: () => void) => {
       toast.success("Programme supprimé avec succès");
       setIsDeleteDialogOpen(false);
       setProgramToDelete(null);
+      
+      // Invalider le cache et forcer le rafraîchissement
+      await queryClient.invalidateQueries({ queryKey: ["programs"] });
       await refetch();
+      
+      // Rediriger vers la page des programmes avec un petit délai
+      setTimeout(() => {
+        navigate("/individual-athlete/planning", { replace: true });
+      }, 100);
     } catch (error) {
       console.error("Erreur lors de la suppression du programme:", error);
       toast.error("Erreur lors de la suppression du programme");
