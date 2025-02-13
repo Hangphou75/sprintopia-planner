@@ -12,14 +12,17 @@ export const useProgramActions = (refetch: () => void) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const handleCreateProgram = () => {
+    console.log("Navigating to create program page");
     navigate("/individual-athlete/programs/new");
   };
 
   const handleGenerateProgram = () => {
+    console.log("Navigating to generate program page");
     navigate("/individual-athlete/programs/generate");
   };
 
   const handleEditProgram = (programId: string) => {
+    console.log("Navigating to edit program page:", programId);
     navigate(`/individual-athlete/programs/${programId}/edit`);
   };
 
@@ -86,7 +89,7 @@ export const useProgramActions = (refetch: () => void) => {
 
       toast.success("Programme dupliqué avec succès");
       await queryClient.invalidateQueries({ queryKey: ["programs"] });
-      refetch();
+      await refetch();
     } catch (error) {
       console.error("Erreur lors de la duplication du programme:", error);
       toast.error("Erreur lors de la duplication du programme");
@@ -97,6 +100,8 @@ export const useProgramActions = (refetch: () => void) => {
     if (!programToDelete) return;
 
     try {
+      console.log("Starting program deletion process for ID:", programToDelete);
+
       // Supprimer d'abord les séances
       const { error: workoutsError } = await supabase
         .from("workouts")
@@ -104,6 +109,7 @@ export const useProgramActions = (refetch: () => void) => {
         .eq("program_id", programToDelete);
 
       if (workoutsError) throw workoutsError;
+      console.log("Workouts deleted successfully");
 
       // Supprimer les compétitions
       const { error: competitionsError } = await supabase
@@ -112,6 +118,7 @@ export const useProgramActions = (refetch: () => void) => {
         .eq("program_id", programToDelete);
 
       if (competitionsError) throw competitionsError;
+      console.log("Competitions deleted successfully");
 
       // Supprimer le programme
       const { error: programError } = await supabase
@@ -120,19 +127,20 @@ export const useProgramActions = (refetch: () => void) => {
         .eq("id", programToDelete);
 
       if (programError) throw programError;
+      console.log("Program deleted successfully");
 
+      // Nettoyer l'état et rafraîchir les données
       toast.success("Programme supprimé avec succès");
       setIsDeleteDialogOpen(false);
       setProgramToDelete(null);
       
       // Invalider le cache et forcer le rafraîchissement
+      console.log("Invalidating cache and refreshing data");
       await queryClient.invalidateQueries({ queryKey: ["programs"] });
       await refetch();
       
-      // Rediriger vers la page des programmes avec un petit délai
-      setTimeout(() => {
-        navigate("/individual-athlete/planning", { replace: true });
-      }, 100);
+      // La redirection se fera automatiquement via le composant Programs
+      console.log("Delete process completed successfully");
     } catch (error) {
       console.error("Erreur lors de la suppression du programme:", error);
       toast.error("Erreur lors de la suppression du programme");
