@@ -120,6 +120,14 @@ export const useProgramActions = (refetch: () => void) => {
       if (competitionsError) throw competitionsError;
       console.log("Competitions deleted successfully");
 
+      // Supprimer le programme partagé s'il existe
+      const { error: sharedProgramError } = await supabase
+        .from("shared_programs")
+        .delete()
+        .eq("program_id", programToDelete);
+
+      if (sharedProgramError) throw sharedProgramError;
+
       // Supprimer le programme
       const { error: programError } = await supabase
         .from("programs")
@@ -129,17 +137,17 @@ export const useProgramActions = (refetch: () => void) => {
       if (programError) throw programError;
       console.log("Program deleted successfully");
 
-      // Nettoyer l'état et rafraîchir les données
       toast.success("Programme supprimé avec succès");
       setIsDeleteDialogOpen(false);
       setProgramToDelete(null);
       
       // Invalider le cache et forcer le rafraîchissement
       console.log("Invalidating cache and refreshing data");
-      await queryClient.invalidateQueries({ queryKey: ["programs"] });
-      await refetch();
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["programs"] }),
+        refetch()
+      ]);
       
-      // La redirection se fera automatiquement via le composant Programs
       console.log("Delete process completed successfully");
     } catch (error) {
       console.error("Erreur lors de la suppression du programme:", error);

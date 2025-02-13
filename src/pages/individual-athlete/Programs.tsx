@@ -63,13 +63,13 @@ export default function Programs() {
       />
 
       <ProgramsList
-        programs={programs}
+        programs={programs || []}
         onDelete={(id) => {
           setProgramToDelete(id);
           setIsDeleteDialogOpen(true);
         }}
         onEdit={handleEditProgram}
-        onDuplicate={(id) => handleDuplicateProgram(id, user?.id, programs)}
+        onDuplicate={(id) => handleDuplicateProgram(id, user?.id, programs || [])}
         onCreateProgram={handleCreateProgram}
         onGenerateProgram={handleGenerateProgram}
       />
@@ -77,11 +77,10 @@ export default function Programs() {
       <DeleteProgramDialog
         isOpen={isDeleteDialogOpen}
         onOpenChange={(open) => {
-          setIsDeleteDialogOpen(open);
           if (!open) {
             setProgramToDelete(null);
-            refetch(); // Forcer le rafraîchissement des données lorsque le dialogue se ferme
           }
+          setIsDeleteDialogOpen(open);
         }}
         onConfirm={handleDeleteProgram}
       />
