@@ -39,7 +39,7 @@ export const useProgramGeneration = () => {
         {
           user_id: user.id,
           name: `Programme ${mainDistance}m - ${selectedPhaseLabel}`,
-          objectives: data.objective,
+          objectives: data.objective || `Préparation ${mainDistance}m - ${selectedPhaseLabel}`, // Objectif par défaut si non spécifié
           main_distance: mainDistance,
           training_phase: mappedTrainingPhase,
           phase_duration: parseInt(data.phaseDuration),
