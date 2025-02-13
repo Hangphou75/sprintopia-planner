@@ -12,6 +12,7 @@ import { CompetitionInfo } from "./components/program-generator/CompetitionInfo"
 import { PHASE_OPTIONS, DISTANCE_OPTIONS, DAYS_OF_WEEK } from "./constants/programOptions";
 import { FormValues } from "./types/programTypes";
 import { useProgramGeneration } from "./hooks/useProgramGeneration";
+import { toast } from "sonner";
 
 const GenerateProgram = () => {
   const navigate = useNavigate();
@@ -39,6 +40,27 @@ const GenerateProgram = () => {
   );
 
   const onSubmit = async (data: FormValues) => {
+    // Vérifier si la date de début correspond aux jours d'entraînement sélectionnés
+    const startDayOfWeek = data.startDate.getDay(); // 0 = Dimanche, 1 = Lundi, etc.
+    const daysMap: { [key: string]: number } = {
+      'monday': 1,
+      'tuesday': 2,
+      'wednesday': 3,
+      'thursday': 4,
+      'friday': 5,
+      'saturday': 6,
+      'sunday': 0
+    };
+
+    const hasMatchingDay = data.trainingDays.some(day => daysMap[day.toLowerCase()] === startDayOfWeek);
+
+    if (!hasMatchingDay) {
+      const dayName = Object.entries(daysMap).find(([_, value]) => value === startDayOfWeek)?.[0];
+      const capitalizedDayName = dayName ? dayName.charAt(0).toUpperCase() + dayName.slice(1) : '';
+      toast.error(`La date de début (${capitalizedDayName}) ne correspond à aucun des jours d'entraînement sélectionnés. Veuillez choisir une date qui correspond à l'un de vos jours d'entraînement.`);
+      return;
+    }
+
     if (selectedPhase) {
       await generateProgram(data, selectedPhase.label);
     }
