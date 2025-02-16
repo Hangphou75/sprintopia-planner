@@ -28,18 +28,15 @@ export const useProgramGeneration = () => {
         'championnat': 'championship'
       };
 
-      // Cast mainDistance to SprintDistance to ensure type safety
       const mainDistance = data.mainDistance as SprintDistance;
       const mappedTrainingPhase = trainingPhaseMap[data.trainingPhase] || data.trainingPhase;
-
-      console.log("Mapped training phase:", mappedTrainingPhase);
 
       // 1. Créer le programme
       const { data: programData, error: programError } = await supabase.from("programs").insert([
         {
           user_id: user.id,
           name: `Programme ${mainDistance}m - ${selectedPhaseLabel}`,
-          objectives: data.objective || `Préparation ${mainDistance}m - ${selectedPhaseLabel}`, // Objectif par défaut si non spécifié
+          objectives: data.objective || `Préparation ${mainDistance}m - ${selectedPhaseLabel}`,
           main_distance: mainDistance,
           training_phase: mappedTrainingPhase,
           phase_duration: parseInt(data.phaseDuration),
@@ -47,7 +44,7 @@ export const useProgramGeneration = () => {
           intermediate_competitions: data.intermediateCompetitions,
           generated: true,
           start_date: data.startDate.toISOString(),
-          duration: parseInt(data.phaseDuration) * 7, // Convertir les semaines en jours
+          duration: parseInt(data.phaseDuration) * 7,
           training_days: data.trainingDays,
           sessions_per_week: data.trainingDays.length,
         },
@@ -56,18 +53,23 @@ export const useProgramGeneration = () => {
       if (programError) throw programError;
       console.log("Program created:", programData);
 
-      // 2. Récupérer les templates de séances correspondant au nombre de sessions par semaine
-      const { data: workoutTemplates, error: templatesError } = await supabase
-        .from("workout_templates")
-        .select("*")
-        .eq('sessions_per_week', data.trainingDays.length)
-        .eq('training_phase', mappedTrainingPhase)
-        .eq('distance', mainDistance);
+      // 2. Générer les séances avec DeepSeek
+      const { data: generatedWorkouts, error } = await supabase.functions.invoke('generate-workouts', {
+        body: {
+          objective: data.objective,
+          mainDistance: mainDistance,
+          trainingPhase: mappedTrainingPhase,
+          phaseDuration: data.phaseDuration,
+          sessionsPerWeek: data.trainingDays.length,
+          startDate: data.startDate,
+          mainCompetition: data.mainCompetition
+        }
+      });
 
-      if (templatesError) throw templatesError;
-      console.log("Workout templates found:", workoutTemplates);
+      if (error) throw error;
+      console.log("Generated workouts:", generatedWorkouts);
 
-      // Helper function to get the next date for a specific day of the week
+      // Helper function pour obtenir la prochaine date pour un jour spécifique
       const getNextDayDate = (date: Date, targetDay: string) => {
         const daysMap: { [key: string]: number } = {
           'monday': 1, 'tuesday': 2, 'wednesday': 3, 'thursday': 4,
@@ -87,55 +89,30 @@ export const useProgramGeneration = () => {
         return nextDate;
       };
 
-      // Grouper les templates par type de semaine
-      const templatesByWeekType = workoutTemplates.reduce((acc, template) => {
-        if (!acc[template.week_type]) {
-          acc[template.week_type] = [];
-        }
-        acc[template.week_type].push(template);
-        return acc;
-      }, {} as { [key: string]: typeof workoutTemplates });
-
-      console.log("Templates by week type:", templatesByWeekType);
-
-      // 3. Créer les séances pour chaque semaine du programme
+      // 3. Créer les séances générées
       const workouts = [];
       const programDuration = parseInt(data.phaseDuration);
       const startDate = new Date(data.startDate);
 
       // Pour chaque semaine du programme
       for (let week = 0; week < programDuration; week++) {
-        // Alterner entre les types de semaine A et B
-        const weekType = week % 2 === 0 ? 'A' : 'B';
-        const weekTemplates = templatesByWeekType[weekType] || [];
-        
-        console.log(`Creating workouts for week ${week + 1}, type ${weekType}`);
-
-        // Trier les templates par ordre de séquence
-        weekTemplates.sort((a, b) => a.sequence_order - b.sequence_order);
-
         // Calculer la date de début de la semaine
         const weekStartDate = new Date(startDate);
         weekStartDate.setDate(startDate.getDate() + (week * 7));
 
         // Pour chaque jour d'entraînement de la semaine
         data.trainingDays.forEach((trainingDay, index) => {
-          const template = weekTemplates[index];
-          if (!template) return;
-
-          // Calculer la date du prochain jour d'entraînement
+          const workout = generatedWorkouts.workouts[index % generatedWorkouts.workouts.length];
           const workoutDate = getNextDayDate(weekStartDate, trainingDay);
 
           workouts.push({
             program_id: programData.id,
-            title: template.title,
-            theme: template.theme,
-            description: template.description,
-            type: template.type,
-            phase: template.phase,
-            recovery: template.recovery,
-            intensity: template.intensity,
-            details: template.details,
+            title: workout.title,
+            theme: workout.theme,
+            description: workout.description,
+            details: workout.details,
+            recovery: workout.recovery,
+            intensity: workout.intensity,
             date: workoutDate.toISOString(),
             time: "09:00",
           });
