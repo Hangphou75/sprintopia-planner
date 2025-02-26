@@ -62,7 +62,6 @@ export const useAthleteMutations = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      // On invalide aussi la query "athlete-programs" pour mettre à jour la liste des programmes
       queryClient.invalidateQueries({ queryKey: ["coach-athletes"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-programs"] });
       queryClient.invalidateQueries({ queryKey: ["programs"] });
@@ -87,7 +86,8 @@ export const useAthleteMutations = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      // On invalide aussi la query "athlete-programs" pour mettre à jour la liste des programmes
+      // On invalide toutes les queries qui pourraient avoir besoin d'être mises à jour
+      queryClient.invalidateQueries({ queryKey: ["programs"] });
       queryClient.invalidateQueries({ queryKey: ["coach-athletes"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-programs"] });
       toast.success("Programme associé avec succès");
