@@ -292,7 +292,7 @@ const CoachPlanning = () => {
           className="h-8"
           onClick={() => setCurrentFolderId(null)}
         >
-          Racine
+          Tous les programmes
         </Button>
         {getCurrentPath().map((folder, index) => (
           <div key={folder.id} className="flex items-center">
