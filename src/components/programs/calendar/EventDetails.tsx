@@ -38,6 +38,7 @@ export const EventDetails = ({
   });
 
   const formatDescription = (description: string) => {
+    if (!description) return "";
     return description.split(',').map(item => item.trim()).join('\n- ');
   };
 
@@ -95,7 +96,7 @@ export const EventDetails = ({
           </div>
         )}
 
-        {event.details && (
+        {event.details && typeof event.details === 'string' && event.details.length > 0 && (
           <div className="space-y-2">
             <h4 className="font-medium">Détails</h4>
             <div className="text-sm text-muted-foreground whitespace-pre-wrap">
