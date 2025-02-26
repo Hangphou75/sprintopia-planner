@@ -5,7 +5,7 @@ import { Program } from "@/types/program";
 import { ProgramFolder } from "@/types/folder";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Copy, Folder, MoreVertical, Trash2, Share, Pencil } from "lucide-react";
+import { Copy, Folder, MoreVertical, Trash2, Share, Pencil, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -13,6 +13,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useState } from "react";
+import { ProgramAthletesSheet } from "./ProgramAthletesSheet";
 
 type ProgramCardProps = {
   program: Program;
@@ -24,16 +26,17 @@ type ProgramCardProps = {
   onMove?: (folderId: string | null) => void;
 };
 
-export const ProgramCard = ({ 
-  program, 
-  onDelete, 
-  onDuplicate, 
-  onShare, 
+export const ProgramCard = ({
+  program,
+  onDelete,
+  onDuplicate,
+  onShare,
   onEdit,
-  folders = [], 
-  onMove 
+  folders = [],
+  onMove,
 }: ProgramCardProps) => {
   const navigate = useNavigate();
+  const [isAthletesSheetOpen, setIsAthletesSheetOpen] = useState(false);
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -57,76 +60,101 @@ export const ProgramCard = ({
     if (onEdit) onEdit(program.id);
   };
 
+  const handleShowAthletes = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsAthletesSheetOpen(true);
+  };
+
   return (
-    <Card className="cursor-pointer hover:bg-accent/5" onClick={() => navigate(`/coach/programs/${program.id}/workouts`)}>
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">{program.name}</CardTitle>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Button variant="ghost" size="icon">
-                <MoreVertical className="h-4 w-4" />
+    <>
+      <Card className="cursor-pointer hover:bg-accent/5" onClick={() => navigate(`/coach/programs/${program.id}/workouts`)}>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">{program.name}</CardTitle>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleShowAthletes}
+                title="Voir les athlètes associés"
+              >
+                <Users className="h-4 w-4" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              {onEdit && (
-                <DropdownMenuItem onClick={handleEdit}>
-                  <Pencil className="h-4 w-4 mr-2" />
-                  Modifier
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuItem onClick={handleDuplicate}>
-                <Copy className="h-4 w-4 mr-2" />
-                Dupliquer
-              </DropdownMenuItem>
-              {onShare && (
-                <DropdownMenuItem onClick={handleShare}>
-                  <Share className="h-4 w-4 mr-2" />
-                  Partager
-                </DropdownMenuItem>
-              )}
-              {onMove && (
-                <>
-                  <DropdownMenuItem onClick={(e) => {
-                    e.stopPropagation();
-                    onMove(null);
-                  }}>
-                    <Folder className="h-4 w-4 mr-2" />
-                    Déplacer vers la racine
-                  </DropdownMenuItem>
-                  {folders.map((folder) => (
-                    <DropdownMenuItem
-                      key={folder.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onMove(folder.id);
-                      }}
-                    >
-                      <Folder className="h-4 w-4 mr-2" />
-                      Déplacer vers {folder.name}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                  <Button variant="ghost" size="icon">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {onEdit && (
+                    <DropdownMenuItem onClick={handleEdit}>
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Modifier
                     </DropdownMenuItem>
-                  ))}
-                </>
-              )}
-              <DropdownMenuItem className="text-destructive" onClick={handleDelete}>
-                <Trash2 className="h-4 w-4 mr-2" />
-                Supprimer
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </CardHeader>
-      <CardContent className="text-sm space-y-1">
-        <p>Durée : {program.duration} semaines</p>
-        <p>Début : {format(new Date(program.start_date), "dd MMMM yyyy", { locale: fr })}</p>
-        {program.objectives && <p>Objectifs : {program.objectives}</p>}
-      </CardContent>
-      {program.shared_programs && program.shared_programs.length > 0 && (
-        <CardFooter className="text-xs text-muted-foreground pt-2">
-          Partagé avec {program.shared_programs.length} athlète
-          {program.shared_programs.length > 1 ? "s" : ""}
-        </CardFooter>
-      )}
-    </Card>
+                  )}
+                  <DropdownMenuItem onClick={handleDuplicate}>
+                    <Copy className="h-4 w-4 mr-2" />
+                    Dupliquer
+                  </DropdownMenuItem>
+                  {onShare && (
+                    <DropdownMenuItem onClick={handleShare}>
+                      <Share className="h-4 w-4 mr-2" />
+                      Partager
+                    </DropdownMenuItem>
+                  )}
+                  {onMove && (
+                    <>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onMove(null);
+                        }}
+                      >
+                        <Folder className="h-4 w-4 mr-2" />
+                        Déplacer vers la racine
+                      </DropdownMenuItem>
+                      {folders.map((folder) => (
+                        <DropdownMenuItem
+                          key={folder.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onMove(folder.id);
+                          }}
+                        >
+                          <Folder className="h-4 w-4 mr-2" />
+                          Déplacer vers {folder.name}
+                        </DropdownMenuItem>
+                      ))}
+                    </>
+                  )}
+                  <DropdownMenuItem className="text-destructive" onClick={handleDelete}>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Supprimer
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="text-sm space-y-1">
+          <p>Durée : {program.duration} semaines</p>
+          <p>Début : {format(new Date(program.start_date), "dd MMMM yyyy", { locale: fr })}</p>
+          {program.objectives && <p>Objectifs : {program.objectives}</p>}
+        </CardContent>
+        {program.shared_programs && program.shared_programs.length > 0 && (
+          <CardFooter className="text-xs text-muted-foreground pt-2">
+            Partagé avec {program.shared_programs.length} athlète
+            {program.shared_programs.length > 1 ? "s" : ""}
+          </CardFooter>
+        )}
+      </Card>
+
+      <ProgramAthletesSheet
+        program={program}
+        isOpen={isAthletesSheetOpen}
+        onOpenChange={setIsAthletesSheetOpen}
+      />
+    </>
   );
 };

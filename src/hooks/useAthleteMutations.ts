@@ -46,20 +46,27 @@ export const useAthleteMutations = () => {
   });
 
   const deleteProgramMutation = useMutation({
-    mutationFn: async ({ coachId, programId }: { coachId: string; programId: string }) => {
-      const { error } = await supabase
+    mutationFn: async ({ coachId, programId, athleteId }: { coachId: string; programId: string; athleteId?: string }) => {
+      const query = supabase
         .from("shared_programs")
         .delete()
         .eq("program_id", programId)
         .eq("coach_id", coachId);
 
+      // Si un athleteId est fourni, on filtre également par cet ID
+      if (athleteId) {
+        query.eq("athlete_id", athleteId);
+      }
+
+      const { error } = await query;
       if (error) throw error;
     },
     onSuccess: () => {
       // On invalide aussi la query "athlete-programs" pour mettre à jour la liste des programmes
       queryClient.invalidateQueries({ queryKey: ["coach-athletes"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-programs"] });
-      toast.success("Programme supprimé avec succès");
+      queryClient.invalidateQueries({ queryKey: ["programs"] });
+      toast.success("Programme retiré avec succès");
     },
     onError: (error) => {
       console.error("Error deleting program:", error);
