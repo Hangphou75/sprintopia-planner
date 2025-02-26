@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,30 +44,7 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
 
       const athleteIds = coachAthletes.map(row => row.athlete_id);
 
-      const { data: directWorkouts, error: directError } = await supabase
-        .from("workouts")
-        .select(`
-          *,
-          program:programs (
-            id,
-            name,
-            user_id,
-            athlete:profiles!programs_user_id_fkey (
-              id,
-              first_name,
-              last_name
-            )
-          )
-        `)
-        .gte('date', formattedStartDate)
-        .lt('date', formattedEndDate)
-        .in("program.user_id", athleteIds);
-
-      if (directError) {
-        console.error("Error fetching direct workouts:", directError);
-        return [];
-      }
-
+      // On ne récupère plus les séances directes du coach
       const { data: sharedPrograms, error: sharedError } = await supabase
         .from("shared_programs")
         .select("program_id")
@@ -74,11 +52,11 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
 
       if (sharedError) {
         console.error("Error fetching shared programs:", sharedError);
-        return directWorkouts || [];
+        return [];
       }
 
       if (!sharedPrograms?.length) {
-        return directWorkouts || [];
+        return [];
       }
 
       const programIds = [...new Set(sharedPrograms.map(sp => sp.program_id))];
@@ -111,10 +89,10 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
 
       if (workoutsError) {
         console.error("Error fetching workouts from shared programs:", workoutsError);
-        return directWorkouts || [];
+        return [];
       }
 
-      return [...(directWorkouts || []), ...(sharedWorkouts || [])];
+      return sharedWorkouts || [];
     },
     enabled: !!coachId && !!selectedDate,
   });
@@ -133,23 +111,13 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
 
       const athleteIds = coachAthletes.map(row => row.athlete_id);
 
-      const { data: directWorkouts } = await supabase
-        .from("workouts")
-        .select(`
-          date,
-          program:programs (
-            user_id
-          )
-        `)
-        .in("program.user_id", athleteIds);
-
       const { data: sharedPrograms } = await supabase
         .from("shared_programs")
         .select("program_id")
         .in("athlete_id", athleteIds);
 
       if (!sharedPrograms?.length) {
-        return directWorkouts || [];
+        return [];
       }
 
       const programIds = [...new Set(sharedPrograms.map(sp => sp.program_id))];
@@ -164,7 +132,7 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
         `)
         .in("program_id", programIds);
 
-      return [...(directWorkouts || []), ...(sharedWorkouts || [])];
+      return sharedWorkouts || [];
     },
     enabled: !!coachId,
   });
