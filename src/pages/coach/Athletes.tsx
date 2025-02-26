@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -73,9 +74,25 @@ const Athletes = () => {
     }
   };
 
-  const handleDeleteProgram = (programId: string) => {
-    if (user?.id && window.confirm("Êtes-vous sûr de vouloir supprimer ce programme ?")) {
-      deleteProgramMutation.mutate({ coachId: user.id, programId });
+  const handleDeleteProgram = async (programId: string) => {
+    if (!user?.id || !selectedAthlete?.id) return;
+
+    try {
+      const { error } = await supabase
+        .from("shared_programs")
+        .delete()
+        .match({ 
+          program_id: programId, 
+          athlete_id: selectedAthlete.id,
+          coach_id: user.id 
+        });
+
+      if (error) throw error;
+
+      toast.success("Programme retiré avec succès");
+    } catch (error) {
+      console.error("Error removing program:", error);
+      toast.error("Erreur lors du retrait du programme");
     }
   };
 

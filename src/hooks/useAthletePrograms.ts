@@ -6,36 +6,38 @@ import { toast } from "sonner";
 
 export const useAthletePrograms = (userId: string | undefined) => {
   return useQuery({
-    queryKey: ["programs", userId],
+    queryKey: ["athlete-programs", userId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("programs")
-        .select("*, shared_programs(athlete:profiles!shared_programs_athlete_id_fkey(id, first_name, last_name, email))")
-        .eq("user_id", userId);
+      // On récupère les programmes partagés avec l'athlète
+      const { data: sharedProgramsData, error: sharedError } = await supabase
+        .from("shared_programs")
+        .select(`
+          program_id,
+          programs:programs!inner (
+            id,
+            name,
+            duration,
+            objectives,
+            start_date,
+            phase,
+            training_phase,
+            user_id,
+            created_at,
+            updated_at
+          )
+        `)
+        .eq("athlete_id", userId);
 
-      if (error) {
-        console.error("Error fetching programs:", error);
+      if (sharedError) {
+        console.error("Error fetching shared programs:", sharedError);
         toast.error("Erreur lors du chargement des programmes");
-        throw error;
+        throw sharedError;
       }
 
-      // Transform the data to match the Program type
-      const transformedData = (data || []).map(program => ({
-        ...program,
-        main_competition: program.main_competition ? {
-          name: (program.main_competition as any).name || '',
-          date: (program.main_competition as any).date || '',
-          location: (program.main_competition as any).location || '',
-        } : null,
-        intermediate_competitions: program.intermediate_competitions ? 
-          program.intermediate_competitions.map((comp: any) => ({
-            name: comp.name || '',
-            date: comp.date || '',
-            location: comp.location || '',
-          })) : null
-      }));
-
-      return transformedData as Program[];
+      // Transformer les données pour correspondre au type Program
+      return sharedProgramsData.map(sp => ({
+        ...sp.programs,
+      })) as Program[];
     },
     enabled: !!userId,
   });
