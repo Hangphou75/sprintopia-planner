@@ -2,7 +2,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ProgramFolder } from "@/types/folder";
+import { type Tables } from "@/types/database";
+
+type ProgramFolder = Tables<'program_folders'>;
 
 export const useProgramFolders = (userId: string | undefined) => {
   const queryClient = useQueryClient();
@@ -11,10 +13,10 @@ export const useProgramFolders = (userId: string | undefined) => {
     queryKey: ["program-folders", userId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("program_folders")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at");
+        .from('program_folders')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at');
 
       if (error) throw error;
       return data as ProgramFolder[];
@@ -25,7 +27,7 @@ export const useProgramFolders = (userId: string | undefined) => {
   const createFolderMutation = useMutation({
     mutationFn: async ({ name, parentFolderId }: { name: string; parentFolderId?: string }) => {
       const { data, error } = await supabase
-        .from("program_folders")
+        .from('program_folders')
         .insert({
           name,
           user_id: userId,
@@ -50,7 +52,7 @@ export const useProgramFolders = (userId: string | undefined) => {
   const updateFolderMutation = useMutation({
     mutationFn: async ({ id, name }: { id: string; name: string }) => {
       const { error } = await supabase
-        .from("program_folders")
+        .from('program_folders')
         .update({ name })
         .eq("id", id);
 
@@ -69,7 +71,7 @@ export const useProgramFolders = (userId: string | undefined) => {
   const deleteFolderMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("program_folders")
+        .from('program_folders')
         .delete()
         .eq("id", id);
 
@@ -87,12 +89,15 @@ export const useProgramFolders = (userId: string | undefined) => {
 
   const moveProgramMutation = useMutation({
     mutationFn: async ({ programId, folderId }: { programId: string; folderId: string | null }) => {
-      const { error } = await supabase
+      const { data: program, error } = await supabase
         .from("programs")
         .update({ folder_id: folderId })
-        .eq("id", programId);
+        .eq("id", programId)
+        .select()
+        .single();
 
       if (error) throw error;
+      return program;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["programs"] });

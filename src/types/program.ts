@@ -25,6 +25,7 @@ export type Program = {
     location: string;
   }[] | null;
   generated: boolean | null;
+  folder_id: string | null;
   shared_programs?: {
     athlete: {
       id: string;
@@ -34,4 +35,3 @@ export type Program = {
     };
   }[];
 };
-

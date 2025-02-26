@@ -212,6 +212,38 @@ export type Database = {
         }
         Relationships: []
       }
+      program_folders: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          parent_folder_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          parent_folder_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          parent_folder_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_folders_parent_folder_id_fkey"
+            columns: ["parent_folder_id"]
+            isOneToOne: false
+            referencedRelation: "program_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       program_phase_descriptions: {
         Row: {
           created_at: string
@@ -246,6 +278,7 @@ export type Database = {
         Row: {
           created_at: string
           duration: number
+          folder_id: string | null
           generated: boolean | null
           id: string
           intermediate_competitions: Json[] | null
@@ -265,6 +298,7 @@ export type Database = {
         Insert: {
           created_at?: string
           duration: number
+          folder_id?: string | null
           generated?: boolean | null
           id?: string
           intermediate_competitions?: Json[] | null
@@ -284,6 +318,7 @@ export type Database = {
         Update: {
           created_at?: string
           duration?: number
+          folder_id?: string | null
           generated?: boolean | null
           id?: string
           intermediate_competitions?: Json[] | null
@@ -301,6 +336,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "programs_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "program_folders"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "programs_user_id_fkey"
             columns: ["user_id"]
