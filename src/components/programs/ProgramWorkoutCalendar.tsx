@@ -5,6 +5,7 @@ import { CalendarView } from "./calendar/CalendarView";
 import { EventDetails } from "./calendar/EventDetails";
 import { EventFilters } from "./calendar/EventFilters";
 import { WorkoutList } from "./calendar/WorkoutList";
+import { WeekView } from "./calendar/WeekView";
 import { ThemeOption } from "./types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEvents } from "./hooks/useEvents";
@@ -12,6 +13,7 @@ import { useWorkoutActions } from "./hooks/useWorkoutActions";
 import { useCalendarNavigation } from "./hooks/useCalendarNavigation";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type ProgramWorkoutCalendarProps = {
   workouts: any[];
@@ -81,42 +83,62 @@ export const ProgramWorkoutCalendar = ({
 
   return (
     <div className="space-y-8">
-      <div className="grid md:grid-cols-2 gap-4">
-        <CalendarView
-          events={events}
-          selectedDate={selectedDate}
-          onSelectDate={handleDateSelect}
-        />
-        <EventDetails
-          events={events}
-          selectedDate={selectedDate}
-          themeOptions={themeOptions}
-          onEventClick={handleEventClick}
-        />
-      </div>
+      <Tabs defaultValue="month">
+        <TabsList>
+          <TabsTrigger value="month">Vue mensuelle</TabsTrigger>
+          <TabsTrigger value="week">Vue semaine</TabsTrigger>
+          <TabsTrigger value="list">Vue liste</TabsTrigger>
+        </TabsList>
 
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold">Liste des séances</h2>
-          <EventFilters
-            selectedTheme={selectedTheme}
-            sortOrder={sortOrder}
+        <TabsContent value="month" className="space-y-8">
+          <div className="grid md:grid-cols-2 gap-4">
+            <CalendarView
+              events={events}
+              selectedDate={selectedDate}
+              onSelectDate={handleDateSelect}
+            />
+            <EventDetails
+              events={events}
+              selectedDate={selectedDate}
+              themeOptions={themeOptions}
+              onEventClick={handleEventClick}
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="week">
+          <WeekView
+            events={events}
+            currentDate={selectedDate}
+            onDateChange={handleDateSelect}
+            onEventClick={handleEventClick}
             themeOptions={themeOptions}
-            onThemeChange={setSelectedTheme}
-            onSortOrderChange={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
           />
-        </div>
+        </TabsContent>
 
-        <WorkoutList
-          filteredWorkouts={filteredWorkouts}
-          themeOptions={themeOptions}
-          themeIcons={themeIcons}
-          onEventClick={handleEventClick}
-          onDuplicateWorkout={handleDuplicateWorkout}
-          onDeleteWorkout={handleDeleteWorkout}
-          userRole={user?.role}
-        />
-      </div>
+        <TabsContent value="list" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold">Liste des séances</h2>
+            <EventFilters
+              selectedTheme={selectedTheme}
+              sortOrder={sortOrder}
+              themeOptions={themeOptions}
+              onThemeChange={setSelectedTheme}
+              onSortOrderChange={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+            />
+          </div>
+
+          <WorkoutList
+            filteredWorkouts={filteredWorkouts}
+            themeOptions={themeOptions}
+            themeIcons={themeIcons}
+            onEventClick={handleEventClick}
+            onDuplicateWorkout={handleDuplicateWorkout}
+            onDeleteWorkout={handleDeleteWorkout}
+            userRole={user?.role}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
