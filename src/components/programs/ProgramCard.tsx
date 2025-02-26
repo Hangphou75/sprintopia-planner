@@ -5,7 +5,7 @@ import { Program } from "@/types/program";
 import { ProgramFolder } from "@/types/folder";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Copy, Folder, MoreVertical, Trash2 } from "lucide-react";
+import { Copy, Folder, MoreVertical, Trash2, Share, Pencil } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -18,11 +18,21 @@ type ProgramCardProps = {
   program: Program;
   onDelete: (id: string) => void;
   onDuplicate: (id: string) => void;
+  onShare?: (id: string) => void;
+  onEdit?: (id: string) => void;
   folders?: ProgramFolder[];
   onMove?: (folderId: string | null) => void;
 };
 
-export const ProgramCard = ({ program, onDelete, onDuplicate, folders = [], onMove }: ProgramCardProps) => {
+export const ProgramCard = ({ 
+  program, 
+  onDelete, 
+  onDuplicate, 
+  onShare, 
+  onEdit,
+  folders = [], 
+  onMove 
+}: ProgramCardProps) => {
   const navigate = useNavigate();
 
   const handleDelete = (e: React.MouseEvent) => {
@@ -37,6 +47,16 @@ export const ProgramCard = ({ program, onDelete, onDuplicate, folders = [], onMo
     onDuplicate(program.id);
   };
 
+  const handleShare = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onShare) onShare(program.id);
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onEdit) onEdit(program.id);
+  };
+
   return (
     <Card className="cursor-pointer hover:bg-accent/5" onClick={() => navigate(`/coach/programs/${program.id}/workouts`)}>
       <CardHeader className="pb-2">
@@ -49,10 +69,22 @@ export const ProgramCard = ({ program, onDelete, onDuplicate, folders = [], onMo
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
+              {onEdit && (
+                <DropdownMenuItem onClick={handleEdit}>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Modifier
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onClick={handleDuplicate}>
                 <Copy className="h-4 w-4 mr-2" />
                 Dupliquer
               </DropdownMenuItem>
+              {onShare && (
+                <DropdownMenuItem onClick={handleShare}>
+                  <Share className="h-4 w-4 mr-2" />
+                  Partager
+                </DropdownMenuItem>
+              )}
               {onMove && (
                 <>
                   <DropdownMenuItem onClick={(e) => {
