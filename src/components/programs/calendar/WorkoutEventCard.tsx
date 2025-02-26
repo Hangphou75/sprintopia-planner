@@ -4,7 +4,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Pencil } from "lucide-react";
+import { Pencil, Clock } from "lucide-react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 interface WorkoutEventCardProps {
   event: Event;
@@ -19,10 +21,6 @@ export const WorkoutEventCard = ({
   readOnly = false,
   themeOptions = [],
 }: WorkoutEventCardProps) => {
-  const formatDescription = (description: string) => {
-    return description.split(',').map(item => item.trim()).join('\n- ');
-  };
-
   return (
     <Card
       className={cn(
@@ -51,19 +49,17 @@ export const WorkoutEventCard = ({
           )}
         </div>
 
-        <div className="flex flex-wrap gap-1">
-          <Badge variant="default" className="text-xs">Séance</Badge>
-          {event.theme && themeOptions && (
-            <Badge variant="outline" className="text-xs">
-              {themeOptions.find(t => t.value === event.theme)?.label}
-            </Badge>
-          )}
-        </div>
+        {event.theme && themeOptions && (
+          <Badge variant="outline" className="text-xs">
+            {themeOptions.find(t => t.value === event.theme)?.label}
+          </Badge>
+        )}
 
-        {event.description && (
-          <p className="text-xs text-muted-foreground whitespace-pre-wrap">
-            - {formatDescription(event.description)}
-          </p>
+        {event.time && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Clock className="h-3 w-3" />
+            <span>{event.time}</span>
+          </div>
         )}
       </CardContent>
     </Card>
