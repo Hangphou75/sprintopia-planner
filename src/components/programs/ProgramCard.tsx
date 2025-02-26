@@ -1,165 +1,100 @@
 
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Program } from "@/types/program";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarDays, Users, Copy, Trash2, Pencil } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { ProgramFolder } from "@/types/folder";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Button } from "@/components/ui/button";
+import { Copy, Folder, MoreVertical, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical } from "lucide-react";
 
 type ProgramCardProps = {
   program: Program;
-  readOnly?: boolean;
-  onDelete?: (programId: string) => void;
-  onDuplicate?: (programId: string) => void;
-  onShare?: (programId: string) => void;
-  onEdit?: (programId: string) => void;
+  onDelete: (id: string) => void;
+  onDuplicate: (id: string) => void;
+  folders?: ProgramFolder[];
+  onMove?: (folderId: string | null) => void;
 };
 
-export const ProgramCard = ({ 
-  program, 
-  readOnly = false,
-  onDelete,
-  onDuplicate,
-  onShare,
-  onEdit
-}: ProgramCardProps) => {
+export const ProgramCard = ({ program, onDelete, onDuplicate, folders = [], onMove }: ProgramCardProps) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
 
-  const handleClick = () => {
-    if (!user?.role || !program.id) {
-      console.error("Missing user role or program ID");
-      return;
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce programme ?")) {
+      onDelete(program.id);
     }
-
-    console.log("Handling program card click for role:", user.role);
-    
-    let path;
-    switch (user.role) {
-      case 'individual_athlete':
-        path = `/individual-athlete/programs/${program.id}/workouts`;
-        break;
-      case 'athlete':
-        path = `/athlete/programs/${program.id}/workouts`;
-        break;
-      case 'coach':
-        path = `/coach/programs/${program.id}/workouts`;
-        break;
-      default:
-        console.error("Unknown user role:", user.role);
-        return;
-    }
-
-    console.log("Navigating to:", path);
-    navigate(path);
   };
 
-  const showActions = !readOnly && (onDelete || onDuplicate || onShare || onEdit);
-
-  const handleDropdownAction = (e: React.MouseEvent, action: () => void) => {
+  const handleDuplicate = (e: React.MouseEvent) => {
     e.stopPropagation();
-    action();
+    onDuplicate(program.id);
   };
 
   return (
-    <Card 
-      className="h-full hover:shadow-md transition-shadow duration-200 cursor-pointer"
-      onClick={handleClick}
-    >
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center justify-between text-xl">
-          <div className="flex items-center gap-2">
-            <CalendarDays className="h-5 w-5 text-primary" />
-            <span className="font-semibold">{program.name}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            {program.shared_programs && program.shared_programs.length > 0 && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                <Users className="h-4 w-4" />
-                {program.shared_programs.length}
-              </Badge>
-            )}
-            {showActions && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                  <Button variant="ghost" size="icon">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                  {onEdit && (
-                    <DropdownMenuItem onClick={(e) => handleDropdownAction(e, () => onEdit(program.id))}>
-                      <Pencil className="h-4 w-4 mr-2" />
-                      Modifier
-                    </DropdownMenuItem>
-                  )}
-                  {onDuplicate && (
-                    <DropdownMenuItem onClick={(e) => handleDropdownAction(e, () => onDuplicate(program.id))}>
-                      <Copy className="h-4 w-4 mr-2" />
-                      Dupliquer
-                    </DropdownMenuItem>
-                  )}
-                  {onShare && (
-                    <DropdownMenuItem onClick={(e) => handleDropdownAction(e, () => onShare(program.id))}>
-                      <Users className="h-4 w-4 mr-2" />
-                      Partager
-                    </DropdownMenuItem>
-                  )}
-                  {onDelete && (
-                    <DropdownMenuItem 
-                      onClick={(e) => handleDropdownAction(e, () => onDelete(program.id))}
-                      className="text-destructive"
+    <Card className="cursor-pointer hover:bg-accent/5" onClick={() => navigate(`/coach/programs/${program.id}/workouts`)}>
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg">{program.name}</CardTitle>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+              <Button variant="ghost" size="icon">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={handleDuplicate}>
+                <Copy className="h-4 w-4 mr-2" />
+                Dupliquer
+              </DropdownMenuItem>
+              {onMove && (
+                <>
+                  <DropdownMenuItem onClick={(e) => {
+                    e.stopPropagation();
+                    onMove(null);
+                  }}>
+                    <Folder className="h-4 w-4 mr-2" />
+                    Déplacer vers la racine
+                  </DropdownMenuItem>
+                  {folders.map((folder) => (
+                    <DropdownMenuItem
+                      key={folder.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onMove(folder.id);
+                      }}
                     >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Supprimer
+                      <Folder className="h-4 w-4 mr-2" />
+                      Déplacer vers {folder.name}
                     </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
-        </CardTitle>
+                  ))}
+                </>
+              )}
+              <DropdownMenuItem className="text-destructive" onClick={handleDelete}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Supprimer
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <p className="text-sm font-medium text-muted-foreground mb-1">Objectifs</p>
-          <p className="text-sm">{program.objectives || "Aucun objectif défini"}</p>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm font-medium text-muted-foreground mb-1">Durée</p>
-            <p className="text-sm">{program.duration} semaines</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-muted-foreground mb-1">Date de début</p>
-            <p className="text-sm">
-              {format(new Date(program.start_date), "dd MMM yyyy", { locale: fr })}
-            </p>
-          </div>
-        </div>
-        {program.shared_programs && program.shared_programs.length > 0 && (
-          <div>
-            <p className="text-sm font-medium text-muted-foreground mb-1">Athlètes</p>
-            <div className="space-y-1">
-              {program.shared_programs.map((shared) => (
-                <p key={shared.athlete.id} className="text-sm text-muted-foreground">
-                  {shared.athlete.first_name} {shared.athlete.last_name}
-                </p>
-              ))}
-            </div>
-          </div>
-        )}
+      <CardContent className="text-sm space-y-1">
+        <p>Durée : {program.duration} semaines</p>
+        <p>Début : {format(new Date(program.start_date), "dd MMMM yyyy", { locale: fr })}</p>
+        {program.objectives && <p>Objectifs : {program.objectives}</p>}
       </CardContent>
+      {program.shared_programs && program.shared_programs.length > 0 && (
+        <CardFooter className="text-xs text-muted-foreground pt-2">
+          Partagé avec {program.shared_programs.length} athlète
+          {program.shared_programs.length > 1 ? "s" : ""}
+        </CardFooter>
+      )}
     </Card>
   );
 };
