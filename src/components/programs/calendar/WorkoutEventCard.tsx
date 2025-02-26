@@ -1,6 +1,6 @@
 
 import { Event, ThemeOption } from "../types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,34 +31,37 @@ export const WorkoutEventCard = ({
         event.theme && `border-theme-${event.theme}`
       )}
     >
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+      <CardContent className="p-3 space-y-2">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="text-sm font-medium leading-tight">
             {event.title}
-            <Badge variant="default">Séance</Badge>
-            {event.theme && themeOptions && (
-              <Badge variant="outline">
-                {themeOptions.find(t => t.value === event.theme)?.label}
-              </Badge>
-            )}
-          </div>
+          </h3>
           {!readOnly && onEditClick && (
             <Button
               variant="ghost"
               size="icon"
+              className="h-6 w-6"
               onClick={(e) => {
                 e.stopPropagation();
                 onEditClick(event);
               }}
             >
-              <Pencil className="h-4 w-4" />
+              <Pencil className="h-3 w-3" />
             </Button>
           )}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+        </div>
+
+        <div className="flex flex-wrap gap-1">
+          <Badge variant="default" className="text-xs">Séance</Badge>
+          {event.theme && themeOptions && (
+            <Badge variant="outline" className="text-xs">
+              {themeOptions.find(t => t.value === event.theme)?.label}
+            </Badge>
+          )}
+        </div>
+
         {event.description && (
-          <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+          <p className="text-xs text-muted-foreground whitespace-pre-wrap">
             - {formatDescription(event.description)}
           </p>
         )}
