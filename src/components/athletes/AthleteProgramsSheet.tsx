@@ -13,7 +13,7 @@ import { useAthleteMutations } from "@/hooks/useAthleteMutations";
 
 type AthleteProgramsSheetProps = {
   selectedAthlete: Profile | null;
-  onOpenChange: (open: boolean) => void;
+  onOpenChange: (athlete: Profile | null) => void;
   onAddProgram: () => void;
 };
 
@@ -30,8 +30,14 @@ export const AthleteProgramsSheet = ({
     deleteProgramMutation.mutate({ coachId: selectedAthlete.id, programId });
   };
 
+  const handleSheetOpenChange = (open: boolean) => {
+    if (!open) {
+      onOpenChange(null);
+    }
+  };
+
   return (
-    <Sheet open={!!selectedAthlete} onOpenChange={() => onOpenChange(null)}>
+    <Sheet open={!!selectedAthlete} onOpenChange={handleSheetOpenChange}>
       <SheetContent>
         <SheetHeader>
           <SheetTitle>
