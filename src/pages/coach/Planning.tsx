@@ -44,7 +44,7 @@ const CoachPlanning = () => {
     queryKey: ["programs", currentFolderId],
     queryFn: async () => {
       console.log("Fetching programs for user:", user?.id);
-      const { data, error } = await supabase
+      const query = supabase
         .from("programs")
         .select(`
           *,
@@ -59,8 +59,17 @@ const CoachPlanning = () => {
           )
         `)
         .eq("user_id", user?.id)
-        .eq("folder_id", currentFolderId)
         .order("created_at", { ascending: false });
+
+      // Si nous sommes à la racine (currentFolderId est null), on récupère tous les programmes sans dossier
+      if (currentFolderId === null) {
+        query.is("folder_id", null);
+      } else {
+        // Sinon, on récupère les programmes du dossier sélectionné
+        query.eq("folder_id", currentFolderId);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
