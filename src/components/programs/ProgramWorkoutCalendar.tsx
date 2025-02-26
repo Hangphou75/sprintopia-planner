@@ -83,62 +83,63 @@ export const ProgramWorkoutCalendar = ({
 
   return (
     <div className="space-y-8">
-      <Tabs defaultValue="month">
-        <TabsList>
-          <TabsTrigger value="month">Vue mensuelle</TabsTrigger>
-          <TabsTrigger value="week">Vue semaine</TabsTrigger>
-          <TabsTrigger value="list">Vue liste</TabsTrigger>
-        </TabsList>
+      {/* Vue mensuelle toujours visible */}
+      <div className="grid md:grid-cols-2 gap-4">
+        <CalendarView
+          events={events}
+          selectedDate={selectedDate}
+          onSelectDate={handleDateSelect}
+        />
+        <EventDetails
+          events={events}
+          selectedDate={selectedDate}
+          themeOptions={themeOptions}
+          onEventClick={handleEventClick}
+        />
+      </div>
 
-        <TabsContent value="month" className="space-y-8">
-          <div className="grid md:grid-cols-2 gap-4">
-            <CalendarView
-              events={events}
-              selectedDate={selectedDate}
-              onSelectDate={handleDateSelect}
-            />
-            <EventDetails
-              events={events}
-              selectedDate={selectedDate}
+      {/* Vue liste ou semaine en dessous */}
+      <div className="space-y-4">
+        <Tabs defaultValue="list">
+          <TabsList>
+            <TabsTrigger value="list">Vue liste</TabsTrigger>
+            <TabsTrigger value="week">Vue semaine</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="list" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Liste des séances</h2>
+              <EventFilters
+                selectedTheme={selectedTheme}
+                sortOrder={sortOrder}
+                themeOptions={themeOptions}
+                onThemeChange={setSelectedTheme}
+                onSortOrderChange={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+              />
+            </div>
+
+            <WorkoutList
+              filteredWorkouts={filteredWorkouts}
               themeOptions={themeOptions}
+              themeIcons={themeIcons}
               onEventClick={handleEventClick}
+              onDuplicateWorkout={handleDuplicateWorkout}
+              onDeleteWorkout={handleDeleteWorkout}
+              userRole={user?.role}
             />
-          </div>
-        </TabsContent>
+          </TabsContent>
 
-        <TabsContent value="week">
-          <WeekView
-            events={events}
-            currentDate={selectedDate}
-            onDateChange={handleDateSelect}
-            onEventClick={handleEventClick}
-            themeOptions={themeOptions}
-          />
-        </TabsContent>
-
-        <TabsContent value="list" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">Liste des séances</h2>
-            <EventFilters
-              selectedTheme={selectedTheme}
-              sortOrder={sortOrder}
+          <TabsContent value="week">
+            <WeekView
+              events={events}
+              currentDate={selectedDate}
+              onDateChange={handleDateSelect}
+              onEventClick={handleEventClick}
               themeOptions={themeOptions}
-              onThemeChange={setSelectedTheme}
-              onSortOrderChange={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
             />
-          </div>
-
-          <WorkoutList
-            filteredWorkouts={filteredWorkouts}
-            themeOptions={themeOptions}
-            themeIcons={themeIcons}
-            onEventClick={handleEventClick}
-            onDuplicateWorkout={handleDuplicateWorkout}
-            onDeleteWorkout={handleDeleteWorkout}
-            userRole={user?.role}
-          />
-        </TabsContent>
-      </Tabs>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };
