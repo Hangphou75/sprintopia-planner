@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -37,7 +36,7 @@ const Athletes = () => {
 
   const { data: athletes } = useAthletes(user?.id);
   const { data: athletePrograms } = useAthletePrograms(selectedAthlete?.id);
-  const { inviteMutation, deleteAthleteMutation, deleteProgramMutation } = useAthleteMutations();
+  const { inviteMutation, deleteAthleteMutation, deleteProgramMutation, assignProgramMutation } = useAthleteMutations();
 
   // Fetch available programs for the coach
   const { data: availablePrograms } = useQuery({
@@ -74,48 +73,22 @@ const Athletes = () => {
     }
   };
 
-  const handleDeleteProgram = async (programId: string) => {
-    if (!user?.id || !selectedAthlete?.id) return;
-
-    try {
-      const { error } = await supabase
-        .from("shared_programs")
-        .delete()
-        .match({ 
-          program_id: programId, 
-          athlete_id: selectedAthlete.id,
-          coach_id: user.id 
-        });
-
-      if (error) throw error;
-
-      toast.success("Programme retiré avec succès");
-    } catch (error) {
-      console.error("Error removing program:", error);
-      toast.error("Erreur lors du retrait du programme");
-    }
+  const handleDeleteProgram = (programId: string) => {
+    if (!user?.id) return;
+    deleteProgramMutation.mutate({ coachId: user.id, programId });
   };
 
-  const handleAssignProgram = async (programId: string) => {
+  const handleAssignProgram = (programId: string) => {
     if (!user?.id || !selectedAthlete?.id) return;
-
-    try {
-      const { error } = await supabase
-        .from("shared_programs")
-        .insert({
-          program_id: programId,
-          athlete_id: selectedAthlete.id,
-          coach_id: user.id,
-        });
-
-      if (error) throw error;
-
-      toast.success("Programme associé avec succès");
-      setIsProgramDialogOpen(false);
-    } catch (error) {
-      console.error("Error assigning program:", error);
-      toast.error("Erreur lors de l'association du programme");
-    }
+    assignProgramMutation.mutate({
+      coachId: user.id,
+      athleteId: selectedAthlete.id,
+      programId: programId,
+    }, {
+      onSuccess: () => {
+        setIsProgramDialogOpen(false);
+      }
+    });
   };
 
   return (

@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -55,6 +56,8 @@ export const useAthleteMutations = () => {
       if (error) throw error;
     },
     onSuccess: () => {
+      // On invalide aussi la query "athlete-programs" pour mettre à jour la liste des programmes
+      queryClient.invalidateQueries({ queryKey: ["coach-athletes"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-programs"] });
       toast.success("Programme supprimé avec succès");
     },
@@ -64,9 +67,34 @@ export const useAthleteMutations = () => {
     },
   });
 
+  const assignProgramMutation = useMutation({
+    mutationFn: async ({ coachId, athleteId, programId }: { coachId: string; athleteId: string; programId: string }) => {
+      const { error } = await supabase
+        .from("shared_programs")
+        .insert({
+          coach_id: coachId,
+          athlete_id: athleteId,
+          program_id: programId,
+        });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      // On invalide aussi la query "athlete-programs" pour mettre à jour la liste des programmes
+      queryClient.invalidateQueries({ queryKey: ["coach-athletes"] });
+      queryClient.invalidateQueries({ queryKey: ["athlete-programs"] });
+      toast.success("Programme associé avec succès");
+    },
+    onError: (error) => {
+      console.error("Error assigning program:", error);
+      toast.error("Erreur lors de l'association du programme");
+    },
+  });
+
   return {
     inviteMutation,
     deleteAthleteMutation,
     deleteProgramMutation,
+    assignProgramMutation,
   };
 };
