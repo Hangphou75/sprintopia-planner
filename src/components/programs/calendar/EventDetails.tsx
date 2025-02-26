@@ -1,5 +1,6 @@
+
 import { Event, ThemeOption } from "../types";
-import { format } from "date-fns";
+import { format, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CompetitionEventCard } from "./CompetitionEventCard";
 import { WorkoutEventCard } from "./WorkoutEventCard";
@@ -21,10 +22,16 @@ export const EventDetails = ({
   readOnly = false,
   themeOptions = [],
 }: EventDetailsProps) => {
-  const selectedDateEvents = events.filter(
-    (event) =>
-      format(new Date(event.date), 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd')
-  );
+  const selectedDateEvents = events.filter((event) => {
+    try {
+      const eventDate = startOfDay(new Date(event.date));
+      const compareDate = startOfDay(selectedDate);
+      return eventDate.getTime() === compareDate.getTime();
+    } catch (error) {
+      console.error("Error comparing dates:", error);
+      return false;
+    }
+  });
 
   return (
     <div className="space-y-4">
