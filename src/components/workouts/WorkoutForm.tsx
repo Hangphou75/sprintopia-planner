@@ -1,3 +1,4 @@
+
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export type WorkoutFormValues = {
   title: string;
@@ -63,6 +65,7 @@ const themes = [
 
 export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [selectedTheme, setSelectedTheme] = useState(initialValues?.theme || themes[0].value);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -103,11 +106,12 @@ export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
       <form 
         onSubmit={form.handleSubmit(handleSubmit)} 
         className={cn(
-          "space-y-4 p-6 rounded-lg border transition-colors grid grid-cols-2 gap-6",
+          "space-y-4 p-6 rounded-lg border transition-colors",
+          isMobile ? "grid grid-cols-1" : "grid grid-cols-2 gap-6",
           currentTheme && `border-${currentTheme.color}`
         )}
       >
-        <div className="col-span-2 flex justify-between items-center">
+        <div className={isMobile ? "col-span-1" : "col-span-2"} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Button 
             type="button" 
             variant="outline" 
@@ -119,7 +123,8 @@ export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
           </Button>
         </div>
 
-        <div className="space-y-4">
+        <div className={isMobile ? "col-span-1 space-y-4" : "space-y-4"}>
+          {/* Titre de la séance */}
           <FormField
             control={form.control}
             name="title"
@@ -134,6 +139,7 @@ export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
             )}
           />
 
+          {/* Description */}
           <FormField
             control={form.control}
             name="description"
@@ -152,6 +158,7 @@ export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
             )}
           />
 
+          {/* Thème */}
           <FormField
             control={form.control}
             name="theme"
@@ -193,9 +200,8 @@ export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
               </FormItem>
             )}
           />
-        </div>
 
-        <div className="space-y-4">
+          {/* Date */}
           <FormField
             control={form.control}
             name="date"
@@ -205,9 +211,9 @@ export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
                 <Calendar
                   mode="single"
                   selected={field.value}
-                  onSelect={field.onChange}
+                  onSelect={(date) => date && field.onChange(date)}
                   disabled={(date) =>
-                    date < new Date() || date < new Date("1900-01-01")
+                    date < new Date("1900-01-01")
                   }
                   initialFocus
                   className="rounded-md border"
@@ -217,6 +223,7 @@ export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
             )}
           />
 
+          {/* Heure */}
           <FormField
             control={form.control}
             name="time"
@@ -231,6 +238,7 @@ export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
             )}
           />
 
+          {/* Récupération */}
           <FormField
             control={form.control}
             name="recovery"
@@ -246,7 +254,15 @@ export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
           />
         </div>
 
-        <div className="col-span-2">
+        {/* En version non-mobile, c'est ici que se trouvent les champs de droite */}
+        {!isMobile && (
+          <div className="space-y-4">
+            {/* Ces champs seront déplacés dans la colonne principale en version mobile */}
+          </div>
+        )}
+
+        {/* Détails de la séance */}
+        <div className={isMobile ? "col-span-1" : "col-span-2"}>
           <FormField
             control={form.control}
             name="details"
@@ -266,7 +282,8 @@ export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
           />
         </div>
 
-        <div className="col-span-2 flex justify-end gap-4">
+        {/* Boutons de validation */}
+        <div className={isMobile ? "col-span-1" : "col-span-2"} style={{ display: "flex", justifyContent: "flex-end", gap: "1rem" }}>
           <Button 
             type="button" 
             variant="outline" 
