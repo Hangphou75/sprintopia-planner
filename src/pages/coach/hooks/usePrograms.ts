@@ -11,6 +11,9 @@ export const usePrograms = () => {
     queryKey: ["programs", user?.id],
     queryFn: async () => {
       console.log("Fetching programs for user:", user?.id);
+      
+      // Si l'utilisateur est admin, nous voulons quand même qu'il voie ses propres programmes 
+      // comme s'il était un coach
       const { data, error } = await supabase
         .from("programs")
         .select(`

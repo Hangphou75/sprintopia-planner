@@ -22,6 +22,9 @@ export const ManagedAthletes = ({ coachId }: ManagedAthletesProps) => {
     current: number;
     limit: number | null;
   } | null>(null);
+  
+  // Vérifier si l'utilisateur est admin pour gérer différents cas
+  const isAdmin = user?.role === "admin";
 
   const { data } = useQuery({
     queryKey: ["coach-athletes", coachId, page],
@@ -55,7 +58,7 @@ export const ManagedAthletes = ({ coachId }: ManagedAthletesProps) => {
       if (count !== null && user?.max_athletes !== undefined) {
         setUsageInfo({
           current: count,
-          limit: user.max_athletes
+          limit: isAdmin ? null : user.max_athletes // Les admins n'ont pas de limite
         });
       }
       
@@ -97,7 +100,7 @@ export const ManagedAthletes = ({ coachId }: ManagedAthletesProps) => {
 
   return (
     <div className="space-y-4">
-      {isSubscriptionExpired && (
+      {isSubscriptionExpired && !isAdmin && (
         <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-center gap-2 text-red-800">
           <AlertTriangle className="h-4 w-4" />
           <div className="flex-1 text-sm">Votre abonnement a expiré</div>
