@@ -12,13 +12,18 @@ const Index = () => {
     return <Navigate to="/individual-athlete/planning" replace />;
   }
 
-  if (user?.role === "coach" || user?.role === "admin") {
-    // Admin users are redirected to the coach interface to maintain coach functionality
-    console.log("Redirecting coach/admin to coach dashboard");
+  if (isAuthenticated && user?.role === "admin") {
+    // Admin users should be redirected to admin pages
+    console.log("Redirecting admin to admin dashboard");
+    return <Navigate to="/admin" replace />;
+  }
+
+  if (isAuthenticated && user?.role === "coach") {
+    console.log("Redirecting coach to coach dashboard");
     return <Navigate to="/coach" replace />;
   }
 
-  if (user?.role === "athlete") {
+  if (isAuthenticated && user?.role === "athlete") {
     console.log("Redirecting athlete to athlete home");
     return <Navigate to="/athlete" replace />;
   }

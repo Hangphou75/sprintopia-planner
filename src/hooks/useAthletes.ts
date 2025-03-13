@@ -12,7 +12,7 @@ export const useAthletes = (coachId: string | undefined) => {
         return [];
       }
       
-      console.log("Fetching athletes for coach:", coachId);
+      console.log("Fetching athletes for coach/admin:", coachId);
       
       // Get user profile to check if admin
       const { data: userProfile, error: profileError } = await supabase
@@ -23,13 +23,13 @@ export const useAthletes = (coachId: string | undefined) => {
         
       if (profileError) {
         console.error("Error fetching user profile:", profileError);
+        throw profileError;
       }
       
       const isAdmin = userProfile?.role === "admin";
       console.log("User is admin:", isAdmin);
       
-      // For admin users, fetch all athlete relationships
-      const { data, error } = await supabase
+      let query = supabase
         .from("coach_athletes")
         .select(`
           *,
@@ -44,8 +44,15 @@ export const useAthletes = (coachId: string | undefined) => {
             created_at,
             updated_at
           )
-        `)
-        .eq("coach_id", coachId);
+        `);
+      
+      // For admins, fetch all athlete relationships
+      // For regular coaches, fetch only their athletes
+      if (!isAdmin) {
+        query = query.eq("coach_id", coachId);
+      }
+      
+      const { data, error } = await query;
 
       if (error) {
         console.error("Error fetching athletes:", error);

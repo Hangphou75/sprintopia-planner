@@ -55,6 +55,7 @@ export const usePrograms = () => {
       }
 
       console.log("Raw programs data:", data);
+      console.log("Number of programs fetched:", data?.length || 0);
 
       // Transform the data to match the Program type
       const transformedData: Program[] = (data || []).map((program: any) => ({

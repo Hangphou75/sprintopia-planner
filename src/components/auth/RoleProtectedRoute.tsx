@@ -8,17 +8,20 @@ interface RoleProtectedRouteProps {
 
 export const RoleProtectedRoute = ({ allowedRoles }: RoleProtectedRouteProps) => {
   const { user } = useAuth();
+  
+  console.log("RoleProtectedRoute - Current user:", user?.role, "Allowed roles:", allowedRoles);
 
-  // Les admins ont accès à toutes les routes
+  // Admins have access to all routes
   if (user?.role === "admin") {
-    // Si la route est pour le coach, permettre l'accès car les admins doivent 
-    // avoir accès aux fonctionnalités coach
+    console.log("Admin access granted to route");
     return <Outlet />;
   }
 
   if (!user || !user.role || !allowedRoles.includes(user.role)) {
+    console.log("Access denied for role:", user?.role);
     return <Navigate to="/login" replace />;
   }
 
+  console.log("Access granted for role:", user?.role);
   return <Outlet />;
 };
