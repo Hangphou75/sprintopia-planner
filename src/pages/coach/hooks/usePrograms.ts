@@ -8,17 +8,20 @@ export const usePrograms = () => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["programs", user?.id],
+    queryKey: ["programs", user?.id, user?.role],
     queryFn: async () => {
-      console.log("Fetching programs for user:", user?.id);
+      console.log("Fetching programs for user:", user?.id, "role:", user?.role);
       
       if (!user?.id) {
         console.error("No user ID provided to usePrograms");
         return [];
       }
       
-      // Fetch programs created by this user
-      const { data, error } = await supabase
+      // Check if user is admin
+      const isAdmin = user?.role === "admin";
+      console.log("User is admin:", isAdmin);
+      
+      let query = supabase
         .from("programs")
         .select(`
           *,
@@ -36,8 +39,15 @@ export const usePrograms = () => {
             last_name
           )
         `)
-        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
+      
+      // For regular coaches, fetch only their programs
+      // For admins, fetch all programs
+      if (!isAdmin) {
+        query = query.eq("user_id", user.id);
+      }
+      
+      const { data, error } = await query;
 
       if (error) {
         console.error("Error fetching programs:", error);

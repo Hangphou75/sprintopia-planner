@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Profile } from "@/types/database";
@@ -17,19 +17,23 @@ const Athletes = () => {
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [isProgramDialogOpen, setIsProgramDialogOpen] = useState(false);
   const [selectedAthlete, setSelectedAthlete] = useState<Profile | null>(null);
+  const isAdmin = user?.role === "admin";
+
+  console.log("Athletes page - user:", user, "isAdmin:", isAdmin);
 
   // Ensure we're using the user ID correctly
   const { data: athletes, isLoading, error } = useAthletes(user?.id);
   const { deleteAthleteMutation } = useAthleteMutations();
 
   // Log data for debugging
-  console.log("Athletes page - user:", user);
   console.log("Athletes page - fetched athletes:", athletes);
   
-  if (error) {
-    console.error("Error in Athletes component:", error);
-    toast.error("Erreur lors du chargement des athlètes");
-  }
+  useEffect(() => {
+    if (error) {
+      console.error("Error in Athletes component:", error);
+      toast.error("Erreur lors du chargement des athlètes");
+    }
+  }, [error]);
 
   const handleDeleteAthlete = (athlete: Profile) => {
     if (user?.id && window.confirm(`Êtes-vous sûr de vouloir supprimer ${athlete.first_name} ${athlete.last_name} ?`)) {
@@ -57,12 +61,21 @@ const Athletes = () => {
           <div className="animate-spin h-8 w-8 border-t-2 border-primary mx-auto"></div>
           <p className="mt-2 text-muted-foreground">Chargement des athlètes...</p>
         </div>
-      ) : (
+      ) : error ? (
+        <div className="py-8 text-center">
+          <p className="text-red-500">Une erreur est survenue lors du chargement des athlètes</p>
+          <p className="mt-2 text-muted-foreground">{String(error)}</p>
+        </div>
+      ) : athletes && athletes.length > 0 ? (
         <AthletesList
-          athletes={athletes || []}
+          athletes={athletes}
           onEditAthlete={setSelectedAthlete}
           onDeleteAthlete={handleDeleteAthlete}
         />
+      ) : (
+        <div className="py-8 text-center">
+          <p className="text-muted-foreground">Aucun athlète trouvé</p>
+        </div>
       )}
 
       <InviteAthleteDialogEnhanced

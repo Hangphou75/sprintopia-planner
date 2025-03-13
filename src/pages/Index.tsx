@@ -13,9 +13,8 @@ const Index = () => {
   }
 
   if (user?.role === "coach" || user?.role === "admin") {
-    // Les admins sont redirigés vers la page coach par défaut
-    // pour conserver leurs fonctionnalités de coach
-    console.log("Redirecting coach/admin to coach home page");
+    // Admin users are redirected to the coach interface to maintain coach functionality
+    console.log("Redirecting coach/admin to coach dashboard");
     return <Navigate to="/coach" replace />;
   }
 

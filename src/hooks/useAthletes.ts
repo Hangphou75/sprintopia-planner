@@ -14,6 +14,21 @@ export const useAthletes = (coachId: string | undefined) => {
       
       console.log("Fetching athletes for coach:", coachId);
       
+      // Get user profile to check if admin
+      const { data: userProfile, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", coachId)
+        .single();
+        
+      if (profileError) {
+        console.error("Error fetching user profile:", profileError);
+      }
+      
+      const isAdmin = userProfile?.role === "admin";
+      console.log("User is admin:", isAdmin);
+      
+      // For admin users, fetch all athlete relationships
       const { data, error } = await supabase
         .from("coach_athletes")
         .select(`

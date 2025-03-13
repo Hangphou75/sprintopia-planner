@@ -25,10 +25,14 @@ export const ShareProgramDialog = ({
 }: ShareProgramDialogProps) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const isAdmin = user?.role === "admin";
 
-  const { data: athletes } = useQuery({
+  console.log("ShareProgramDialog - user:", user, "isAdmin:", isAdmin);
+
+  const { data: athletes, isLoading } = useQuery({
     queryKey: ["coach-athletes", user?.id],
     queryFn: async () => {
+      console.log("Fetching athletes for program sharing, coach ID:", user?.id);
       const { data, error } = await supabase
         .from("coach_athletes")
         .select(`
@@ -41,16 +45,22 @@ export const ShareProgramDialog = ({
         `)
         .eq("coach_id", user?.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching athletes for sharing:", error);
+        throw error;
+      }
+      
+      console.log("Athletes for sharing:", data);
       return data;
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && isOpen,
   });
 
   const handleShare = async (athleteId: string) => {
     if (!user?.id || !programId) return;
 
     try {
+      console.log("Sharing program", programId, "with athlete", athleteId);
       const { error } = await supabase
         .from("shared_programs")
         .insert({
@@ -59,7 +69,10 @@ export const ShareProgramDialog = ({
           coach_id: user.id,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error sharing program:", error);
+        throw error;
+      }
 
       toast.success("Programme partagé avec succès");
       onOpenChange(false);
@@ -81,17 +94,22 @@ export const ShareProgramDialog = ({
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
-          {athletes?.map((relation) => (
-            <Button
-              key={relation.athlete.id}
-              variant="outline"
-              className="justify-start"
-              onClick={() => handleShare(relation.athlete.id)}
-            >
-              {relation.athlete.first_name} {relation.athlete.last_name}
-            </Button>
-          ))}
-          {(!athletes || athletes.length === 0) && (
+          {isLoading ? (
+            <div className="text-center py-2">
+              <p className="text-muted-foreground">Chargement des athlètes...</p>
+            </div>
+          ) : athletes && athletes.length > 0 ? (
+            athletes.map((relation) => (
+              <Button
+                key={relation.athlete.id}
+                variant="outline"
+                className="justify-start"
+                onClick={() => handleShare(relation.athlete.id)}
+              >
+                {relation.athlete.first_name} {relation.athlete.last_name}
+              </Button>
+            ))
+          ) : (
             <p className="text-muted-foreground text-center">
               Aucun athlète disponible
             </p>

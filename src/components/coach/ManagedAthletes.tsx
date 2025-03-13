@@ -23,12 +23,14 @@ export const ManagedAthletes = ({ coachId }: ManagedAthletesProps) => {
     limit: number | null;
   } | null>(null);
   
-  // Vérifier si l'utilisateur est admin pour gérer différents cas
+  // Check if user is admin to handle different cases
   const isAdmin = user?.role === "admin";
+  console.log("ManagedAthletes - user:", user, "isAdmin:", isAdmin);
 
-  const { data } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["coach-athletes", coachId, page],
     queryFn: async () => {
+      console.log("Fetching managed athletes for coach:", coachId);
       if (!coachId) return { athletes: [], count: 0 };
 
       const from = (page - 1) * pageSize;
@@ -47,18 +49,28 @@ export const ManagedAthletes = ({ coachId }: ManagedAthletesProps) => {
         .eq("coach_id", coachId)
         .range(from, to);
 
+      if (athletesError) {
+        console.error("Error fetching athletes:", athletesError);
+        throw athletesError;
+      }
+
       const { count, error: countError } = await supabase
         .from("coach_athletes")
         .select("*", { count: "exact", head: true })
         .eq("coach_id", coachId);
 
-      if (athletesError || countError) throw athletesError || countError;
+      if (countError) {
+        console.error("Error counting athletes:", countError);
+        throw countError;
+      }
       
-      // Mettre à jour les informations d'utilisation
+      console.log("Managed athletes fetched:", athletes, "count:", count);
+      
+      // Update usage information
       if (count !== null && user?.max_athletes !== undefined) {
         setUsageInfo({
           current: count,
-          limit: isAdmin ? null : user.max_athletes // Les admins n'ont pas de limite
+          limit: isAdmin ? null : user.max_athletes // Admins have no limit
         });
       }
       
@@ -73,7 +85,7 @@ export const ManagedAthletes = ({ coachId }: ManagedAthletesProps) => {
     navigate("/coach/profile");
   };
 
-  // Fonction pour rendre la barre de progression d'utilisation
+  // Function to render the usage progress bar
   const renderUsageBar = () => {
     if (!usageInfo || usageInfo.limit === null) return null;
     
@@ -98,6 +110,23 @@ export const ManagedAthletes = ({ coachId }: ManagedAthletesProps) => {
     );
   };
 
+  if (isLoading) {
+    return (
+      <div className="text-center py-4">
+        <p className="text-muted-foreground">Chargement des athlètes...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-4">
+        <p className="text-red-500">Erreur lors du chargement des athlètes</p>
+        <p className="text-sm text-muted-foreground">{String(error)}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {isSubscriptionExpired && !isAdmin && (
@@ -112,7 +141,7 @@ export const ManagedAthletes = ({ coachId }: ManagedAthletesProps) => {
       
       {usageInfo && usageInfo.limit !== null && renderUsageBar()}
       
-      {data?.athletes.length === 0 ? (
+      {!data?.athletes || data.athletes.length === 0 ? (
         <div className="text-center py-6">
           <Users className="mx-auto h-12 w-12 text-muted-foreground" />
           <p className="mt-2 text-sm text-muted-foreground">
@@ -122,7 +151,7 @@ export const ManagedAthletes = ({ coachId }: ManagedAthletesProps) => {
       ) : (
         <>
           <div className="space-y-2">
-            {data?.athletes.map((relation) => (
+            {data.athletes.map((relation) => (
               <div
                 key={relation.athlete.id}
                 className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 cursor-pointer"
