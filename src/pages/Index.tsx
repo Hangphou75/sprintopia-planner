@@ -12,16 +12,14 @@ const Index = () => {
     return <Navigate to="/individual-athlete/planning" replace />;
   }
 
-  if (user?.role === "coach") {
+  if (user?.role === "coach" || user?.role === "admin") {
+    // Les admins sont redirigés vers la page coach par défaut
+    // pour conserver leurs fonctionnalités de coach
     return <Navigate to="/coach" replace />;
   }
 
   if (user?.role === "athlete") {
     return <Navigate to="/athlete" replace />;
-  }
-
-  if (user?.role === "admin") {
-    return <Navigate to="/admin" replace />;
   }
 
   console.log("No valid role found, redirecting to login");

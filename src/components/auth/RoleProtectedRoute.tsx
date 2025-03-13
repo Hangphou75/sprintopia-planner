@@ -11,6 +11,8 @@ export const RoleProtectedRoute = ({ allowedRoles }: RoleProtectedRouteProps) =>
 
   // Les admins ont accès à toutes les routes
   if (user?.role === "admin") {
+    // Si la route est pour le coach, permettre l'accès car les admins doivent 
+    // avoir accès aux fonctionnalités coach
     return <Outlet />;
   }
 
