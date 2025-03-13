@@ -12,8 +12,12 @@ export const usePrograms = () => {
     queryFn: async () => {
       console.log("Fetching programs for user:", user?.id);
       
-      // Si l'utilisateur est admin, nous voulons quand même qu'il voie ses propres programmes 
-      // comme s'il était un coach
+      if (!user?.id) {
+        console.error("No user ID provided to usePrograms");
+        return [];
+      }
+      
+      // Fetch programs created by this user
       const { data, error } = await supabase
         .from("programs")
         .select(`
@@ -32,10 +36,15 @@ export const usePrograms = () => {
             last_name
           )
         `)
-        .eq("user_id", user?.id)
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching programs:", error);
+        throw error;
+      }
+
+      console.log("Raw programs data:", data);
 
       // Transform the data to match the Program type
       const transformedData: Program[] = (data || []).map((program: any) => ({

@@ -10,6 +10,7 @@ import { InviteAthleteDialogEnhanced } from "@/components/athletes/InviteAthlete
 import { AssignProgramDialog } from "@/components/athletes/AssignProgramDialog";
 import { AthleteProgramsSheet } from "@/components/athletes/AthleteProgramsSheet";
 import { Plus } from "lucide-react";
+import { toast } from "sonner";
 
 const Athletes = () => {
   const { user } = useAuth();
@@ -17,8 +18,18 @@ const Athletes = () => {
   const [isProgramDialogOpen, setIsProgramDialogOpen] = useState(false);
   const [selectedAthlete, setSelectedAthlete] = useState<Profile | null>(null);
 
-  const { data: athletes } = useAthletes(user?.id);
+  // Ensure we're using the user ID correctly
+  const { data: athletes, isLoading, error } = useAthletes(user?.id);
   const { deleteAthleteMutation } = useAthleteMutations();
+
+  // Log data for debugging
+  console.log("Athletes page - user:", user);
+  console.log("Athletes page - fetched athletes:", athletes);
+  
+  if (error) {
+    console.error("Error in Athletes component:", error);
+    toast.error("Erreur lors du chargement des athlètes");
+  }
 
   const handleDeleteAthlete = (athlete: Profile) => {
     if (user?.id && window.confirm(`Êtes-vous sûr de vouloir supprimer ${athlete.first_name} ${athlete.last_name} ?`)) {
@@ -41,11 +52,18 @@ const Athletes = () => {
         </Button>
       </div>
 
-      <AthletesList
-        athletes={athletes || []}
-        onEditAthlete={setSelectedAthlete}
-        onDeleteAthlete={handleDeleteAthlete}
-      />
+      {isLoading ? (
+        <div className="py-8 text-center">
+          <div className="animate-spin h-8 w-8 border-t-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Chargement des athlètes...</p>
+        </div>
+      ) : (
+        <AthletesList
+          athletes={athletes || []}
+          onEditAthlete={setSelectedAthlete}
+          onDeleteAthlete={handleDeleteAthlete}
+        />
+      )}
 
       <InviteAthleteDialogEnhanced
         isOpen={isInviteDialogOpen}

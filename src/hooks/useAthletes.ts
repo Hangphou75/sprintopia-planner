@@ -7,7 +7,12 @@ export const useAthletes = (coachId: string | undefined) => {
   return useQuery({
     queryKey: ["coach-athletes", coachId],
     queryFn: async () => {
-      if (!coachId) return [];
+      if (!coachId) {
+        console.error("No coach ID provided to useAthletes");
+        return [];
+      }
+      
+      console.log("Fetching athletes for coach:", coachId);
       
       const { data, error } = await supabase
         .from("coach_athletes")
@@ -31,6 +36,8 @@ export const useAthletes = (coachId: string | undefined) => {
         console.error("Error fetching athletes:", error);
         throw error;
       }
+      
+      console.log("Athletes data fetched:", data);
       
       return data;
     },

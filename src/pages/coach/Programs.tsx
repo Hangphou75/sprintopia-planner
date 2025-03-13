@@ -9,6 +9,7 @@ import { usePrograms } from "./hooks/usePrograms";
 import { useProgramOperations } from "./hooks/useProgramOperations";
 import { ShareProgramDialog } from "./components/ShareProgramDialog";
 import { DeleteProgramDialog } from "./components/DeleteProgramDialog";
+import { toast } from "sonner";
 
 const Programs = () => {
   const { user } = useAuth();
@@ -17,8 +18,17 @@ const Programs = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
 
-  const { data: programs, isLoading } = usePrograms();
+  const { data: programs, isLoading, error } = usePrograms();
   const { deleteMutation, duplicateMutation } = useProgramOperations();
+
+  // Log data for debugging
+  console.log("Programs page - user:", user);
+  console.log("Programs page - fetched programs:", programs);
+  
+  if (error) {
+    console.error("Error in Programs component:", error);
+    toast.error("Erreur lors du chargement des programmes");
+  }
 
   const handleDelete = (programId: string) => {
     setSelectedProgramId(programId);
@@ -47,7 +57,8 @@ const Programs = () => {
     return (
       <div className="container mx-auto py-6 px-4">
         <div className="text-center">
-          <p className="text-muted-foreground">Chargement des programmes...</p>
+          <div className="animate-spin h-8 w-8 border-t-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Chargement des programmes...</p>
         </div>
       </div>
     );

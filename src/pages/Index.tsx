@@ -15,10 +15,12 @@ const Index = () => {
   if (user?.role === "coach" || user?.role === "admin") {
     // Les admins sont redirigés vers la page coach par défaut
     // pour conserver leurs fonctionnalités de coach
+    console.log("Redirecting coach/admin to coach home page");
     return <Navigate to="/coach" replace />;
   }
 
   if (user?.role === "athlete") {
+    console.log("Redirecting athlete to athlete home");
     return <Navigate to="/athlete" replace />;
   }
 
