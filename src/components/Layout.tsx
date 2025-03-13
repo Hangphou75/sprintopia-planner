@@ -1,3 +1,4 @@
+
 import { Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
@@ -31,8 +32,18 @@ const Layout = () => {
     return null;
   }
 
-  const isCoach = user.role === "coach";
-  const basePath = user.role === "individual_athlete" ? "/individual-athlete" : isCoach ? "/coach" : "/athlete";
+  // For admin users, we want to provide access to both admin and coach interfaces
+  // So we set isCoach to true for admin users as well
+  const isCoach = user.role === "coach" || user.role === "admin";
+  
+  // For profile navigation, we still need to use the right base path
+  const basePath = user.role === "individual_athlete" 
+    ? "/individual-athlete" 
+    : user.role === "admin" 
+      ? "/admin" 
+      : isCoach 
+        ? "/coach" 
+        : "/athlete";
 
   return (
     <SidebarProvider defaultOpen={true}>

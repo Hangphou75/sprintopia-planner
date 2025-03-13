@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CoachCalendar } from "@/components/coach/CoachCalendar";
@@ -6,10 +7,13 @@ import { WeeklyCompetitions } from "@/components/coach/WeeklyCompetitions";
 
 const CoachHome = () => {
   const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
 
   return (
     <div className="space-y-6 p-6">
-      <h1 className="text-3xl font-bold">Tableau de bord</h1>
+      <h1 className="text-3xl font-bold">
+        {isAdmin ? "Tableau de bord Coach (Admin)" : "Tableau de bord"}
+      </h1>
       
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="md:col-span-2">

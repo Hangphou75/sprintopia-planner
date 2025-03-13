@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from "react-router-dom";
-import { UserCircle, Shield } from "lucide-react";
+import { UserCircle, Shield, Users, Calendar, Home } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -20,6 +20,7 @@ export const MainNav = ({ isCoach, basePath }: MainNavProps) => {
     setOpenMobile(false);
   };
 
+  // For admin users, we'll make both admin and coach navigation available
   return (
     <nav className="grid gap-2 px-2">
       {isAdmin && (
@@ -29,16 +30,27 @@ export const MainNav = ({ isCoach, basePath }: MainNavProps) => {
             to="/admin"
             onClick={handleLinkClick}
             className={`flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 ${
-              location.pathname.startsWith("/admin") ? "bg-gray-100" : ""
+              location.pathname === "/admin" ? "bg-gray-100" : ""
             }`}
           >
             <Shield className="h-4 w-4" />
-            Gestion des profils
+            Tableau de bord admin
+          </Link>
+          <Link
+            to="/admin/users"
+            onClick={handleLinkClick}
+            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 ${
+              location.pathname === "/admin/users" ? "bg-gray-100" : ""
+            }`}
+          >
+            <Users className="h-4 w-4" />
+            Utilisateurs
           </Link>
         </div>
       )}
 
-      {isCoach ? (
+      {/* If user is admin or coach, show the coach navigation */}
+      {(isCoach || isAdmin) && (
         <>
           <h4 className="mb-1 px-2 text-sm font-semibold">Coach</h4>
           <Link
@@ -48,6 +60,7 @@ export const MainNav = ({ isCoach, basePath }: MainNavProps) => {
               location.pathname === "/coach" ? "bg-gray-100" : ""
             }`}
           >
+            <Home className="h-4 w-4" />
             Accueil
           </Link>
           <Link
@@ -57,6 +70,7 @@ export const MainNav = ({ isCoach, basePath }: MainNavProps) => {
               location.pathname === "/coach/athletes" ? "bg-gray-100" : ""
             }`}
           >
+            <Users className="h-4 w-4" />
             Mes athlètes
           </Link>
           <Link
@@ -66,10 +80,12 @@ export const MainNav = ({ isCoach, basePath }: MainNavProps) => {
               location.pathname === "/coach/planning" ? "bg-gray-100" : ""
             }`}
           >
+            <Calendar className="h-4 w-4" />
             Planning
           </Link>
         </>
-      ) : isIndividualAthlete ? (
+      )}
+      {!isCoach && !isAdmin && isIndividualAthlete ? (
         <>
           <Link
             to="/individual-athlete"
@@ -78,6 +94,7 @@ export const MainNav = ({ isCoach, basePath }: MainNavProps) => {
               location.pathname === "/individual-athlete" ? "bg-gray-100" : ""
             }`}
           >
+            <Home className="h-4 w-4" />
             Accueil
           </Link>
           <Link
@@ -87,10 +104,11 @@ export const MainNav = ({ isCoach, basePath }: MainNavProps) => {
               location.pathname === "/individual-athlete/planning" ? "bg-gray-100" : ""
             }`}
           >
+            <Calendar className="h-4 w-4" />
             Planning
           </Link>
         </>
-      ) : (
+      ) : (!isCoach && !isAdmin) ? (
         <>
           <Link
             to="/athlete"
@@ -99,6 +117,7 @@ export const MainNav = ({ isCoach, basePath }: MainNavProps) => {
               location.pathname === "/athlete" ? "bg-gray-100" : ""
             }`}
           >
+            <Home className="h-4 w-4" />
             Accueil
           </Link>
           <Link
@@ -108,10 +127,12 @@ export const MainNav = ({ isCoach, basePath }: MainNavProps) => {
               location.pathname === "/athlete/planning" ? "bg-gray-100" : ""
             }`}
           >
+            <Calendar className="h-4 w-4" />
             Planning
           </Link>
         </>
-      )}
+      ) : null}
+      
       <Link
         to={`${basePath}/profile`}
         onClick={handleLinkClick}

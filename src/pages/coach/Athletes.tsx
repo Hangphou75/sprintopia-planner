@@ -49,7 +49,9 @@ const Athletes = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Mes athlètes</h1>
+        <h1 className="text-3xl font-bold">
+          {isAdmin ? "Gestion des athlètes (Admin)" : "Mes athlètes"}
+        </h1>
         <Button onClick={() => setIsInviteDialogOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Inviter un athlète
