@@ -1,9 +1,12 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, Users, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
+import { useAuth } from "@/contexts/AuthContext";
 
 type ManagedAthletesProps = {
   coachId: string | undefined;
@@ -13,6 +16,12 @@ export const ManagedAthletes = ({ coachId }: ManagedAthletesProps) => {
   const [page, setPage] = useState(1);
   const navigate = useNavigate();
   const pageSize = 5;
+  const { isSubscriptionExpired } = useSubscriptionLimits();
+  const { user } = useAuth();
+  const [usageInfo, setUsageInfo] = useState<{
+    current: number;
+    limit: number | null;
+  } | null>(null);
 
   const { data } = useQuery({
     queryKey: ["coach-athletes", coachId, page],
@@ -41,6 +50,15 @@ export const ManagedAthletes = ({ coachId }: ManagedAthletesProps) => {
         .eq("coach_id", coachId);
 
       if (athletesError || countError) throw athletesError || countError;
+      
+      // Mettre à jour les informations d'utilisation
+      if (count !== null && user?.max_athletes !== undefined) {
+        setUsageInfo({
+          current: count,
+          limit: user.max_athletes
+        });
+      }
+      
       return { athletes, count };
     },
     enabled: !!coachId,
@@ -48,8 +66,49 @@ export const ManagedAthletes = ({ coachId }: ManagedAthletesProps) => {
 
   const totalPages = Math.ceil((data?.count || 0) / pageSize);
 
+  const handleUpgradeClick = () => {
+    navigate("/coach/profile");
+  };
+
+  // Fonction pour rendre la barre de progression d'utilisation
+  const renderUsageBar = () => {
+    if (!usageInfo || usageInfo.limit === null) return null;
+    
+    const percentage = (usageInfo.current / usageInfo.limit) * 100;
+    const isNearLimit = percentage >= 80;
+    
+    return (
+      <div className="mt-2 space-y-1">
+        <div className="flex justify-between text-xs">
+          <span>{usageInfo.current} / {usageInfo.limit} athlètes</span>
+          {isNearLimit && (
+            <span className="text-amber-600 font-medium">Limite proche</span>
+          )}
+        </div>
+        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div 
+            className={`h-full ${isNearLimit ? 'bg-amber-500' : 'bg-green-500'}`}
+            style={{ width: `${Math.min(percentage, 100)}%` }}
+          />
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-4">
+      {isSubscriptionExpired && (
+        <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-center gap-2 text-red-800">
+          <AlertTriangle className="h-4 w-4" />
+          <div className="flex-1 text-sm">Votre abonnement a expiré</div>
+          <Button size="sm" onClick={handleUpgradeClick}>
+            Renouveler
+          </Button>
+        </div>
+      )}
+      
+      {usageInfo && usageInfo.limit !== null && renderUsageBar()}
+      
       {data?.athletes.length === 0 ? (
         <div className="text-center py-6">
           <Users className="mx-auto h-12 w-12 text-muted-foreground" />

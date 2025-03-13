@@ -6,7 +6,7 @@ import { Profile } from "@/types/database";
 import { useAthletes } from "@/hooks/useAthletes";
 import { useAthleteMutations } from "@/hooks/useAthleteMutations";
 import { AthletesList } from "@/components/athletes/AthletesList";
-import { InviteAthleteDialog } from "@/components/athletes/InviteAthleteDialog";
+import { InviteAthleteDialogEnhanced } from "@/components/athletes/InviteAthleteDialog";
 import { AssignProgramDialog } from "@/components/athletes/AssignProgramDialog";
 import { AthleteProgramsSheet } from "@/components/athletes/AthleteProgramsSheet";
 import { Plus } from "lucide-react";
@@ -47,7 +47,7 @@ const Athletes = () => {
         onDeleteAthlete={handleDeleteAthlete}
       />
 
-      <InviteAthleteDialog
+      <InviteAthleteDialogEnhanced
         isOpen={isInviteDialogOpen}
         onOpenChange={setIsInviteDialogOpen}
       />

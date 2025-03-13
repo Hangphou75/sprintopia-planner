@@ -185,7 +185,10 @@ export type Database = {
           first_name: string | null
           id: string
           last_name: string | null
+          max_athletes: number | null
           role: string | null
+          subscription_expiry: string | null
+          subscription_tier: Database["public"]["Enums"]["subscription_tier"]
           updated_at: string
         }
         Insert: {
@@ -196,7 +199,10 @@ export type Database = {
           first_name?: string | null
           id: string
           last_name?: string | null
+          max_athletes?: number | null
           role?: string | null
+          subscription_expiry?: string | null
+          subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           updated_at?: string
         }
         Update: {
@@ -207,7 +213,10 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
+          max_athletes?: number | null
           role?: string | null
+          subscription_expiry?: string | null
+          subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           updated_at?: string
         }
         Relationships: []
@@ -587,6 +596,7 @@ export type Database = {
     Enums: {
       competition_level: "local" | "regional" | "national" | "international"
       sprint_distance: "60" | "100" | "200" | "400"
+      subscription_tier: "free" | "standard" | "premium"
       training_phase: "preparation" | "specific" | "competition"
       training_phase_description:
         | "preparation_generale"

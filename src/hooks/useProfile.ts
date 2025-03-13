@@ -1,7 +1,9 @@
+
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export type UserRole = "athlete" | "coach" | "individual_athlete";
+export type SubscriptionTier = "free" | "standard" | "premium";
 
 export interface UserProfile {
   id: string;
@@ -10,6 +12,9 @@ export interface UserProfile {
   last_name: string | null;
   bio: string | null;
   role: UserRole;
+  subscription_tier?: SubscriptionTier;
+  subscription_expiry?: string | null;
+  max_athletes?: number | null;
 }
 
 export function useProfile() {
@@ -56,6 +61,9 @@ export function useProfile() {
         email: profileData.email,
         bio: profileData.bio,
         role: profileData.role as UserRole || 'athlete',
+        subscription_tier: profileData.subscription_tier as SubscriptionTier || 'free',
+        subscription_expiry: profileData.subscription_expiry,
+        max_athletes: profileData.max_athletes,
       };
 
       console.log("Processed user profile:", userProfile);
