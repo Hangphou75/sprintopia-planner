@@ -30,6 +30,11 @@ import { IndividualEditWorkout } from "./pages/individual-athlete/EditWorkout";
 import { IndividualProgramWorkouts } from "./pages/individual-athlete/ProgramWorkouts";
 import Programs from "./pages/individual-athlete/Programs";
 import GenerateProgram from "./pages/individual-athlete/GenerateProgram";
+import AdminHome from "./pages/admin/Home";
+import UsersList from "./pages/admin/UsersList";
+import EditUser from "./pages/admin/EditUser";
+import UserAthletes from "./pages/admin/UserAthletes";
+import UserPrograms from "./pages/admin/UserPrograms";
 
 function App() {
   return (
@@ -76,6 +81,14 @@ function App() {
               <Route path="/individual-athlete/programs/:programId/workouts/new" element={<IndividualCreateWorkout />} />
               <Route path="/individual-athlete/programs/:programId/workouts/:workoutId/edit" element={<IndividualEditWorkout />} />
               <Route path="/individual-athlete/programs/generate" element={<GenerateProgram />} />
+            </Route>
+
+            <Route element={<RoleProtectedRoute allowedRoles={["admin"]} />}>
+              <Route path="/admin" element={<AdminHome />} />
+              <Route path="/admin/users" element={<UsersList />} />
+              <Route path="/admin/users/:id/edit" element={<EditUser />} />
+              <Route path="/admin/users/:id/athletes" element={<UserAthletes />} />
+              <Route path="/admin/users/:id/programs" element={<UserPrograms />} />
             </Route>
           </Route>
         </Route>

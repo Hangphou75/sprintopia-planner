@@ -2,7 +2,7 @@
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export type UserRole = "athlete" | "coach" | "individual_athlete";
+export type UserRole = "athlete" | "coach" | "individual_athlete" | "admin";
 export type SubscriptionTier = "free" | "standard" | "premium";
 
 export interface UserProfile {

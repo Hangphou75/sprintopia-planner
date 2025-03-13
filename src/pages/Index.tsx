@@ -20,9 +20,12 @@ const Index = () => {
     return <Navigate to="/athlete" replace />;
   }
 
+  if (user?.role === "admin") {
+    return <Navigate to="/admin" replace />;
+  }
+
   console.log("No valid role found, redirecting to login");
   return <Navigate to="/login" replace />;
 };
 
 export default Index;
-
