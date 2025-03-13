@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserProfile, SubscriptionTier } from "@/hooks/useProfile";
+import { UserProfile, SubscriptionTier, UserRole } from "@/hooks/useProfile";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
@@ -27,15 +27,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { fr } from "date-fns/locale";
 
+// Define the schema with proper type for the role field
 const userFormSchema = z.object({
   first_name: z.string().min(1, "Le prénom est requis"),
   last_name: z.string().min(1, "Le nom est requis"),
   email: z.string().email("Email invalide"),
   bio: z.string().optional().nullable(),
-  role: z.enum(["coach", "athlete", "individual_athlete", "admin"]),
-  subscription_tier: z.enum(["free", "standard", "premium"]),
+  role: z.enum(["coach", "athlete", "individual_athlete", "admin"] as const),
+  subscription_tier: z.enum(["free", "standard", "premium"] as const),
   max_athletes: z.number().nullable().optional(),
   subscription_expiry: z.string().nullable().optional(),
 });
@@ -82,12 +82,17 @@ export const EditUser = () => {
             formattedExpiry = date.toISOString().split("T")[0];
           }
 
+          // Ensure the role is one of the allowed values
+          const role: UserRole = ["coach", "athlete", "individual_athlete", "admin"].includes(data.role) 
+            ? data.role as UserRole 
+            : "athlete";
+
           form.reset({
             first_name: data.first_name || "",
             last_name: data.last_name || "",
             email: data.email || "",
             bio: data.bio || "",
-            role: data.role || "athlete",
+            role: role,
             subscription_tier: data.subscription_tier || "free",
             max_athletes: data.max_athletes,
             subscription_expiry: formattedExpiry || null,

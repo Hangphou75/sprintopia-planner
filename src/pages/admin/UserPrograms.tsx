@@ -7,8 +7,40 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar } from "lucide-react";
 import { Program } from "@/types/program";
 import { UserProfile } from "@/hooks/useProfile";
-import { ProgramCard } from "@/components/programs/ProgramCard";
 import { Link } from "react-router-dom";
+
+// Import a simpler version of the card that we'll adapt for our use case
+import { Card as UICard, CardContent as UICardContent, CardHeader as UICardHeader, CardTitle as UICardTitle, CardFooter } from "@/components/ui/card";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+
+// Custom ProgramCard component for admin use that doesn't rely on the actions prop
+const AdminProgramCard = ({ program, user }: { program: Program, user: UserProfile | null }) => {
+  return (
+    <UICard className="h-full">
+      <UICardHeader className="pb-2">
+        <UICardTitle className="text-lg">{program.name}</UICardTitle>
+      </UICardHeader>
+      <UICardContent className="text-sm space-y-1">
+        <p>Durée : {program.duration} semaines</p>
+        <p>Début : {format(new Date(program.start_date), "dd MMMM yyyy", { locale: fr })}</p>
+        {program.objectives && <p>Objectifs : {program.objectives}</p>}
+      </UICardContent>
+      <CardFooter>
+        <Link 
+          to={`/${user?.role === "coach" ? "coach" : "individual-athlete"}/programs/${program.id}/workouts`}
+          className="w-full"
+          target="_blank"
+        >
+          <Button size="sm" variant="secondary" className="w-full">
+            <Calendar className="h-4 w-4 mr-2" />
+            Voir les entraînements
+          </Button>
+        </Link>
+      </CardFooter>
+    </UICard>
+  );
+};
 
 export const UserPrograms = () => {
   const { id } = useParams<{ id: string }>();
@@ -79,20 +111,10 @@ export const UserPrograms = () => {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {programs.map((program) => (
-                    <ProgramCard 
+                    <AdminProgramCard 
                       key={program.id} 
-                      program={program}
-                      actions={
-                        <Link 
-                          to={`/${user?.role === "coach" ? "coach" : "individual-athlete"}/programs/${program.id}/workouts`}
-                          target="_blank"
-                        >
-                          <Button size="sm" variant="secondary">
-                            <Calendar className="h-4 w-4 mr-2" />
-                            Voir les entraînements
-                          </Button>
-                        </Link>
-                      }
+                      program={program} 
+                      user={user}
                     />
                   ))}
                 </div>
