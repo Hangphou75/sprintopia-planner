@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Profile } from "@/types/database";
@@ -10,17 +10,11 @@ import { InviteAthleteDialogEnhanced } from "@/components/athletes/InviteAthlete
 import { AssignProgramDialog } from "@/components/athletes/AssignProgramDialog";
 import { AthleteProgramsSheet } from "@/components/athletes/AthleteProgramsSheet";
 import { AthleteCompetitionsSheet } from "@/components/athletes/AthleteCompetitionsSheet";
-import { Plus, Filter, Search, Users2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AthleteFilters } from "@/components/athletes/AthleteFilters";
+import { AthleteLoadingState } from "@/components/athletes/AthleteLoadingState";
+import { AthleteAdminFilters } from "@/components/athletes/AthleteAdminFilters";
 
 // Define a coach type to handle the data properly
 type CoachInfo = {
@@ -43,13 +37,6 @@ const Athletes = () => {
 
   const { data: athletes, isLoading, error } = useAthletes(user?.id);
   const { deleteAthleteMutation } = useAthleteMutations();
-
-  useEffect(() => {
-    if (error) {
-      console.error("Error in Athletes component:", error);
-      toast.error("Erreur lors du chargement des athlètes");
-    }
-  }, [error]);
 
   const handleDeleteAthlete = (athlete: Profile) => {
     if (user?.id && window.confirm(`Êtes-vous sûr de vouloir supprimer ${athlete.first_name} ${athlete.last_name} ?`)) {
@@ -131,85 +118,35 @@ const Athletes = () => {
       </div>
 
       {isAdmin && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-lg">Vue administrateur</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Users2 className="h-5 w-5 text-muted-foreground" />
-                <span>Total des athlètes: {athletes?.length || 0}</span>
-              </div>
-              
-              <div className="flex-1">
-                <Select 
-                  value={selectedCoach || ""} 
-                  onValueChange={value => setSelectedCoach(value || null)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filtrer par coach" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Tous les coachs</SelectItem>
-                    {coaches.map(coach => (
-                      <SelectItem key={coach.id} value={coach.id}>{coach.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <AthleteAdminFilters
+          totalAthletes={athletes?.length || 0}
+          coaches={coaches}
+          selectedCoach={selectedCoach}
+          onCoachChange={setSelectedCoach}
+        />
       )}
 
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Rechercher un athlète..."
-            className="pl-10"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <div className="w-full md:w-[200px]">
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger>
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Trier par" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="name">Nom</SelectItem>
-              <SelectItem value="email">Email</SelectItem>
-              <SelectItem value="date">Date d'ajout</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <AthleteFilters
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+      />
 
-      {isLoading ? (
-        <div className="py-8 text-center">
-          <div className="animate-spin h-8 w-8 border-t-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Chargement des athlètes...</p>
-        </div>
-      ) : error ? (
-        <div className="py-8 text-center">
-          <p className="text-red-500">Une erreur est survenue lors du chargement des athlètes</p>
-          <p className="mt-2 text-muted-foreground">{String(error)}</p>
-        </div>
-      ) : formattedAthletes && formattedAthletes.length > 0 ? (
+      <AthleteLoadingState isLoading={isLoading} error={error} />
+
+      {!isLoading && !error && formattedAthletes && formattedAthletes.length > 0 ? (
         <AthleteTable
           athletes={formattedAthletes}
           onEditAthlete={(athlete) => handleAthleteSelect(athlete, "programs")}
           onViewCompetitions={(athlete) => handleAthleteSelect(athlete, "competitions")}
           onDeleteAthlete={handleDeleteAthlete}
         />
-      ) : (
+      ) : !isLoading && !error ? (
         <div className="py-8 text-center">
           <p className="text-muted-foreground">Aucun athlète trouvé</p>
         </div>
-      )}
+      ) : null}
 
       <InviteAthleteDialogEnhanced
         isOpen={isInviteDialogOpen}
