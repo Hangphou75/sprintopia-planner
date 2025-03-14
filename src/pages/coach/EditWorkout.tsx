@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate } from "react-router-dom";
 import { WorkoutForm, WorkoutFormValues } from "@/components/workouts/WorkoutForm";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,6 +35,9 @@ export const EditWorkout = () => {
           theme: values.theme,
           recovery: values.recovery,
           details: values.details,
+          phase: values.phase || null,
+          type: values.type || null,
+          intensity: values.intensity || null,
         })
         .eq("id", workoutId);
 
@@ -68,6 +72,9 @@ export const EditWorkout = () => {
           theme: workout.theme || "",
           recovery: workout.recovery || "",
           details: workout.details?.toString() || "",
+          phase: workout.phase,
+          type: workout.type,
+          intensity: workout.intensity || "",
         }}
       />
     </div>

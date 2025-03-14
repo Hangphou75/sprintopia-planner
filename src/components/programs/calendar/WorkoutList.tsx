@@ -73,7 +73,10 @@ export const WorkoutList = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => onEditWorkout(event)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEditWorkout(event);
+                      }}
                       className="h-8 w-8"
                     >
                       <svg
@@ -95,7 +98,10 @@ export const WorkoutList = ({
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => onDuplicateWorkout(event)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDuplicateWorkout(event);
+                    }}
                     className="h-8 w-8"
                   >
                     <svg
@@ -119,6 +125,7 @@ export const WorkoutList = ({
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-red-500"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
