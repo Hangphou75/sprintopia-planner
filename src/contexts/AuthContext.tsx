@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useEffect } from "react";
 import { useProfile, UserProfile } from "@/hooks/useProfile";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { useAuthInit } from "@/hooks/useAuthInit";
@@ -26,6 +26,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     hasProfile: !!profile, 
     isLoading: initLoading || sessionLoading 
   });
+
+  // Add an effect to log authentication state changes
+  useEffect(() => {
+    console.log("AuthProvider - Authentication state updated:", {
+      hasProfile: !!profile,
+      isLoading: initLoading || sessionLoading
+    });
+  }, [profile, initLoading, sessionLoading]);
 
   const login = async (email: string, password: string, role: string) => {
     try {

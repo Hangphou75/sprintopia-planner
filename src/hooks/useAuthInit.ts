@@ -75,6 +75,7 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
 
       if (event === 'SIGNED_IN' && session?.user) {
         console.log("User signed in, updating profile");
+        setIsLoading(true);
         const cachedProfile = localStorage.getItem(`userProfile_${session.user.id}`);
         if (cachedProfile) {
           onProfileUpdate(JSON.parse(cachedProfile));
@@ -90,11 +91,13 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
               console.log("No profile found for signed in user");
               onProfileUpdate(null);
             }
+            setIsLoading(false);
           }
         } catch (error) {
           console.error("Error fetching profile after sign in:", error);
           if (mounted) {
             onProfileUpdate(null);
+            setIsLoading(false);
           }
         }
       } else if (event === 'SIGNED_OUT') {
@@ -102,6 +105,13 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
         if (mounted) {
           localStorage.removeItem('userProfile');
           onProfileUpdate(null);
+          setIsLoading(false);
+        }
+      } else if (event === 'INITIAL_SESSION') {
+        console.log("No active session found");
+        if (mounted && !session) {
+          onProfileUpdate(null);
+          setIsLoading(false);
         }
       }
     });

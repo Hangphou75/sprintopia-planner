@@ -7,14 +7,23 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useLocation } from "react-router-dom";
 
 const Login = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
-  console.log("Login page - Auth state:", { user, isAuthenticated });
+  console.log("Login page - Auth state:", { user, isAuthenticated, isLoading });
 
-  // Ne rediriger que si l'utilisateur est bien authentifié avec un profil valide
+  // Wait for authentication to be checked before redirecting
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <p>Chargement...</p>
+      </div>
+    );
+  }
+
+  // Only redirect if user is properly authenticated with a valid profile and role
   if (isAuthenticated && user && user.role) {
-    // Si nous avons une URL de redirection stockée dans location.state, l'utiliser
+    // If we have a URL of redirection stored in location.state, use it
     if (location.state?.from) {
       console.log("Redirecting to stored location:", location.state.from);
       return <Navigate to={location.state.from} replace />;
@@ -25,7 +34,9 @@ const Login = () => {
       ? '/individual-athlete/planning'
       : user.role === 'coach'
         ? '/coach'
-        : '/athlete';
+        : user.role === 'admin'
+          ? '/admin'
+          : '/athlete';
         
     console.log("Redirecting to default path:", defaultPath);
     return <Navigate to={defaultPath} replace />;

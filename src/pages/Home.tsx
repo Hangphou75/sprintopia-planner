@@ -7,12 +7,12 @@ export default function Home() {
   
   console.log("Home page - Auth state:", { user, isAuthenticated, isLoading });
 
-  // Attendre que l'authentification soit vérifiée avant de rediriger
+  // Wait until authentication is verified before redirecting
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Chargement...</div>;
   }
   
-  // Si l'utilisateur est authentifié, rediriger selon son rôle
+  // If the user is authenticated, redirect according to their role
   if (isAuthenticated && user?.role) {
     if (user.role === "individual_athlete") {
       return <Navigate to="/individual-athlete/planning" replace />;
@@ -31,6 +31,6 @@ export default function Home() {
     }
   }
 
-  // Si l'utilisateur n'est pas authentifié, rediriger vers la page de login
+  // If the user is not authenticated, redirect to the login page
   return <Navigate to="/login" replace />;
 }
