@@ -12,7 +12,8 @@ import {
   LayoutGrid, 
   BarChart3,
   MessageSquare,
-  Trophy
+  Trophy,
+  User
 } from "lucide-react";
 
 type NavItem = {
@@ -38,7 +39,7 @@ export function MainNav({ isCoach, basePath }: MainNavProps) {
   // Menu spécifique pour les administrateurs
   const adminItems: NavItem[] = [
     {
-      title: "Utilisateurs",
+      title: "Gestion Utilisateurs",
       href: "/admin/users",
       icon: <Users className="h-5 w-5" />,
       isActive: (path) => path.startsWith("/admin/users"),
@@ -76,6 +77,12 @@ export function MainNav({ isCoach, basePath }: MainNavProps) {
       icon: <MessageSquare className="h-5 w-5" />,
       isActive: (path) => path.startsWith("/coach/feedback"),
     },
+    {
+      title: "Profil",
+      href: "/profile",
+      icon: <User className="h-5 w-5" />,
+      isActive: (path) => path === "/profile",
+    }
   ];
 
   const athleteItems: NavItem[] = [
@@ -91,22 +98,34 @@ export function MainNav({ isCoach, basePath }: MainNavProps) {
       icon: <BarChart3 className="h-5 w-5" />,
       isActive: (path) => path.includes("/stats"),
     },
+    {
+      title: "Mon profil",
+      href: "/profile",
+      icon: <User className="h-5 w-5" />,
+      isActive: (path) => path === "/profile",
+    }
   ];
 
   // Déterminer les éléments à afficher en fonction du rôle et du chemin
   let items: NavItem[] = [];
   
+  // Si l'utilisateur est sur une route admin, montrer uniquement le menu admin
   if (pathname.startsWith("/admin")) {
-    items = adminItems;
-  } else if (pathname.startsWith("/coach") || isCoach) {
-    items = coachItems;
-  } else {
-    items = athleteItems;
-  }
-
-  // Pour admin, nous devons aussi montrer le menu admin
-  if (isCoach && basePath === "/admin" && !pathname.startsWith("/admin")) {
+    // Pour les admins dans la section admin, on ajoute aussi les items coach
     items = [...adminItems, ...coachItems];
+  } 
+  // Sinon si l'utilisateur est coach ou sur une route coach
+  else if (pathname.startsWith("/coach") || isCoach) {
+    // Si l'utilisateur est également admin, on ajoute les items admin
+    if (basePath === "/admin") {
+      items = [...adminItems, ...coachItems];
+    } else {
+      items = coachItems;
+    }
+  } 
+  // Sinon, c'est un athlète
+  else {
+    items = athleteItems;
   }
 
   console.log("MainNav - Current state:", { pathname, isCoach, basePath, items });

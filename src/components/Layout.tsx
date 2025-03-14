@@ -62,9 +62,10 @@ const Layout = () => {
     basePath = "/coach";
   }
 
-  // For admins, check if we're in the admin section
+  // For admins, check if we're in the admin section to determine what menu to show
   const isInAdminSection = window.location.pathname.startsWith("/admin");
-  const displayPath = isInAdminSection && user?.role === "admin" ? "/admin" : basePath;
+  // Always use the user's actual role path to ensure consistent navigation
+  const displayPath = user?.role === "admin" ? "/admin" : basePath;
 
   console.log("Layout navigation setup:", { 
     isCoach, 

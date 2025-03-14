@@ -30,6 +30,9 @@ import Competitions from "@/pages/admin/Competitions";
 import IndividualAthleteHome from "@/pages/individual-athlete/Home";
 import CoachHome from "@/pages/coach/Home";
 import CoachPlanning from "@/pages/coach/Planning";
+import { CreateWorkout } from "@/pages/coach/CreateWorkout";
+import { EditWorkout } from "@/pages/coach/EditWorkout";
+import CoachProfile from "@/pages/coach/Profile";
 
 function App() {
   return (
@@ -79,13 +82,16 @@ function App() {
 
               {/* Coach routes */}
               <Route path="coach">
-                <Route element={<RoleProtectedRoute allowedRoles={["coach"]} />}>
+                <Route element={<RoleProtectedRoute allowedRoles={["coach", "admin"]} />}>
                   <Route index element={<Navigate to="/coach/dashboard" replace />} />
                   <Route path="dashboard" element={<CoachHome />} />
                   <Route path="athletes" element={<div>Coach Athletes Management</div>} />
                   <Route path="planning" element={<CoachPlanning />} />
                   <Route path="programs/*" element={<CoachPlanning />} />
                   <Route path="feedback" element={<div>Coach Feedback</div>} />
+                  <Route path="profile" element={<CoachProfile />} />
+                  <Route path="programs/:programId/workouts/create" element={<CreateWorkout />} />
+                  <Route path="programs/:programId/workouts/:workoutId/edit" element={<EditWorkout />} />
                 </Route>
               </Route>
 
