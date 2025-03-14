@@ -1,8 +1,8 @@
 
 import { Profile } from "@/types/database";
-import { Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { memo, useCallback } from "react";
+import { AthleteEmptyState } from "./AthleteEmptyState";
 
 interface AthletesListProps {
   athletes: { athlete: { id: string; first_name: string; last_name: string; email: string } }[] | undefined;
@@ -17,14 +17,7 @@ export const AthletesList = memo(({ athletes, isAdmin }: AthletesListProps) => {
   }, [navigate]);
 
   if (!athletes || athletes.length === 0) {
-    return (
-      <div className="text-center py-6">
-        <Users className="mx-auto h-12 w-12 text-muted-foreground" />
-        <p className="mt-2 text-sm text-muted-foreground">
-          {isAdmin ? "Aucun athlète dans le système" : "Aucun athlète géré pour le moment"}
-        </p>
-      </div>
-    );
+    return <AthleteEmptyState isAdmin={isAdmin} />;
   }
 
   return (
