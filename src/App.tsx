@@ -34,17 +34,19 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+          {/* Public routes */}
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="reset-password" element={<ResetPassword />} />
+          <Route path="contact" element={<Contact />} />
+          <Route path="legal" element={<Legal />} />
+          <Route path="pricing" element={<Pricing />} />
+          
+          {/* Layout wrapper for authenticated routes */}
           <Route element={<Layout />}>
-            {/* Public routes */}
             <Route index element={<Index />} />
             <Route path="home" element={<Home />} />
-            <Route path="login" element={<Login />} />
-            <Route path="register" element={<Register />} />
-            <Route path="forgot-password" element={<ForgotPassword />} />
-            <Route path="reset-password" element={<ResetPassword />} />
-            <Route path="contact" element={<Contact />} />
-            <Route path="legal" element={<Legal />} />
-            <Route path="pricing" element={<Pricing />} />
 
             {/* Protected routes */}
             <Route element={<ProtectedRoute />}>

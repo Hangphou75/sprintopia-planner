@@ -21,14 +21,15 @@ const Layout = () => {
   
   console.log("Layout - Auth state:", { user, isAuthenticated, isLoading });
 
-  // Rediriger vers la page de login si l'utilisateur n'est pas authentifié
+  // Si l'utilisateur n'est pas authentifié et que le chargement est terminé, rediriger vers la page de login
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       console.log("Layout: User not authenticated, redirecting to login");
-      navigate("/login");
+      navigate("/login", { replace: true });
     }
   }, [isAuthenticated, isLoading, navigate]);
 
+  // Afficher un écran de chargement pendant la vérification de l'authentification
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -40,17 +41,10 @@ const Layout = () => {
     );
   }
 
-  // Si l'utilisateur n'est pas authentifié, on affiche quand même un chargement
-  // car la redirection sera gérée par l'effet ci-dessus
+  // Si l'utilisateur n'est pas authentifié, on n'affiche pas le layout
+  // La redirection sera gérée par l'effet ci-dessus
   if (!isAuthenticated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">Redirection vers la page de connexion...</p>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   // Pour admin users, we want to provide access to both admin and coach interfaces

@@ -22,9 +22,10 @@ export const ProtectedRoute = () => {
 
   // Si l'utilisateur n'est pas authentifié, rediriger vers la page de connexion
   if (!isAuthenticated) {
-    console.log("User not authenticated, redirecting to login");
+    console.log("User not authenticated, redirecting to login from ProtectedRoute");
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
+  // L'utilisateur est authentifié, on peut afficher le contenu protégé
   return <Outlet />;
 };

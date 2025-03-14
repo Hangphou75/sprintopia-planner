@@ -43,7 +43,7 @@ const Login = () => {
     }
   }, [isAuthenticated, user, isLoading, from, navigate]);
 
-  // Wait for authentication to be checked before redirecting
+  // Wait for authentication to be checked before rendering content
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
@@ -55,28 +55,7 @@ const Login = () => {
     );
   }
 
-  // If user is already authenticated with a valid profile and role, redirect
-  if (isAuthenticated && user && user.role) {
-    console.log("User authenticated with role:", user.role);
-    
-    // If we have a URL of redirection stored in location.state, use it
-    if (from && from !== "/login") {
-      console.log("Redirecting to stored location:", from);
-      return <Navigate to={from} replace />;
-    }
-
-    // Otherwise, redirect based on role
-    const defaultPath = 
-      user.role === 'individual_athlete' ? '/individual-athlete' :
-      user.role === 'coach' ? '/coach' :
-      user.role === 'admin' ? '/admin/users' :
-      user.role === 'athlete' ? '/athlete' : '/';
-        
-    console.log("Redirecting to default path:", defaultPath);
-    return <Navigate to={defaultPath} replace />;
-  }
-
-  // If user is not authenticated, show the login page
+  // Render the login page content for non-authenticated users
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <Card className="w-[400px]">
