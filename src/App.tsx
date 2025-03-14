@@ -25,13 +25,13 @@ import { UsersList } from "@/pages/admin/UsersList";
 import EditUser from "@/pages/admin/EditUser";
 import { UserAthletes } from "@/pages/admin/UserAthletes";
 import UserPrograms from "@/pages/admin/UserPrograms";
-import { Competitions } from "@/pages/admin/Competitions";
+import Competitions from "@/pages/admin/Competitions";
 
 function App() {
   return (
     <BrowserRouter>
-      <Layout>
-        <Routes>
+      <Routes>
+        <Route element={<Layout />}>
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -82,8 +82,8 @@ function App() {
           <Route path="/" element={<Index />} />
           <Route path="/home" element={<Home />} />
           <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Layout>
+        </Route>
+      </Routes>
       <Toaster position="top-right" />
     </BrowserRouter>
   );
