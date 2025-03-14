@@ -22,6 +22,12 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+// Define a coach type to handle the data properly
+type CoachInfo = {
+  id: string;
+  name: string;
+};
+
 const Athletes = () => {
   const { user } = useAuth();
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
@@ -57,14 +63,19 @@ const Athletes = () => {
   };
 
   // Get unique coaches from the data (for admin filtering)
-  const coaches = isAdmin && athletes ? 
-    Array.from(new Set(athletes.map(a => a.coach_id))).map(coachId => {
-      const coachRelation = athletes.find(a => a.coach_id === coachId);
-      return coachRelation?.coach ? {
-        id: coachId,
-        name: `${coachRelation.coach.first_name} ${coachRelation.coach.last_name}`
-      } : null;
-    }).filter(Boolean) : [];
+  const coaches: CoachInfo[] = isAdmin && athletes ? 
+    Array.from(new Set(athletes.map(a => a.coach_id)))
+      .map(coachId => {
+        const coachRelation = athletes.find(a => a.coach_id === coachId);
+        if (coachRelation?.coach) {
+          return {
+            id: coachId,
+            name: `${coachRelation.coach.first_name} ${coachRelation.coach.last_name}`
+          };
+        }
+        return null;
+      })
+      .filter((coach): coach is CoachInfo => coach !== null) : [];
 
   const filteredAthletes = athletes?.filter(relation => {
     const athlete = relation.athlete;
@@ -141,7 +152,7 @@ const Athletes = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">Tous les coachs</SelectItem>
-                    {coaches.map(coach => coach && (
+                    {coaches.map(coach => (
                       <SelectItem key={coach.id} value={coach.id}>{coach.name}</SelectItem>
                     ))}
                   </SelectContent>
