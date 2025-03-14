@@ -1,9 +1,12 @@
 
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 export const ProtectedRoute = () => {
   const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
+  
+  console.log("ProtectedRoute - Current state:", { isAuthenticated, isLoading, path: location.pathname });
   
   // Si l'authentification est en cours, afficher un chargement
   if (isLoading) {
@@ -19,7 +22,8 @@ export const ProtectedRoute = () => {
 
   // Si l'utilisateur n'est pas authentifié, rediriger vers la page de connexion
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace state={{ from: window.location.pathname }} />;
+    console.log("User not authenticated, redirecting to login");
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
   return <Outlet />;

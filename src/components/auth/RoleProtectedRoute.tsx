@@ -1,5 +1,5 @@
 
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 export interface RoleProtectedRouteProps {
@@ -8,6 +8,7 @@ export interface RoleProtectedRouteProps {
 
 export const RoleProtectedRoute = ({ allowedRoles }: RoleProtectedRouteProps) => {
   const { user, isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
   
   console.log("RoleProtectedRoute - Current user:", user?.role, "Allowed roles:", allowedRoles, "isAuthenticated:", isAuthenticated, "isLoading:", isLoading);
 
@@ -23,16 +24,16 @@ export const RoleProtectedRoute = ({ allowedRoles }: RoleProtectedRouteProps) =>
     );
   }
 
+  // If not authenticated, redirect to login
+  if (!isAuthenticated || !user) {
+    console.log("User not authenticated, redirecting to login");
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
+
   // Admins have access to all routes 
   if (user?.role === "admin") {
     console.log("Admin access granted to route");
     return <Outlet />;
-  }
-
-  // If not authenticated, redirect to login
-  if (!isAuthenticated || !user) {
-    console.log("User not authenticated, redirecting to login");
-    return <Navigate to="/login" replace state={{ from: window.location.pathname }} />;
   }
 
   // If authenticated but role doesn't match, deny access

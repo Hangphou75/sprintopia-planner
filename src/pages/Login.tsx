@@ -1,14 +1,47 @@
+import { useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { SignUpForm } from "@/components/auth/SignUpForm";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 
 const Login = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const from = location.state?.from || "/";
+
+  console.log("Login page - Auth state:", { 
+    user, 
+    userRole: user?.role, 
+    isAuthenticated, 
+    isLoading,
+    from 
+  });
+
+  useEffect(() => {
+    // If user becomes authenticated while on this page, redirect them
+    if (isAuthenticated && user && user.role && !isLoading) {
+      console.log("User authenticated while on login page, redirecting");
+      
+      // If we have a URL of redirection stored in location.state, use it
+      if (from && from !== "/login") {
+        console.log("Redirecting to stored location:", from);
+        navigate(from, { replace: true });
+      } else {
+        // Otherwise, redirect based on role
+        const defaultPath = 
+          user.role === 'individual_athlete' ? '/individual-athlete' :
+          user.role === 'coach' ? '/coach' :
+          user.role === 'admin' ? '/admin/users' :
+          user.role === 'athlete' ? '/athlete' : '/';
+            
+        console.log("Redirecting to default path:", defaultPath);
+        navigate(defaultPath, { replace: true });
+      }
+    }
+  }, [isAuthenticated, user, isLoading, from, navigate]);
 
   // Wait for authentication to be checked before redirecting
   if (isLoading) {
@@ -22,7 +55,7 @@ const Login = () => {
     );
   }
 
-  // Only redirect if user is properly authenticated with a valid profile and role
+  // If user is already authenticated with a valid profile and role, redirect
   if (isAuthenticated && user && user.role) {
     console.log("User authenticated with role:", user.role);
     

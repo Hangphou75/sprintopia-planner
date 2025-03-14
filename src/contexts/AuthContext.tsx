@@ -2,7 +2,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useProfile, UserProfile } from "@/hooks/useProfile";
 import { useAuthSession } from "@/hooks/useAuthSession";
-import { useAuthInit } from "@/hooks/useAuthInit";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -43,11 +42,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setProfile(userProfile);
             } else if (isMounted) {
               console.log("No profile found despite valid session");
-              localStorage.removeItem('userProfile');
+              setProfile(null);
             }
           } catch (error) {
             console.error("Error refreshing profile:", error);
+            if (isMounted) setProfile(null);
           }
+        } else {
+          if (isMounted) setProfile(null);
         }
         
         if (isMounted) {
@@ -57,6 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         console.error("Error checking session:", error);
         if (isMounted) {
+          setProfile(null);
           setInitialized(true);
           setIsInitLoading(false);
         }
