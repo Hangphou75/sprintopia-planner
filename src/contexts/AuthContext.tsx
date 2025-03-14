@@ -46,6 +46,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setProfile(userProfile);
             } else if (isMounted) {
               console.log("No profile found despite valid session");
+              // Clear the session if no valid profile found
+              localStorage.removeItem('userProfile');
             }
           } catch (error) {
             console.error("Error refreshing profile:", error);

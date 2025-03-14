@@ -23,12 +23,13 @@ export const RoleProtectedRoute = ({ allowedRoles }: RoleProtectedRouteProps) =>
     );
   }
 
-  // Admins have access to all routes
+  // Admins have access to all routes 
   if (user?.role === "admin") {
     console.log("Admin access granted to route");
     return <Outlet />;
   }
 
+  // If not authenticated or role doesn't match, redirect to login
   if (!isAuthenticated || !user || !user.role || !allowedRoles.includes(user.role)) {
     console.log("Access denied for role:", user?.role);
     return <Navigate to="/login" replace />;

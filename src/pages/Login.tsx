@@ -30,7 +30,10 @@ const Login = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-        <p>Chargement...</p>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2">Chargement...</p>
+        </div>
       </div>
     );
   }
@@ -45,14 +48,14 @@ const Login = () => {
       return <Navigate to={location.state.from} replace />;
     }
 
-    // Sinon, rediriger vers la page par défaut selon le rôle
+    // Otherwise, redirect based on role
     const defaultPath = user.role === 'individual_athlete' 
       ? '/individual-athlete/planning'
       : user.role === 'coach'
-        ? '/coach'
+        ? '/coach/dashboard'
         : user.role === 'admin'
           ? '/admin/users'  // Redirect admin to users management page
-          : '/athlete';
+          : '/athlete/planning';
         
     console.log("Redirecting to default path:", defaultPath);
     return <Navigate to={defaultPath} replace />;

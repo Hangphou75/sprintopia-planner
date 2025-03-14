@@ -27,14 +27,20 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
       if (session?.user) {
         console.log("Found existing session for user:", session.user.id);
         
-        const cachedProfile = localStorage.getItem(`userProfile_${session.user.id}`);
-        if (cachedProfile) {
-          const parsedProfile = JSON.parse(cachedProfile);
-          console.log("Using cached profile with role:", parsedProfile.role);
-          onProfileUpdate(parsedProfile);
-        }
-        
+        // Use cached profile temporarily while fetching fresh data
         try {
+          const cachedProfile = localStorage.getItem(`userProfile_${session.user.id}`);
+          if (cachedProfile) {
+            try {
+              const parsedProfile = JSON.parse(cachedProfile);
+              console.log("Using cached profile with role:", parsedProfile.role);
+              onProfileUpdate(parsedProfile);
+            } catch (e) {
+              console.error("Error parsing cached profile:", e);
+              localStorage.removeItem(`userProfile_${session.user.id}`);
+            }
+          }
+          
           console.log("Fetching fresh profile data");
           const userProfile = await fetchProfile(session.user.id);
           if (userProfile) {
@@ -43,6 +49,7 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
             onProfileUpdate(userProfile);
           } else {
             console.log("No profile data found despite valid session");
+            localStorage.removeItem(`userProfile_${session.user.id}`);
             onProfileUpdate(null);
           }
         } catch (profileError) {

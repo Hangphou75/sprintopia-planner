@@ -58,21 +58,18 @@ function App() {
 
             {/* Individual Athlete routes */}
             <Route path="/individual-athlete" element={<RoleProtectedRoute allowedRoles={["individual_athlete"]} />}>
-              {/* Individual Athlete routes */}
               <Route path="planning" element={<div>Individual Athlete Planning</div>} />
               {/* Add more individual athlete routes here */}
             </Route>
 
             {/* Coach routes */}
             <Route path="/coach" element={<RoleProtectedRoute allowedRoles={["coach"]} />}>
-              {/* Coach routes */}
               <Route path="dashboard" element={<div>Coach Dashboard</div>} />
               {/* Add more coach routes here */}
             </Route>
 
             {/* Athlete routes */}
             <Route path="/athlete" element={<RoleProtectedRoute allowedRoles={["athlete"]} />}>
-              {/* Athlete routes */}
               <Route path="planning" element={<div>Athlete Planning</div>} />
               {/* Add more athlete routes here */}
             </Route>

@@ -12,7 +12,7 @@ export default function Home() {
     isLoading 
   });
 
-  // Wait until authentication is verified before redirecting, but don't wait too long
+  // Wait until authentication is verified before redirecting
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -38,7 +38,7 @@ export default function Home() {
     }
 
     if (user.role === "coach") {
-      return <Navigate to="/coach" replace />;
+      return <Navigate to="/coach/dashboard" replace />;
     }
 
     if (user.role === "athlete") {
@@ -46,7 +46,7 @@ export default function Home() {
     }
   }
 
-  // Always redirect to login if not authenticated
+  // If not authenticated, redirect to login
   console.log("User not authenticated, redirecting to login");
   return <Navigate to="/login" replace />;
 }
