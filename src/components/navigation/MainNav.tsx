@@ -1,6 +1,6 @@
 
 import { NavLink } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { 
   Home, 
@@ -29,6 +29,11 @@ interface MainNavProps {
 
 export function MainNav({ isCoach, basePath }: MainNavProps) {
   const [pathname, setPathname] = useState(window.location.pathname);
+
+  // Update pathname when location changes
+  useEffect(() => {
+    setPathname(window.location.pathname);
+  }, [window.location.pathname]);
 
   // Menu spécifique pour les administrateurs
   const adminItems: NavItem[] = [
@@ -88,16 +93,23 @@ export function MainNav({ isCoach, basePath }: MainNavProps) {
     },
   ];
 
-  // Déterminer les éléments à afficher en fonction du chemin 
+  // Déterminer les éléments à afficher en fonction du rôle et du chemin
   let items: NavItem[] = [];
   
   if (pathname.startsWith("/admin")) {
     items = adminItems;
-  } else if (isCoach) {
+  } else if (pathname.startsWith("/coach") || isCoach) {
     items = coachItems;
   } else {
     items = athleteItems;
   }
+
+  // Pour admin, nous devons aussi montrer le menu admin
+  if (isCoach && basePath === "/admin" && !pathname.startsWith("/admin")) {
+    items = [...adminItems, ...coachItems];
+  }
+
+  console.log("MainNav - Current state:", { pathname, isCoach, basePath, items });
 
   return (
     <div className="flex flex-col p-2">

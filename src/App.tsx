@@ -28,6 +28,8 @@ import { UserAthletes } from "@/pages/admin/UserAthletes";
 import UserPrograms from "@/pages/admin/UserPrograms";
 import Competitions from "@/pages/admin/Competitions";
 import IndividualAthleteHome from "@/pages/individual-athlete/Home";
+import CoachHome from "@/pages/coach/Home";
+import CoachPlanning from "@/pages/coach/Planning";
 
 function App() {
   return (
@@ -79,9 +81,10 @@ function App() {
               <Route path="coach">
                 <Route element={<RoleProtectedRoute allowedRoles={["coach"]} />}>
                   <Route index element={<Navigate to="/coach/dashboard" replace />} />
-                  <Route path="dashboard" element={<div>Coach Dashboard</div>} />
+                  <Route path="dashboard" element={<CoachHome />} />
                   <Route path="athletes" element={<div>Coach Athletes Management</div>} />
-                  <Route path="planning" element={<div>Coach Planning</div>} />
+                  <Route path="planning" element={<CoachPlanning />} />
+                  <Route path="programs/*" element={<CoachPlanning />} />
                   <Route path="feedback" element={<div>Coach Feedback</div>} />
                 </Route>
               </Route>
