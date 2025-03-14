@@ -1,4 +1,3 @@
-
 import {
   Routes,
   Route,
@@ -21,6 +20,7 @@ import Legal from './pages/Legal';
 import Programs from './pages/athlete/Programs';
 import Planning from './pages/athlete/Planning';
 import { ProgramWorkouts as AthleteProgramWorkouts } from './pages/athlete/ProgramWorkouts';
+import AthleteProfile from './pages/athlete/Profile';
 import EditWorkout from "./pages/individual-athlete/EditWorkout";
 
 // Admin pages
@@ -42,6 +42,7 @@ import { CreateWorkout } from './pages/coach/CreateWorkout';
 import { EditWorkout as CoachEditWorkout } from './pages/coach/EditWorkout';
 import CoachPlanning from './pages/coach/Planning';
 import { WorkoutFeedbacks } from './pages/coach/WorkoutFeedbacks';
+import IndividualAthleteProfile from './pages/individual-athlete/Profile';
 
 const queryClient = new QueryClient();
 
@@ -64,6 +65,8 @@ function App() {
           <Route element={<Layout />}>
             {/* Athlete routes */}
             <Route path="/athlete" element={<RoleProtectedRoute allowedRoles={["athlete", "admin"]} />} >
+              <Route index element={<Planning />} />
+              <Route path="profile" element={<AthleteProfile />} />
               <Route path="programs" element={<Programs />} />
               <Route path="planning" element={<Planning />} />
               <Route path="programs/:programId/workouts" element={<AthleteProgramWorkouts />} />
@@ -72,6 +75,8 @@ function App() {
 
             {/* Individual Athlete routes */}
             <Route path="/individual-athlete" element={<RoleProtectedRoute allowedRoles={["individual_athlete", "admin"]} />} >
+              <Route index element={<Planning />} />
+              <Route path="profile" element={<IndividualAthleteProfile />} />
               <Route path="programs" element={<Programs />} />
               <Route path="planning" element={<Planning />} />
               <Route path="programs/:programId/workouts" element={<AthleteProgramWorkouts />} />
