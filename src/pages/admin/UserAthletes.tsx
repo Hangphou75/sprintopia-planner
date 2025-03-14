@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Profile } from "@/types/database";
 import { UserProfile } from "@/hooks/useProfile";
-import { AthletesList } from "@/components/athletes/AthletesList";
+import { AthleteTable, AthleteRelation } from "@/components/athletes/AthleteTable";
 
 export const UserAthletes = () => {
   const { id } = useParams<{ id: string }>();
@@ -81,6 +81,12 @@ export const UserAthletes = () => {
     }
   };
 
+  // Convert the athletes data to match the AthleteRelation type
+  const formattedAthletes: AthleteRelation[] = athletes.map(athlete => ({
+    id: athlete.id,
+    athlete: athlete
+  }));
+
   return (
     <div className="space-y-6">
       <div className="flex items-center">
@@ -102,11 +108,11 @@ export const UserAthletes = () => {
             <div className="text-center py-4">Chargement des données...</div>
           ) : (
             <>
-              {athletes.length === 0 ? (
+              {formattedAthletes.length === 0 ? (
                 <div className="text-center py-4">Aucun athlète trouvé pour ce coach</div>
               ) : (
-                <AthletesList
-                  athletes={athletes.map(athlete => ({ id: athlete.id, athlete }))}
+                <AthleteTable
+                  athletes={formattedAthletes}
                   onEditAthlete={handleEditAthlete}
                   onViewCompetitions={handleViewCompetitions}
                   onDeleteAthlete={handleDeleteAthlete}

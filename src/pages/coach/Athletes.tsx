@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Profile } from "@/types/database";
 import { useAthletes } from "@/hooks/useAthletes";
 import { useAthleteMutations } from "@/hooks/useAthleteMutations";
-import { AthletesList, AthleteRelation } from "@/components/athletes/AthletesList";
+import { AthleteTable, AthleteRelation } from "@/components/athletes/AthleteTable";
 import { InviteAthleteDialogEnhanced } from "@/components/athletes/InviteAthleteDialog";
 import { AssignProgramDialog } from "@/components/athletes/AssignProgramDialog";
 import { AthleteProgramsSheet } from "@/components/athletes/AthleteProgramsSheet";
@@ -33,13 +32,9 @@ const Athletes = () => {
 
   console.log("Athletes page - user:", user, "isAdmin:", isAdmin);
 
-  // Ensure we're using the user ID correctly
   const { data: athletes, isLoading, error } = useAthletes(user?.id);
   const { deleteAthleteMutation } = useAthleteMutations();
 
-  // Log data for debugging
-  console.log("Athletes page - fetched athletes:", athletes);
-  
   useEffect(() => {
     if (error) {
       console.error("Error in Athletes component:", error);
@@ -88,7 +83,6 @@ const Athletes = () => {
     setSelectedView(view);
   };
 
-  // Convert the athletes data to match the AthleteRelation type
   const formattedAthletes: AthleteRelation[] = sortedAthletes.map(relation => ({
     id: relation.id,
     athlete: relation.athlete as Profile
@@ -142,7 +136,7 @@ const Athletes = () => {
           <p className="mt-2 text-muted-foreground">{String(error)}</p>
         </div>
       ) : formattedAthletes && formattedAthletes.length > 0 ? (
-        <AthletesList
+        <AthleteTable
           athletes={formattedAthletes}
           onEditAthlete={(athlete) => handleAthleteSelect(athlete, "programs")}
           onViewCompetitions={(athlete) => handleAthleteSelect(athlete, "competitions")}
