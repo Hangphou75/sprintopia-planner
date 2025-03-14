@@ -49,9 +49,9 @@ export function MainNav({ isCoach, basePath }: MainNavProps) {
   const coachItems: NavItem[] = [
     {
       title: "Tableau de bord",
-      href: "/coach",
+      href: "/coach/dashboard",
       icon: <Home className="h-5 w-5" />,
-      isActive: (path) => path === "/coach",
+      isActive: (path) => path === "/coach" || path === "/coach/dashboard",
     },
     {
       title: "Athlètes",
@@ -69,7 +69,7 @@ export function MainNav({ isCoach, basePath }: MainNavProps) {
       title: "Feedbacks",
       href: "/coach/feedback",
       icon: <MessageSquare className="h-5 w-5" />,
-      isActive: (path) => path === "/coach/feedback",
+      isActive: (path) => path.startsWith("/coach/feedback"),
     },
   ];
 
@@ -89,7 +89,6 @@ export function MainNav({ isCoach, basePath }: MainNavProps) {
   ];
 
   // Déterminer les éléments à afficher en fonction du chemin 
-  // Si le chemin commence par /admin, on affiche les éléments d'administration
   let items: NavItem[] = [];
   
   if (pathname.startsWith("/admin")) {

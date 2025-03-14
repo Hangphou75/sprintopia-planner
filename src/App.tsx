@@ -71,6 +71,7 @@ function App() {
                   <Route index element={<Navigate to="/individual-athlete/planning" replace />} />
                   <Route path="home" element={<IndividualAthleteHome />} />
                   <Route path="planning" element={<div>Individual Athlete Planning</div>} />
+                  <Route path="stats" element={<div>Individual Athlete Statistics</div>} />
                 </Route>
               </Route>
 
@@ -79,6 +80,9 @@ function App() {
                 <Route element={<RoleProtectedRoute allowedRoles={["coach"]} />}>
                   <Route index element={<Navigate to="/coach/dashboard" replace />} />
                   <Route path="dashboard" element={<div>Coach Dashboard</div>} />
+                  <Route path="athletes" element={<div>Coach Athletes Management</div>} />
+                  <Route path="planning" element={<div>Coach Planning</div>} />
+                  <Route path="feedback" element={<div>Coach Feedback</div>} />
                 </Route>
               </Route>
 
@@ -87,6 +91,7 @@ function App() {
                 <Route element={<RoleProtectedRoute allowedRoles={["athlete"]} />}>
                   <Route index element={<Navigate to="/athlete/planning" replace />} />
                   <Route path="planning" element={<div>Athlete Planning</div>} />
+                  <Route path="stats" element={<div>Athlete Statistics</div>} />
                 </Route>
               </Route>
             </Route>
