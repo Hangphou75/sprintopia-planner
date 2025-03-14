@@ -5,12 +5,17 @@ import { LoginForm } from "@/components/auth/LoginForm";
 import { SignUpForm } from "@/components/auth/SignUpForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 
 const Login = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
   console.log("Login page - Auth state:", { user, isAuthenticated, isLoading });
+  
+  useEffect(() => {
+    console.log("Login page mounted - Auth state:", { user, isAuthenticated, isLoading });
+  }, [user, isAuthenticated, isLoading]);
 
   // Wait for authentication to be checked before redirecting
   if (isLoading) {
@@ -42,6 +47,7 @@ const Login = () => {
     return <Navigate to={defaultPath} replace />;
   }
 
+  // If user is not authenticated, show the login page
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <Card className="w-[400px]">

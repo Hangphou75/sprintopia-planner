@@ -1,8 +1,9 @@
 
-import React, { createContext, useContext, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { useProfile, UserProfile } from "@/hooks/useProfile";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { useAuthInit } from "@/hooks/useAuthInit";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -21,19 +22,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     onProfileUpdate: setProfile,
     fetchProfile,
   });
+  const [initialized, setInitialized] = useState(false);
+
+  // Check session on mount to ensure we're properly initialized
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        console.log("Initial session check:", data.session ? "Found session" : "No session");
+        setInitialized(true);
+      } catch (error) {
+        console.error("Error checking session:", error);
+        setInitialized(true);
+      }
+    };
+    
+    checkSession();
+  }, []);
 
   console.log("AuthProvider - Current state:", { 
     hasProfile: !!profile, 
-    isLoading: initLoading || sessionLoading 
+    isLoading: initLoading || sessionLoading,
+    initialized
   });
 
   // Add an effect to log authentication state changes
   useEffect(() => {
     console.log("AuthProvider - Authentication state updated:", {
       hasProfile: !!profile,
-      isLoading: initLoading || sessionLoading
+      isLoading: initLoading || sessionLoading,
+      initialized
     });
-  }, [profile, initLoading, sessionLoading]);
+  }, [profile, initLoading, sessionLoading, initialized]);
 
   const login = async (email: string, password: string, role: string) => {
     try {
@@ -59,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login,
     logout,
     isAuthenticated: !!profile,
-    isLoading: initLoading || sessionLoading
+    isLoading: initLoading || sessionLoading || !initialized
   };
 
   return (

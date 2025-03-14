@@ -26,6 +26,9 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
 
       if (session?.user) {
         console.log("Found existing session for user:", session.user.id);
+        // Clear loading early for a better UX
+        setIsLoading(true);
+        
         const cachedProfile = localStorage.getItem(`userProfile_${session.user.id}`);
         if (cachedProfile) {
           console.log("Using cached profile");
@@ -63,8 +66,10 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
   useEffect(() => {
     let mounted = true;
 
+    // Initial auth check
     initAuth();
 
+    // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session?.user?.id);
       
@@ -76,10 +81,6 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
       if (event === 'SIGNED_IN' && session?.user) {
         console.log("User signed in, updating profile");
         setIsLoading(true);
-        const cachedProfile = localStorage.getItem(`userProfile_${session.user.id}`);
-        if (cachedProfile) {
-          onProfileUpdate(JSON.parse(cachedProfile));
-        }
         
         try {
           const userProfile = await fetchProfile(session.user.id);
@@ -108,7 +109,7 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
           setIsLoading(false);
         }
       } else if (event === 'INITIAL_SESSION') {
-        console.log("No active session found");
+        console.log("Initial session event received", session ? "with session" : "without session");
         if (mounted && !session) {
           onProfileUpdate(null);
           setIsLoading(false);

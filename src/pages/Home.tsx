@@ -31,6 +31,6 @@ export default function Home() {
     }
   }
 
-  // If the user is not authenticated, redirect to the login page
+  // Always redirect to login if not authenticated
   return <Navigate to="/login" replace />;
 }

@@ -35,8 +35,8 @@ const Index = () => {
     }
   }
 
-  // If the user is not authenticated, redirect to the login page
-  console.log("No valid authenticated user, redirecting to login");
+  // If the user is not authenticated or has no role, always redirect to login
+  console.log("No authenticated user detected, redirecting to login");
   return <Navigate to="/login" replace />;
 };
 
