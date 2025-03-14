@@ -15,9 +15,15 @@ export const ProgramWorkouts = () => {
   const { user } = useAuth();
   const isMobile = useIsMobile();
 
+  console.log("ProgramWorkouts - Current state:", { 
+    programId, 
+    userRole: user?.role,
+  });
+
   const { data: workouts, isLoading: isLoadingWorkouts, error: workoutsError, refetch: refetchWorkouts } = useQuery({
     queryKey: ["workouts", programId],
     queryFn: async () => {
+      console.log("Fetching workouts for program:", programId);
       const { data, error } = await supabase
         .from("workouts")
         .select("*")
@@ -28,6 +34,7 @@ export const ProgramWorkouts = () => {
         console.error("Error fetching workouts:", error);
         throw error;
       }
+      console.log("Fetched workouts:", data);
       return data || [];
     },
     enabled: !!programId,
@@ -36,6 +43,7 @@ export const ProgramWorkouts = () => {
   const { data: competitions, isLoading: isLoadingCompetitions, error: competitionsError } = useQuery({
     queryKey: ["competitions", programId],
     queryFn: async () => {
+      console.log("Fetching competitions for program:", programId);
       const { data, error } = await supabase
         .from("competitions")
         .select("*")
@@ -46,6 +54,7 @@ export const ProgramWorkouts = () => {
         console.error("Error fetching competitions:", error);
         throw error;
       }
+      console.log("Fetched competitions:", data);
       return data || [];
     },
     enabled: !!programId,

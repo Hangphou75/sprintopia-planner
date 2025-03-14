@@ -8,6 +8,7 @@ import { AthletePagination } from "./athletes/AthletePagination";
 import { AthleteLoadingStates } from "./athletes/AthleteLoadingStates";
 import { useAthleteManagement } from "./athletes/useAthleteManagement";
 import { useCallback, useMemo, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 type ManagedAthletesProps = {
   coachId: string | undefined;
@@ -16,6 +17,10 @@ type ManagedAthletesProps = {
 export const ManagedAthletes = ({ coachId }: ManagedAthletesProps) => {
   const navigate = useNavigate();
   const { isSubscriptionExpired } = useSubscriptionLimits();
+  const { user } = useAuth();
+  
+  // Use the user's ID if coachId is "current"
+  const effectiveCoachId = coachId === "current" ? user?.id : coachId;
   
   const {
     athletes,
@@ -26,12 +31,12 @@ export const ManagedAthletes = ({ coachId }: ManagedAthletesProps) => {
     error,
     isAdmin,
     usageInfo
-  } = useAthleteManagement(coachId);
+  } = useAthleteManagement(effectiveCoachId);
 
   // Log the state for debugging
   useEffect(() => {
     console.log("ManagedAthletes - Current state:", { 
-      coachId,
+      coachId: effectiveCoachId,
       hasAthletes: !!athletes && athletes.length > 0,
       athletesCount: athletes?.length || 0, 
       isAdmin,
@@ -42,7 +47,7 @@ export const ManagedAthletes = ({ coachId }: ManagedAthletesProps) => {
     if (athletes && athletes.length > 0) {
       console.log("First athlete sample:", athletes[0]);
     }
-  }, [athletes, coachId, isAdmin, isLoading, error]);
+  }, [athletes, effectiveCoachId, isAdmin, isLoading, error]);
 
   const handleUpgradeClick = useCallback(() => {
     navigate("/coach/profile");

@@ -48,7 +48,6 @@ const Layout = () => {
   }
 
   // Pour admin users, we want to provide access to both admin and coach interfaces
-  // So we set isCoach to true for admin users as well
   const isCoach = user?.role === "coach" || user?.role === "admin";
   
   // For profile navigation, we need to use the right base path
@@ -57,21 +56,19 @@ const Layout = () => {
   if (user?.role === "individual_athlete") {
     basePath = "/individual-athlete";
   } else if (user?.role === "admin") {
-    basePath = "/admin";
+    // Check if we're currently in the coach section
+    if (window.location.pathname.startsWith("/coach")) {
+      basePath = "/coach";
+    } else {
+      basePath = "/admin";
+    }
   } else if (user?.role === "coach") {
     basePath = "/coach";
   }
 
-  // For admins, check if we're in the admin section to determine what menu to show
-  const isInAdminSection = window.location.pathname.startsWith("/admin");
-  // Always use the user's actual role path to ensure consistent navigation
-  const displayPath = user?.role === "admin" ? "/admin" : basePath;
-
   console.log("Layout navigation setup:", { 
     isCoach, 
-    basePath, 
-    isInAdminSection, 
-    displayPath,
+    basePath,
     currentPath: window.location.pathname 
   });
 
@@ -85,7 +82,7 @@ const Layout = () => {
               <SidebarTrigger className="md:hidden" />
             </SidebarHeader>
             <div className="flex-1 space-y-6 py-6">
-              <MainNav isCoach={isCoach} basePath={displayPath} />
+              <MainNav isCoach={isCoach} basePath={basePath} />
             </div>
             <div className="border-t p-4">
               <LogoutButton />
