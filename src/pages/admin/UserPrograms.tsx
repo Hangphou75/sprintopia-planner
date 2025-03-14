@@ -66,14 +66,18 @@ export const UserPrograms = () => {
         if (userError) throw userError;
         setUser(userData as UserProfile);
 
-        // Récupérer les programmes de l'utilisateur
+        // Récupérer les programmes de l'utilisateur avec plus de détails
         const { data: programsData, error: programsError } = await supabase
           .from("programs")
-          .select("*")
+          .select(`
+            *,
+            competitions(*)
+          `)
           .eq("user_id", id)
           .order("created_at", { ascending: false });
 
         if (programsError) throw programsError;
+        console.log("Programs data:", programsData);
         setPrograms(programsData as Program[]);
       } catch (error) {
         console.error("Error fetching user and programs:", error);

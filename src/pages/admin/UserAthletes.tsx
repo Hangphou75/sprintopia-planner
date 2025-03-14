@@ -13,7 +13,7 @@ export const UserAthletes = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [coach, setCoach] = useState<UserProfile | null>(null);
-  const [athletes, setAthletes] = useState<Profile[]>([]);
+  const [athletes, setAthletes] = useState<AthleteRelation[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,26 +33,19 @@ export const UserAthletes = () => {
         if (coachError) throw coachError;
         setCoach(coachData as UserProfile);
 
-        // Récupérer les athlètes du coach
+        // Récupérer les athlètes du coach avec leurs profils complets
         const { data: coachAthletesData, error: athletesError } = await supabase
           .from("coach_athletes")
-          .select("athlete_id")
+          .select(`
+            id,
+            athlete:profiles!coach_athletes_athlete_id_fkey (*)
+          `)
           .eq("coach_id", id);
 
         if (athletesError) throw athletesError;
-
-        if (coachAthletesData.length > 0) {
-          const athleteIds = coachAthletesData.map(ca => ca.athlete_id);
-          
-          // Récupérer les profils des athlètes
-          const { data: athletesProfiles, error: profilesError } = await supabase
-            .from("profiles")
-            .select("*")
-            .in("id", athleteIds);
-
-          if (profilesError) throw profilesError;
-          setAthletes(athletesProfiles as Profile[]);
-        }
+        
+        console.log("Fetched athletes data:", coachAthletesData);
+        setAthletes(coachAthletesData as AthleteRelation[]);
       } catch (error) {
         console.error("Error fetching coach and athletes:", error);
       } finally {
@@ -81,12 +74,6 @@ export const UserAthletes = () => {
     }
   };
 
-  // Convert the athletes data to match the AthleteRelation type
-  const formattedAthletes: AthleteRelation[] = athletes.map(athlete => ({
-    id: athlete.id,
-    athlete: athlete
-  }));
-
   return (
     <div className="space-y-6">
       <div className="flex items-center">
@@ -108,11 +95,11 @@ export const UserAthletes = () => {
             <div className="text-center py-4">Chargement des données...</div>
           ) : (
             <>
-              {formattedAthletes.length === 0 ? (
+              {athletes.length === 0 ? (
                 <div className="text-center py-4">Aucun athlète trouvé pour ce coach</div>
               ) : (
                 <AthleteTable
-                  athletes={formattedAthletes}
+                  athletes={athletes}
                   onEditAthlete={handleEditAthlete}
                   onViewCompetitions={handleViewCompetitions}
                   onDeleteAthlete={handleDeleteAthlete}
