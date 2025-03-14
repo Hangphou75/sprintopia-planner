@@ -11,7 +11,8 @@ import {
   UserCog, 
   LayoutGrid, 
   BarChart3,
-  MessageSquare
+  MessageSquare,
+  Trophy
 } from "lucide-react";
 
 type NavItem = {
@@ -28,6 +29,22 @@ interface MainNavProps {
 
 export function MainNav({ isCoach, basePath }: MainNavProps) {
   const [pathname, setPathname] = useState(window.location.pathname);
+
+  // Menu spécifique pour les administrateurs
+  const adminItems: NavItem[] = [
+    {
+      title: "Utilisateurs",
+      href: "/admin/users",
+      icon: <Users className="h-5 w-5" />,
+      isActive: (path) => path.startsWith("/admin/users"),
+    },
+    {
+      title: "Compétitions",
+      href: "/admin/competitions",
+      icon: <Trophy className="h-5 w-5" />,
+      isActive: (path) => path.startsWith("/admin/competitions"),
+    },
+  ];
 
   const coachItems: NavItem[] = [
     {
@@ -71,7 +88,17 @@ export function MainNav({ isCoach, basePath }: MainNavProps) {
     },
   ];
 
-  const items = isCoach ? coachItems : athleteItems;
+  // Déterminer les éléments à afficher en fonction du chemin 
+  // Si le chemin commence par /admin, on affiche les éléments d'administration
+  let items: NavItem[] = [];
+  
+  if (pathname.startsWith("/admin")) {
+    items = adminItems;
+  } else if (isCoach) {
+    items = coachItems;
+  } else {
+    items = athleteItems;
+  }
 
   return (
     <div className="flex flex-col p-2">
