@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { InsertWorkout } from "@/types/database";
+import { InsertWorkout, WorkoutPhase, WorkoutTypeValue } from "@/types/database";
 
 type UseWorkoutActionsProps = {
   programId: string;
@@ -25,19 +25,45 @@ export const useWorkoutActions = ({ programId, userRole, onSuccess }: UseWorkout
     try {
       console.log("Attempting to duplicate workout:", event);
       
-      // Create a new workout object with the correct property names
-      const workoutData: Partial<InsertWorkout> = {
+      // Map event phase to the correct enum type
+      let workoutPhase: WorkoutPhase | null = null;
+      if (event.phase) {
+        if (["preparation", "specific", "competition"].includes(event.phase as string)) {
+          workoutPhase = event.phase as WorkoutPhase;
+        }
+      }
+      
+      // Map event type to the correct enum type
+      let workoutType: WorkoutTypeValue | null = null;
+      if (event.type === "workout" && event.theme) {
+        // Map theme to workout type if possible
+        // This is an approximation, adjust according to your actual data mappings
+        const themeToType: Record<string, WorkoutTypeValue> = {
+          "aerobic": "endurance",
+          "anaerobic-alactic": "speed",
+          "anaerobic-lactic": "endurance",
+          "strength": "resistance", 
+          "technical": "technical",
+          "mobility": "mobility",
+          "plyometric": "resistance"
+        };
+        
+        workoutType = themeToType[event.theme] || null;
+      }
+      
+      // Create a workout data object with all required fields
+      const workoutData = {
         program_id: programId,
         title: `${event.title} (copie)`,
-        description: event.description,
+        description: event.description || null,
         date: event.date.toISOString(),
-        time: event.time,
-        theme: event.theme,
-        details: event.details,
-        recovery: event.recovery,
-        phase: event.phase,
-        type: event.type,
-        intensity: event.intensity,
+        time: event.time || null,
+        theme: event.theme || null,
+        details: event.details || null,
+        recovery: event.recovery || null,
+        phase: workoutPhase,
+        type: workoutType,
+        intensity: event.intensity || null,
       };
       
       const { data, error } = await supabase
