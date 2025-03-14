@@ -95,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Force a timeout to prevent an infinite loading state
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (!initialized) {
+      if (isInitLoading) {
         console.log("Forcing initialization after timeout");
         setInitialized(true);
         setIsInitLoading(false);
@@ -103,7 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, 3000); // Force initialization after 3 seconds
     
     return () => clearTimeout(timer);
-  }, [initialized]);
+  }, [isInitLoading]);
 
   console.log("AuthProvider - Current state:", { 
     hasProfile: !!profile, 

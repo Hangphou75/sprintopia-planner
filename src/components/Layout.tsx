@@ -1,5 +1,5 @@
 
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
   Sidebar, 
@@ -13,9 +13,21 @@ import { MainNav } from "@/components/navigation/MainNav";
 import { LogoutButton } from "@/components/navigation/LogoutButton";
 import { Menu } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
+import { useEffect } from "react";
 
 const Layout = () => {
-  const { user, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const navigate = useNavigate();
+  
+  console.log("Layout - Auth state:", { user, isAuthenticated, isLoading });
+
+  // Rediriger vers la page de login si l'utilisateur n'est pas authentifié
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      console.log("Layout: User not authenticated, redirecting to login");
+      navigate("/login");
+    }
+  }, [isAuthenticated, isLoading, navigate]);
 
   if (isLoading) {
     return (
@@ -28,18 +40,27 @@ const Layout = () => {
     );
   }
 
-  if (!user) {
-    return null;
+  // Si l'utilisateur n'est pas authentifié, on affiche quand même un chargement
+  // car la redirection sera gérée par l'effet ci-dessus
+  if (!isAuthenticated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Redirection vers la page de connexion...</p>
+        </div>
+      </div>
+    );
   }
 
-  // For admin users, we want to provide access to both admin and coach interfaces
+  // Pour admin users, we want to provide access to both admin and coach interfaces
   // So we set isCoach to true for admin users as well
-  const isCoach = user.role === "coach" || user.role === "admin";
+  const isCoach = user?.role === "coach" || user?.role === "admin";
   
   // For profile navigation, we still need to use the right base path
-  const basePath = user.role === "individual_athlete" 
+  const basePath = user?.role === "individual_athlete" 
     ? "/individual-athlete" 
-    : user.role === "admin" 
+    : user?.role === "admin" 
       ? "/admin" 
       : isCoach 
         ? "/coach" 
