@@ -33,7 +33,7 @@ import AdminCompetitions from './pages/admin/Competitions';
 import CoachProfile from './pages/coach/Profile';
 import CoachHome from './pages/coach/Home';
 import Athletes from './pages/coach/Athletes';
-import Programs as CoachPrograms from './pages/coach/Programs';
+import CoachPrograms from './pages/coach/Programs';
 import CreateProgram from './pages/coach/CreateProgram';
 import { EditProgram } from './pages/coach/EditProgram';
 import { ProgramWorkouts as CoachProgramWorkouts } from './pages/coach/ProgramWorkouts';
