@@ -17,10 +17,10 @@ import Contact from './pages/Contact';
 import Legal from './pages/Legal';
 
 // Athlete pages
-import { Programs as AthletePrograms } from './pages/athlete/Programs';
+import AthletePrograms from './pages/athlete/Programs';
 import Planning from './pages/athlete/Planning';
-import ProgramWorkouts from './pages/athlete/ProgramWorkouts';
-import { EditWorkout as IndividualEditWorkout } from "./pages/individual-athlete/EditWorkout";
+import AthleteProgramWorkouts from './pages/athlete/ProgramWorkouts';
+import IndividualEditWorkout from "./pages/individual-athlete/EditWorkout";
 
 // Admin pages
 import AdminHome from './pages/admin/Home';
@@ -36,7 +36,7 @@ import Athletes from './pages/coach/Athletes';
 import Programs from './pages/coach/Programs';
 import CreateProgram from './pages/coach/CreateProgram';
 import { EditProgram } from './pages/coach/EditProgram';
-import { ProgramWorkouts } from './pages/coach/ProgramWorkouts';
+import CoachProgramWorkouts from './pages/coach/ProgramWorkouts';
 import { CreateWorkout } from './pages/coach/CreateWorkout';
 import { EditWorkout } from './pages/coach/EditWorkout';
 import CoachPlanning from './pages/coach/Planning';
@@ -63,7 +63,7 @@ function App() {
             <Route path="/athlete" element={<RoleProtectedRoute allowedRoles={["athlete", "admin"]} />} >
               <Route path="programs" element={<AthletePrograms />} />
               <Route path="planning" element={<Planning />} />
-              <Route path="programs/:programId/workouts" element={<ProgramWorkouts />} />
+              <Route path="programs/:programId/workouts" element={<AthleteProgramWorkouts />} />
               <Route path="programs/:programId/workouts/:workoutId" element={<WorkoutDetails />} />
             </Route>
 
@@ -71,7 +71,7 @@ function App() {
             <Route path="/individual-athlete" element={<RoleProtectedRoute allowedRoles={["individual_athlete", "admin"]} />} >
               <Route path="programs" element={<AthletePrograms />} />
               <Route path="planning" element={<Planning />} />
-              <Route path="programs/:programId/workouts" element={<ProgramWorkouts />} />
+              <Route path="programs/:programId/workouts" element={<AthleteProgramWorkouts />} />
               <Route path="programs/:programId/workouts/:workoutId/edit" element={<IndividualEditWorkout />} />
               <Route path="programs/:programId/workouts/:workoutId" element={<WorkoutDetails />} />
             </Route>
@@ -93,7 +93,7 @@ function App() {
               <Route path="programs" element={<Programs />} />
               <Route path="programs/new" element={<CreateProgram />} />
               <Route path="programs/:programId/edit" element={<EditProgram />} />
-              <Route path="programs/:programId/workouts" element={<ProgramWorkouts />} />
+              <Route path="programs/:programId/workouts" element={<CoachProgramWorkouts />} />
               <Route path="programs/:programId/workouts/new" element={<CreateWorkout />} />
               <Route path="programs/:programId/workouts/:workoutId/edit" element={<EditWorkout />} />
               <Route path="programs/:programId/workouts/:workoutId" element={<WorkoutDetails />} />

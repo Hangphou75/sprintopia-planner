@@ -1,161 +1,112 @@
-import { Link, useLocation } from "react-router-dom";
-import { UserCircle, Shield, Users, Calendar, Home, PanelLayoutTop, CalendarDays, BarChart, User } from "lucide-react";
-import { useSidebar } from "@/components/ui/sidebar";
-import { useAuth } from "@/contexts/AuthContext";
+
+import { NavLink } from "react-router-dom";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
+import { 
+  Home, 
+  Users, 
+  Calendar, 
+  Dumbbell, 
+  Award, 
+  UserCog, 
+  LayoutGrid, 
+  BarChart3,
+  MessageSquare
+} from "lucide-react";
+
+type NavItem = {
+  title: string;
+  href: string;
+  icon: React.ReactNode;
+  isActive?: (pathname: string) => boolean;
+};
 
 interface MainNavProps {
   isCoach: boolean;
   basePath: string;
 }
 
-export const MainNav = ({ isCoach, basePath }: MainNavProps) => {
-  const location = useLocation();
-  const { setOpenMobile } = useSidebar();
-  const isIndividualAthlete = basePath === "/individual-athlete";
-  const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+export function MainNav({ isCoach, basePath }: MainNavProps) {
+  const [pathname, setPathname] = useState(window.location.pathname);
 
-  const handleLinkClick = () => {
-    setOpenMobile(false);
-  };
-
-  const coachRoutes = [
+  const coachItems: NavItem[] = [
     {
+      title: "Tableau de bord",
       href: "/coach",
-      label: "Tableau de bord",
-      icon: <Home className="h-4 w-4" />,
+      icon: <Home className="h-5 w-5" />,
+      isActive: (path) => path === "/coach",
     },
     {
+      title: "Athlètes",
       href: "/coach/athletes",
-      label: "Athlètes",
-      icon: <Users className="h-4 w-4" />,
+      icon: <Users className="h-5 w-5" />,
+      isActive: (path) => path.startsWith("/coach/athletes"),
     },
     {
+      title: "Programmes",
       href: "/coach/programs",
-      label: "Programmes",
-      icon: <PanelLayoutTop className="h-4 w-4" />,
+      icon: <LayoutGrid className="h-5 w-5" />,
+      isActive: (path) => path.startsWith("/coach/programs"),
     },
     {
+      title: "Planning",
       href: "/coach/planning",
-      label: "Planning",
-      icon: <CalendarDays className="h-4 w-4" />,
+      icon: <Calendar className="h-5 w-5" />,
+      isActive: (path) => path === "/coach/planning",
     },
     {
+      title: "Feedbacks",
       href: "/coach/feedback",
-      label: "Suivi des feedbacks",
-      icon: <BarChart className="h-4 w-4" />,
-    },
-    {
-      href: "/coach/profile",
-      label: "Profil",
-      icon: <User className="h-4 w-4" />,
+      icon: <MessageSquare className="h-5 w-5" />,
+      isActive: (path) => path === "/coach/feedback",
     },
   ];
 
-  return (
-    <nav className="grid gap-2 px-2">
-      {isAdmin && (
-        <div className="mb-4">
-          <h4 className="mb-1 px-2 text-sm font-semibold">Administration</h4>
-          <Link
-            to="/admin"
-            onClick={handleLinkClick}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 ${
-              location.pathname === "/admin" ? "bg-gray-100" : ""
-            }`}
-          >
-            <Shield className="h-4 w-4" />
-            Tableau de bord admin
-          </Link>
-          <Link
-            to="/admin/users"
-            onClick={handleLinkClick}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 ${
-              location.pathname === "/admin/users" ? "bg-gray-100" : ""
-            }`}
-          >
-            <Users className="h-4 w-4" />
-            Utilisateurs
-          </Link>
-        </div>
-      )}
+  const athleteItems: NavItem[] = [
+    {
+      title: "Mon planning",
+      href: `${basePath}/planning`,
+      icon: <Calendar className="h-5 w-5" />,
+      isActive: (path) => path.includes("/planning"),
+    },
+    {
+      title: "Mes programmes",
+      href: `${basePath}/programs`,
+      icon: <Dumbbell className="h-5 w-5" />,
+      isActive: (path) => path.includes("/programs") && !path.includes("/planning"),
+    },
+    {
+      title: "Mes statistiques",
+      href: `${basePath}/stats`,
+      icon: <BarChart3 className="h-5 w-5" />,
+      isActive: (path) => path.includes("/stats"),
+    },
+  ];
 
-      {(isCoach || isAdmin) && (
-        <>
-          <h4 className="mb-1 px-2 text-sm font-semibold">Coach</h4>
-          {coachRoutes.map((route) => (
-            <Link
-              key={route.href}
-              to={route.href}
-              onClick={handleLinkClick}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 ${
-                location.pathname === route.href ? "bg-gray-100" : ""
-              }`}
-            >
-              {route.icon}
-              {route.label}
-            </Link>
-          ))}
-        </>
-      )}
-      {!isCoach && !isAdmin && isIndividualAthlete ? (
-        <>
-          <Link
-            to="/individual-athlete"
-            onClick={handleLinkClick}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 ${
-              location.pathname === "/individual-athlete" ? "bg-gray-100" : ""
-            }`}
+  const items = isCoach ? coachItems : athleteItems;
+
+  return (
+    <div className="flex flex-col p-2">
+      <nav className="grid items-start gap-2 px-2">
+        {items.map((item, index) => (
+          <NavLink
+            key={index}
+            to={item.href}
+            className={({ isActive }) =>
+              cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50",
+                isActive
+                  ? "bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-50"
+                  : "hover:bg-gray-100 dark:hover:bg-gray-800"
+              )
+            }
+            onClick={() => setPathname(item.href)}
           >
-            <Home className="h-4 w-4" />
-            Accueil
-          </Link>
-          <Link
-            to="/individual-athlete/planning"
-            onClick={handleLinkClick}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 ${
-              location.pathname === "/individual-athlete/planning" ? "bg-gray-100" : ""
-            }`}
-          >
-            <Calendar className="h-4 w-4" />
-            Planning
-          </Link>
-        </>
-      ) : (!isCoach && !isAdmin) ? (
-        <>
-          <Link
-            to="/athlete"
-            onClick={handleLinkClick}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 ${
-              location.pathname === "/athlete" ? "bg-gray-100" : ""
-            }`}
-          >
-            <Home className="h-4 w-4" />
-            Accueil
-          </Link>
-          <Link
-            to="/athlete/planning"
-            onClick={handleLinkClick}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 ${
-              location.pathname === "/athlete/planning" ? "bg-gray-100" : ""
-            }`}
-          >
-            <Calendar className="h-4 w-4" />
-            Planning
-          </Link>
-        </>
-      ) : null}
-      
-      <Link
-        to={`${basePath}/profile`}
-        onClick={handleLinkClick}
-        className={`flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 ${
-          location.pathname.includes("/profile") ? "bg-gray-100" : ""
-        }`}
-      >
-        <UserCircle className="h-4 w-4" />
-        Profil
-      </Link>
-    </nav>
+            {item.icon}
+            <p className="text-sm font-medium">{item.title}</p>
+          </NavLink>
+        ))}
+      </nav>
+    </div>
   );
-};
+}
