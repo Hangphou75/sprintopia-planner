@@ -43,16 +43,10 @@ export function MainNav({ isCoach, basePath }: MainNavProps) {
       isActive: (path) => path.startsWith("/coach/athletes"),
     },
     {
-      title: "Programmes",
-      href: "/coach/programs",
-      icon: <LayoutGrid className="h-5 w-5" />,
-      isActive: (path) => path.startsWith("/coach/programs"),
-    },
-    {
       title: "Planning",
       href: "/coach/planning",
       icon: <Calendar className="h-5 w-5" />,
-      isActive: (path) => path === "/coach/planning",
+      isActive: (path) => path.startsWith("/coach/planning") || path.startsWith("/coach/programs"),
     },
     {
       title: "Feedbacks",
@@ -68,12 +62,6 @@ export function MainNav({ isCoach, basePath }: MainNavProps) {
       href: `${basePath}/planning`,
       icon: <Calendar className="h-5 w-5" />,
       isActive: (path) => path.includes("/planning"),
-    },
-    {
-      title: "Mes programmes",
-      href: `${basePath}/programs`,
-      icon: <Dumbbell className="h-5 w-5" />,
-      isActive: (path) => path.includes("/programs") && !path.includes("/planning"),
     },
     {
       title: "Mes statistiques",

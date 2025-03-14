@@ -116,6 +116,8 @@ export const ProgramWorkoutCalendar = ({
               selectedDate={selectedDate} 
               themeOptions={themeOptions} 
               onEventClick={handleEventClick} 
+              onEditClick={handleEditWorkout}
+              readOnly={user?.role === 'athlete'}
             />
             <CalendarView 
               events={events} 
@@ -135,6 +137,8 @@ export const ProgramWorkoutCalendar = ({
               selectedDate={selectedDate} 
               themeOptions={themeOptions} 
               onEventClick={handleEventClick} 
+              onEditClick={handleEditWorkout}
+              readOnly={user?.role === 'athlete'}
             />
           </>
         )}
