@@ -31,15 +31,16 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
         
         const cachedProfile = localStorage.getItem(`userProfile_${session.user.id}`);
         if (cachedProfile) {
-          console.log("Using cached profile");
-          onProfileUpdate(JSON.parse(cachedProfile));
+          const parsedProfile = JSON.parse(cachedProfile);
+          console.log("Using cached profile with role:", parsedProfile.role);
+          onProfileUpdate(parsedProfile);
         }
         
         try {
           console.log("Fetching fresh profile data");
           const userProfile = await fetchProfile(session.user.id);
           if (userProfile) {
-            console.log("Profile data retrieved successfully");
+            console.log("Profile data retrieved successfully with role:", userProfile.role);
             localStorage.setItem(`userProfile_${session.user.id}`, JSON.stringify(userProfile));
             onProfileUpdate(userProfile);
           } else {
@@ -86,6 +87,7 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
           const userProfile = await fetchProfile(session.user.id);
           if (mounted) {
             if (userProfile) {
+              console.log("Profile loaded after sign in with role:", userProfile.role);
               localStorage.setItem(`userProfile_${session.user.id}`, JSON.stringify(userProfile));
               onProfileUpdate(userProfile);
             } else {

@@ -5,7 +5,12 @@ import { useAuth } from "@/contexts/AuthContext";
 const Index = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
   
-  console.log("Index page - Auth state:", { user, isAuthenticated, isLoading });
+  console.log("Index page - Auth state:", { 
+    user, 
+    userRole: user?.role,
+    isAuthenticated, 
+    isLoading 
+  });
 
   // Wait until authentication is verified before redirecting
   if (isLoading) {
@@ -20,8 +25,8 @@ const Index = () => {
     }
 
     if (user.role === "admin") {
-      console.log("Redirecting admin to admin dashboard");
-      return <Navigate to="/admin" replace />;
+      console.log("Redirecting admin to users management page");
+      return <Navigate to="/admin/users" replace />;
     }
 
     if (user.role === "coach") {

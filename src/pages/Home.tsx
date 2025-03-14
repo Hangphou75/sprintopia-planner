@@ -5,7 +5,12 @@ import { useAuth } from "@/contexts/AuthContext";
 export default function Home() {
   const { user, isAuthenticated, isLoading } = useAuth();
   
-  console.log("Home page - Auth state:", { user, isAuthenticated, isLoading });
+  console.log("Home page - Auth state:", { 
+    user, 
+    userRole: user?.role, 
+    isAuthenticated, 
+    isLoading 
+  });
 
   // Wait until authentication is verified before redirecting
   if (isLoading) {
@@ -19,7 +24,7 @@ export default function Home() {
     }
 
     if (user.role === "admin") {
-      return <Navigate to="/admin" replace />;
+      return <Navigate to="/admin/users" replace />;
     }
 
     if (user.role === "coach") {

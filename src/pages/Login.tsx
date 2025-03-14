@@ -11,10 +11,20 @@ const Login = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
-  console.log("Login page - Auth state:", { user, isAuthenticated, isLoading });
+  console.log("Login page - Auth state:", { 
+    user, 
+    userRole: user?.role, 
+    isAuthenticated, 
+    isLoading 
+  });
   
   useEffect(() => {
-    console.log("Login page mounted - Auth state:", { user, isAuthenticated, isLoading });
+    console.log("Login page mounted - Auth state:", { 
+      user, 
+      userRole: user?.role, 
+      isAuthenticated, 
+      isLoading 
+    });
   }, [user, isAuthenticated, isLoading]);
 
   // Wait for authentication to be checked before redirecting
@@ -28,6 +38,8 @@ const Login = () => {
 
   // Only redirect if user is properly authenticated with a valid profile and role
   if (isAuthenticated && user && user.role) {
+    console.log("User authenticated with role:", user.role);
+    
     // If we have a URL of redirection stored in location.state, use it
     if (location.state?.from) {
       console.log("Redirecting to stored location:", location.state.from);
@@ -40,7 +52,7 @@ const Login = () => {
       : user.role === 'coach'
         ? '/coach'
         : user.role === 'admin'
-          ? '/admin'
+          ? '/admin/users'  // Redirect admin to users management page
           : '/athlete';
         
     console.log("Redirecting to default path:", defaultPath);
