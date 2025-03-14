@@ -17,9 +17,9 @@ export const useAthleteManagement = (coachId: string | undefined) => {
   const isAdmin = user?.role === "admin";
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["coach-athletes", coachId, page],
+    queryKey: ["coach-athletes", coachId, page, isAdmin],
     queryFn: async () => {
-      console.log("Fetching managed athletes for coach:", coachId);
+      console.log("Fetching managed athletes for coach:", coachId, "isAdmin:", isAdmin);
       if (!coachId) return { athletes: [], count: 0 };
 
       const from = (page - 1) * pageSize;
@@ -30,9 +30,12 @@ export const useAthleteManagement = (coachId: string | undefined) => {
       
       if (isAdmin) {
         // Admin can see all coach-athlete relationships
+        console.log("Fetching athletes with admin privileges");
         queryBuilder = supabase
           .from("coach_athletes")
           .select(`
+            id,
+            coach_id,
             athlete:profiles!coach_athletes_athlete_id_fkey (
               id,
               first_name,
@@ -46,6 +49,8 @@ export const useAthleteManagement = (coachId: string | undefined) => {
         queryBuilder = supabase
           .from("coach_athletes")
           .select(`
+            id,
+            coach_id,
             athlete:profiles!coach_athletes_athlete_id_fkey (
               id,
               first_name,
@@ -63,6 +68,8 @@ export const useAthleteManagement = (coachId: string | undefined) => {
         console.error("Error fetching athletes:", athletesError);
         throw athletesError;
       }
+
+      console.log("Fetched athletes:", athletes);
 
       // Count query needs to match the filter used above
       let countQueryBuilder;

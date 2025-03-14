@@ -5,7 +5,7 @@ import { memo, useCallback } from "react";
 import { AthleteEmptyState } from "./AthleteEmptyState";
 
 interface AthletesListProps {
-  athletes: { athlete: { id: string; first_name: string; last_name: string; email: string } }[] | undefined;
+  athletes: { id: string; athlete: { id: string; first_name: string; last_name: string; email: string } }[] | undefined;
   isAdmin: boolean;
 }
 
@@ -24,7 +24,7 @@ export const AthletesList = memo(({ athletes, isAdmin }: AthletesListProps) => {
     <div className="space-y-2">
       {athletes.map((relation) => (
         <div
-          key={relation.athlete.id}
+          key={relation.id}
           className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 cursor-pointer"
           onClick={() => handleAthleteClick(relation.athlete.id)}
         >

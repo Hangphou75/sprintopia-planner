@@ -7,7 +7,7 @@ import { AthletesList } from "./athletes/AthletesList";
 import { AthletePagination } from "./athletes/AthletePagination";
 import { AthleteLoadingStates } from "./athletes/AthleteLoadingStates";
 import { useAthleteManagement } from "./athletes/useAthleteManagement";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useEffect } from "react";
 
 type ManagedAthletesProps = {
   coachId: string | undefined;
@@ -27,6 +27,22 @@ export const ManagedAthletes = ({ coachId }: ManagedAthletesProps) => {
     isAdmin,
     usageInfo
   } = useAthleteManagement(coachId);
+
+  // Log the state for debugging
+  useEffect(() => {
+    console.log("ManagedAthletes - Current state:", { 
+      coachId,
+      hasAthletes: !!athletes && athletes.length > 0,
+      athletesCount: athletes?.length || 0, 
+      isAdmin,
+      isLoading,
+      hasError: !!error
+    });
+    
+    if (athletes && athletes.length > 0) {
+      console.log("First athlete sample:", athletes[0]);
+    }
+  }, [athletes, coachId, isAdmin, isLoading, error]);
 
   const handleUpgradeClick = useCallback(() => {
     navigate("/coach/profile");
