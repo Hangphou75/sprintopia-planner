@@ -87,6 +87,7 @@ export const ProgramWorkoutCalendar = ({
   const {
     selectedDate,
     handleEventClick,
+    handleEditWorkout,
     handleDateSelect
   } = useCalendarNavigation({
     programId,
@@ -166,6 +167,7 @@ export const ProgramWorkoutCalendar = ({
               onEventClick={handleEventClick} 
               onDuplicateWorkout={handleDuplicateWorkout} 
               onDeleteWorkout={handleDeleteWorkout} 
+              onEditWorkout={handleEditWorkout}
               userRole={user?.role} 
             />
           </TabsContent>

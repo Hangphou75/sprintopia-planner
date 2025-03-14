@@ -15,7 +15,7 @@ export const ProgramWorkouts = () => {
   const { user } = useAuth();
   const isMobile = useIsMobile();
 
-  const { data: workouts, isLoading: isLoadingWorkouts, error: workoutsError } = useQuery({
+  const { data: workouts, isLoading: isLoadingWorkouts, error: workoutsError, refetch: refetchWorkouts } = useQuery({
     queryKey: ["workouts", programId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -50,6 +50,10 @@ export const ProgramWorkouts = () => {
     },
     enabled: !!programId,
   });
+
+  const handleRefresh = () => {
+    refetchWorkouts();
+  };
 
   if (workoutsError || competitionsError) {
     toast.error("Une erreur est survenue lors du chargement des données");
@@ -111,6 +115,7 @@ export const ProgramWorkouts = () => {
         workouts={workouts || []}
         competitions={competitions || []}
         programId={programId || ""}
+        onRefresh={handleRefresh}
       />
     </div>
   );
