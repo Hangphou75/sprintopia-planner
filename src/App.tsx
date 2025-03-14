@@ -1,103 +1,111 @@
-
-import { Routes, Route, Navigate } from "react-router-dom";
-import { Toaster } from "./components/ui/toaster";
-import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+} from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AuthProvider } from "./contexts/AuthContext";
 import { RoleProtectedRoute } from "./components/auth/RoleProtectedRoute";
-import Layout from "./components/Layout";
-import Login from "./pages/Login";
-import { Register } from "./pages/auth/Register";
-import { ForgotPassword } from "./pages/auth/ForgotPassword";
-import { ResetPassword } from "./pages/auth/ResetPassword";
-import AthleteHome from "./pages/athlete/Home";
-import AthletePlanning from "./pages/athlete/Planning";
-import AthleteProfile from "./pages/athlete/Profile";
-import CoachHome from "./pages/coach/Home";
-import CoachPrograms from "./pages/coach/Programs";
-import { ProgramWorkouts } from "./pages/coach/ProgramWorkouts";
-import CreateProgram from "./pages/coach/CreateProgram";
-import { EditProgram } from "./pages/coach/EditProgram";
-import { CreateWorkout } from "./pages/coach/CreateWorkout";
-import { EditWorkout } from "./pages/coach/EditWorkout";
-import Athletes from "./pages/coach/Athletes";
-import CoachProfile from "./pages/coach/Profile";
 import { WorkoutDetails } from "./pages/athlete/WorkoutDetails";
-import CoachPlanning from "./pages/coach/Planning";
-import IndividualAthleteHome from "./pages/individual-athlete/Home";
-import IndividualAthletePlanning from "./pages/individual-athlete/Planning";
-import IndividualAthleteProfile from "./pages/individual-athlete/Profile";
-import { IndividualCreateWorkout } from "./pages/individual-athlete/CreateWorkout";
-import { IndividualEditWorkout } from "./pages/individual-athlete/EditWorkout";
-import { IndividualProgramWorkouts } from "./pages/individual-athlete/ProgramWorkouts";
-import Programs from "./pages/individual-athlete/Programs";
-import GenerateProgram from "./pages/individual-athlete/GenerateProgram";
-import AdminHome from "./pages/admin/Home";
-import UsersList from "./pages/admin/UsersList";
-import EditUser from "./pages/admin/EditUser";
-import UserAthletes from "./pages/admin/UserAthletes";
-import UserPrograms from "./pages/admin/UserPrograms";
+
+// General pages
+import { Profile } from './pages/Profile';
+import { Home } from './pages/Home';
+import { Pricing } from './pages/Pricing';
+import { Contact } from './pages/Contact';
+import { Legal } from './pages/Legal';
+
+// Athlete pages
+import { Programs as AthletePrograms } from './pages/athlete/Programs';
+import { Planning as AthletePlanning } from './pages/athlete/Planning';
+import { ProgramWorkouts as AthleteProgramWorkouts } from './pages/athlete/ProgramWorkouts';
+import { EditWorkout as IndividualEditWorkout } from './pages/individual-athlete/EditWorkout';
+
+// Admin pages
+import { Home as AdminHome } from './pages/admin/Home';
+import { Users as AdminUsers } from './pages/admin/Users';
+import { UserAthletes } from './pages/admin/UserAthletes';
+import { EditUser } from './pages/admin/EditUser';
+import { Competitions as AdminCompetitions } from './pages/admin/Competitions';
+
+// Coach pages
+import { Profile as CoachProfile } from './pages/coach/Profile';
+import { Home as CoachHome } from './pages/coach/Home';
+import { Athletes } from './pages/coach/Athletes';
+import { Programs } from './pages/coach/Programs';
+import { CreateProgram } from './pages/coach/CreateProgram';
+import { EditProgram } from './pages/coach/EditProgram';
+import { ProgramWorkouts } from './pages/coach/ProgramWorkouts';
+import { CreateWorkout } from './pages/coach/CreateWorkout';
+import { EditWorkout } from './pages/coach/EditWorkout';
+import { Planning as CoachPlanning } from './pages/coach/Planning';
+import { WorkoutFeedbacks } from './pages/coach/WorkoutFeedbacks';
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-
-        <Route element={<ProtectedRoute />}>
-          <Route element={<Layout />}>
-            <Route element={<RoleProtectedRoute allowedRoles={["athlete"]} />}>
-              <Route path="/athlete" element={<AthleteHome />} />
-              <Route path="/athlete/planning" element={<AthletePlanning />} />
-              <Route path="/athlete/profile" element={<AthleteProfile />} />
-              <Route path="/athlete/programs/:programId/workouts" element={<ProgramWorkouts />} />
-              <Route path="/athlete/programs/:programId/workouts/:workoutId" element={<WorkoutDetails />} />
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AuthProvider>
+          <Routes>
+            {/* General routes */}
+            <Route path="/" element={<Home />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/legal" element={<Legal />} />
+            <Route path="/profile" element={<RoleProtectedRoute />} >
+              <Route index element={<Profile />} />
             </Route>
 
-            <Route element={<RoleProtectedRoute allowedRoles={["coach"]} />}>
-              <Route path="/coach" element={<CoachHome />} />
-              <Route path="/coach/programs" element={<CoachPrograms />} />
-              <Route path="/coach/programs/new" element={<CreateProgram />} />
-              <Route path="/coach/programs/:programId/edit" element={<EditProgram />} />
-              <Route path="/coach/programs/:programId/workouts" element={<ProgramWorkouts />} />
-              <Route path="/coach/programs/:programId/workouts/new" element={<CreateWorkout />} />
-              <Route path="/coach/programs/:programId/workouts/:workoutId/edit" element={<EditWorkout />} />
-              <Route path="/coach/programs/:programId/workouts/:workoutId" element={<WorkoutDetails />} />
-              <Route path="/coach/athletes" element={<Athletes />} />
-              <Route path="/coach/planning" element={<CoachPlanning />} />
-              <Route path="/coach/profile" element={<CoachProfile />} />
+            {/* Athlete routes */}
+            <Route path="/athlete" element={<RoleProtectedRoute role="athlete" />} >
+              <Route path="programs" element={<AthletePrograms />} />
+              <Route path="planning" element={<AthletePlanning />} />
+              <Route path="programs/:programId/workouts" element={<AthleteProgramWorkouts />} />
+              <Route path="programs/:programId/workouts/:workoutId" element={<WorkoutDetails />} />
             </Route>
 
-            <Route element={<RoleProtectedRoute allowedRoles={["individual_athlete"]} />}>
-              <Route path="/individual-athlete" element={<IndividualAthleteHome />} />
-              <Route path="/individual-athlete/planning" element={<Programs />} />
-              <Route path="/individual-athlete/planning/:programId" element={<IndividualAthletePlanning />} />
-              <Route path="/individual-athlete/profile" element={<IndividualAthleteProfile />} />
-              <Route path="/individual-athlete/programs/:programId/workouts" element={<IndividualProgramWorkouts />} />
-              <Route path="/individual-athlete/programs/:programId/workouts/:workoutId" element={<WorkoutDetails />} />
-              <Route path="/individual-athlete/programs/new" element={<CreateProgram />} />
-              <Route path="/individual-athlete/programs/:programId/edit" element={<EditProgram />} />
-              <Route path="/individual-athlete/programs/:programId/workouts/new" element={<IndividualCreateWorkout />} />
-              <Route path="/individual-athlete/programs/:programId/workouts/:workoutId/edit" element={<IndividualEditWorkout />} />
-              <Route path="/individual-athlete/programs/generate" element={<GenerateProgram />} />
+            {/* Individual Athlete routes */}
+            <Route path="/individual-athlete" element={<RoleProtectedRoute role="individual_athlete" />} >
+              <Route path="programs" element={<AthletePrograms />} />
+              <Route path="planning" element={<AthletePlanning />} />
+              <Route path="programs/:programId/workouts" element={<AthleteProgramWorkouts />} />
+              <Route path="programs/:programId/workouts/:workoutId/edit" element={<IndividualEditWorkout />} />
+              <Route path="programs/:programId/workouts/:workoutId" element={<WorkoutDetails />} />
             </Route>
 
-            <Route element={<RoleProtectedRoute allowedRoles={["admin"]} />}>
-              <Route path="/admin" element={<AdminHome />} />
-              <Route path="/admin/users" element={<UsersList />} />
-              <Route path="/admin/users/:id/edit" element={<EditUser />} />
-              <Route path="/admin/users/:id/athletes" element={<UserAthletes />} />
-              <Route path="/admin/users/:id/programs" element={<UserPrograms />} />
+            {/* Admin routes */}
+            <Route path="/admin" element={<RoleProtectedRoute role="admin" />} >
+              <Route index element={<AdminHome />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="users/:id" element={<UserAthletes />} />
+              <Route path="users/:id/edit" element={<EditUser />} />
+              <Route path="users/:id/competitions" element={<AdminCompetitions />} />
             </Route>
-          </Route>
-        </Route>
-
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-      <Toaster />
-    </>
+            
+            {/* Coach routes */}
+            <Route path="/coach" element={<RoleProtectedRoute role="coach" />}>
+              <Route index element={<CoachHome />} />
+              <Route path="profile" element={<CoachProfile />} />
+              <Route path="athletes" element={<Athletes />} />
+              <Route path="programs" element={<Programs />} />
+              <Route path="programs/new" element={<CreateProgram />} />
+              <Route path="programs/:programId/edit" element={<EditProgram />} />
+              <Route path="programs/:programId/workouts" element={<ProgramWorkouts />} />
+              <Route path="programs/:programId/workouts/new" element={<CreateWorkout />} />
+              <Route path="programs/:programId/workouts/:workoutId/edit" element={<EditWorkout />} />
+              <Route path="programs/:programId/workouts/:workoutId" element={<WorkoutDetails />} />
+              <Route path="planning" element={<CoachPlanning />} />
+              <Route path="feedback" element={<WorkoutFeedbacks />} />
+            </Route>
+            
+            {/* No match route */}
+            <Route path="*" element={<div>Page not found</div>} />
+          </Routes>
+        </AuthProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }
 

@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +9,8 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { WorkoutFeedbackForm } from "@/components/workouts/WorkoutFeedbackForm";
+import { useState } from "react";
 
 const themes = [
   { value: "aerobic", label: "Aérobie" },
@@ -23,9 +26,10 @@ export const WorkoutDetails = () => {
   const { workoutId, programId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [refreshData, setRefreshData] = useState(0);
 
   const { data: workout, isLoading } = useQuery({
-    queryKey: ["workout", workoutId],
+    queryKey: ["workout", workoutId, refreshData],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("workouts")
@@ -36,6 +40,24 @@ export const WorkoutDetails = () => {
       if (error) throw error;
       return data;
     },
+  });
+
+  const { data: feedback, isLoading: isFeedbackLoading } = useQuery({
+    queryKey: ["workout-feedback", workoutId, user?.id, refreshData],
+    queryFn: async () => {
+      if (!user) return null;
+      
+      const { data, error } = await supabase
+        .from("workout_feedback")
+        .select("*")
+        .eq("workout_id", workoutId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!workoutId && !!user?.id,
   });
 
   if (isLoading) {
@@ -66,6 +88,10 @@ export const WorkoutDetails = () => {
     } else if (user?.role === "coach") {
       navigate(`/coach/programs/${programId}/workouts/${workoutId}/edit`);
     }
+  };
+
+  const handleFeedbackSuccess = () => {
+    setRefreshData(prev => prev + 1);
   };
 
   return (
@@ -171,6 +197,18 @@ export const WorkoutDetails = () => {
           )}
         </CardContent>
       </Card>
+
+      {user?.role === "athlete" && (
+        <WorkoutFeedbackForm 
+          workoutId={workoutId || ""} 
+          existingFeedback={feedback ? {
+            id: feedback.id,
+            level: feedback.level,
+            notes: feedback.notes
+          } : undefined}
+          onSuccess={handleFeedbackSuccess}
+        />
+      )}
     </div>
   );
 };

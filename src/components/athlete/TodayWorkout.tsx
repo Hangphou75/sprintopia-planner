@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getThemeLabel } from "@/utils/themeUtils";
 import { useNavigate } from "react-router-dom";
+import { MessageSquare } from "lucide-react";
 
 type WorkoutProps = {
   workout: {
@@ -29,6 +30,10 @@ export const TodayWorkout = ({ workout, programId }: WorkoutProps) => {
 
   const handleWorkoutClick = () => {
     navigate(`/athlete/programs/${programId}/workouts/${workout.id}`);
+  };
+  
+  const handleFeedbackClick = () => {
+    navigate(`/athlete/programs/${programId}/workouts/${workout.id}?feedback=true`);
   };
 
   const formatDescription = (description: string) => {
@@ -121,13 +126,23 @@ export const TodayWorkout = ({ workout, programId }: WorkoutProps) => {
           </div>
         )}
 
-        <Button 
-          variant="outline" 
-          className="w-full"
-          onClick={handleWorkoutClick}
-        >
-          Voir les détails
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            className="flex-1"
+            onClick={handleWorkoutClick}
+          >
+            Voir les détails
+          </Button>
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={handleFeedbackClick}
+          >
+            <MessageSquare className="h-4 w-4" />
+            Feedback
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

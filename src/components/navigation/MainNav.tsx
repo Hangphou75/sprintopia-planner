@@ -1,6 +1,5 @@
-
 import { Link, useLocation } from "react-router-dom";
-import { UserCircle, Shield, Users, Calendar, Home } from "lucide-react";
+import { UserCircle, Shield, Users, Calendar, Home, PanelLayoutTop, CalendarDays, BarChart, User } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -20,7 +19,39 @@ export const MainNav = ({ isCoach, basePath }: MainNavProps) => {
     setOpenMobile(false);
   };
 
-  // For admin users, we'll make both admin and coach navigation available
+  const coachRoutes = [
+    {
+      href: "/coach",
+      label: "Tableau de bord",
+      icon: <Home className="h-4 w-4" />,
+    },
+    {
+      href: "/coach/athletes",
+      label: "Athlètes",
+      icon: <Users className="h-4 w-4" />,
+    },
+    {
+      href: "/coach/programs",
+      label: "Programmes",
+      icon: <PanelLayoutTop className="h-4 w-4" />,
+    },
+    {
+      href: "/coach/planning",
+      label: "Planning",
+      icon: <CalendarDays className="h-4 w-4" />,
+    },
+    {
+      href: "/coach/feedback",
+      label: "Suivi des feedbacks",
+      icon: <BarChart className="h-4 w-4" />,
+    },
+    {
+      href: "/coach/profile",
+      label: "Profil",
+      icon: <User className="h-4 w-4" />,
+    },
+  ];
+
   return (
     <nav className="grid gap-2 px-2">
       {isAdmin && (
@@ -49,40 +80,22 @@ export const MainNav = ({ isCoach, basePath }: MainNavProps) => {
         </div>
       )}
 
-      {/* If user is admin or coach, show the coach navigation */}
       {(isCoach || isAdmin) && (
         <>
           <h4 className="mb-1 px-2 text-sm font-semibold">Coach</h4>
-          <Link
-            to="/coach"
-            onClick={handleLinkClick}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 ${
-              location.pathname === "/coach" ? "bg-gray-100" : ""
-            }`}
-          >
-            <Home className="h-4 w-4" />
-            Accueil
-          </Link>
-          <Link
-            to="/coach/athletes"
-            onClick={handleLinkClick}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 ${
-              location.pathname === "/coach/athletes" ? "bg-gray-100" : ""
-            }`}
-          >
-            <Users className="h-4 w-4" />
-            Mes athlètes
-          </Link>
-          <Link
-            to="/coach/planning"
-            onClick={handleLinkClick}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 ${
-              location.pathname === "/coach/planning" ? "bg-gray-100" : ""
-            }`}
-          >
-            <Calendar className="h-4 w-4" />
-            Planning
-          </Link>
+          {coachRoutes.map((route) => (
+            <Link
+              key={route.href}
+              to={route.href}
+              onClick={handleLinkClick}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 ${
+                location.pathname === route.href ? "bg-gray-100" : ""
+              }`}
+            >
+              {route.icon}
+              {route.label}
+            </Link>
+          ))}
         </>
       )}
       {!isCoach && !isAdmin && isIndividualAthlete ? (
