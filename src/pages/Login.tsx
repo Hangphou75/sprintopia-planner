@@ -12,7 +12,8 @@ const Login = () => {
 
   console.log("Login page - Auth state:", { user, isAuthenticated });
 
-  if (isAuthenticated && user) {
+  // Ne rediriger que si l'utilisateur est bien authentifié avec un profil valide
+  if (isAuthenticated && user && user.role) {
     // Si nous avons une URL de redirection stockée dans location.state, l'utiliser
     if (location.state?.from) {
       console.log("Redirecting to stored location:", location.state.from);

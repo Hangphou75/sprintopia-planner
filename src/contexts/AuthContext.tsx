@@ -22,13 +22,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     fetchProfile,
   });
 
+  console.log("AuthProvider - Current state:", { 
+    hasProfile: !!profile, 
+    isLoading: initLoading || sessionLoading 
+  });
+
   const login = async (email: string, password: string, role: string) => {
-    await authLogin(email, password, role);
+    try {
+      await authLogin(email, password, role);
+    } catch (error) {
+      console.error("Login error in context:", error);
+      throw error;
+    }
   };
 
   const logout = async () => {
-    await authLogout();
-    setProfile(null);
+    try {
+      await authLogout();
+      setProfile(null);
+    } catch (error) {
+      console.error("Logout error in context:", error);
+      throw error;
+    }
   };
 
   const value = {
