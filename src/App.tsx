@@ -17,10 +17,10 @@ import Contact from './pages/Contact';
 import Legal from './pages/Legal';
 
 // Athlete pages
-import { Programs as AthletePrograms } from './pages/athlete/Programs';
+import Programs from './pages/athlete/Programs';
 import Planning from './pages/athlete/Planning';
 import { ProgramWorkouts as AthleteProgramWorkouts } from './pages/athlete/ProgramWorkouts';
-import { EditWorkout as IndividualEditWorkout } from "./pages/individual-athlete/EditWorkout";
+import EditWorkout from "./pages/individual-athlete/EditWorkout";
 
 // Admin pages
 import AdminHome from './pages/admin/Home';
@@ -33,12 +33,12 @@ import AdminCompetitions from './pages/admin/Competitions';
 import CoachProfile from './pages/coach/Profile';
 import CoachHome from './pages/coach/Home';
 import Athletes from './pages/coach/Athletes';
-import Programs from './pages/coach/Programs';
+import Programs as CoachPrograms from './pages/coach/Programs';
 import CreateProgram from './pages/coach/CreateProgram';
 import { EditProgram } from './pages/coach/EditProgram';
 import { ProgramWorkouts as CoachProgramWorkouts } from './pages/coach/ProgramWorkouts';
 import { CreateWorkout } from './pages/coach/CreateWorkout';
-import { EditWorkout } from './pages/coach/EditWorkout';
+import { EditWorkout as CoachEditWorkout } from './pages/coach/EditWorkout';
 import CoachPlanning from './pages/coach/Planning';
 import { WorkoutFeedbacks } from './pages/coach/WorkoutFeedbacks';
 
@@ -61,7 +61,7 @@ function App() {
 
             {/* Athlete routes */}
             <Route path="/athlete" element={<RoleProtectedRoute allowedRoles={["athlete", "admin"]} />} >
-              <Route path="programs" element={<AthletePrograms />} />
+              <Route path="programs" element={<Programs />} />
               <Route path="planning" element={<Planning />} />
               <Route path="programs/:programId/workouts" element={<AthleteProgramWorkouts />} />
               <Route path="programs/:programId/workouts/:workoutId" element={<WorkoutDetails />} />
@@ -69,10 +69,10 @@ function App() {
 
             {/* Individual Athlete routes */}
             <Route path="/individual-athlete" element={<RoleProtectedRoute allowedRoles={["individual_athlete", "admin"]} />} >
-              <Route path="programs" element={<AthletePrograms />} />
+              <Route path="programs" element={<Programs />} />
               <Route path="planning" element={<Planning />} />
               <Route path="programs/:programId/workouts" element={<AthleteProgramWorkouts />} />
-              <Route path="programs/:programId/workouts/:workoutId/edit" element={<IndividualEditWorkout />} />
+              <Route path="programs/:programId/workouts/:workoutId/edit" element={<EditWorkout />} />
               <Route path="programs/:programId/workouts/:workoutId" element={<WorkoutDetails />} />
             </Route>
 
@@ -90,12 +90,12 @@ function App() {
               <Route index element={<CoachHome />} />
               <Route path="profile" element={<CoachProfile />} />
               <Route path="athletes" element={<Athletes />} />
-              <Route path="programs" element={<Programs />} />
+              <Route path="programs" element={<CoachPrograms />} />
               <Route path="programs/new" element={<CreateProgram />} />
               <Route path="programs/:programId/edit" element={<EditProgram />} />
               <Route path="programs/:programId/workouts" element={<CoachProgramWorkouts />} />
               <Route path="programs/:programId/workouts/new" element={<CreateWorkout />} />
-              <Route path="programs/:programId/workouts/:workoutId/edit" element={<EditWorkout />} />
+              <Route path="programs/:programId/workouts/:workoutId/edit" element={<CoachEditWorkout />} />
               <Route path="programs/:programId/workouts/:workoutId" element={<WorkoutDetails />} />
               <Route path="planning" element={<CoachPlanning />} />
               <Route path="feedback" element={<WorkoutFeedbacks />} />
