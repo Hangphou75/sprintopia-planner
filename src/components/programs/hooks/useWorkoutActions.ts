@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { InsertWorkout } from "@/types/database";
 
 type UseWorkoutActionsProps = {
   programId: string;
@@ -23,21 +24,25 @@ export const useWorkoutActions = ({ programId, userRole, onSuccess }: UseWorkout
     
     try {
       console.log("Attempting to duplicate workout:", event);
+      
+      // Create a new workout object with the correct property names
+      const workoutData: Partial<InsertWorkout> = {
+        program_id: programId,
+        title: `${event.title} (copie)`,
+        description: event.description,
+        date: event.date.toISOString(),
+        time: event.time,
+        theme: event.theme,
+        details: event.details,
+        recovery: event.recovery,
+        phase: event.phase,
+        type: event.type,
+        intensity: event.intensity,
+      };
+      
       const { data, error } = await supabase
         .from("workouts")
-        .insert({
-          program_id: programId,
-          title: `${event.title} (copie)`,
-          description: event.description,
-          date: event.date.toISOString(),
-          time: event.time,
-          theme: event.theme,
-          details: event.details,
-          recovery: event.recovery,
-          phase: event.phase,
-          type: event.type,
-          intensity: event.intensity,
-        })
+        .insert(workoutData)
         .select()
         .single();
 
