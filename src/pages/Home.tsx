@@ -26,11 +26,14 @@ export default function Home() {
   
   // If the user is authenticated, redirect according to their role
   if (isAuthenticated && user?.role) {
+    console.log("Redirecting authenticated user with role:", user.role);
+    
     if (user.role === "individual_athlete") {
       return <Navigate to="/individual-athlete/planning" replace />;
     }
 
     if (user.role === "admin") {
+      console.log("Admin user detected, redirecting to admin users page");
       return <Navigate to="/admin/users" replace />;
     }
 
@@ -44,5 +47,6 @@ export default function Home() {
   }
 
   // Always redirect to login if not authenticated
+  console.log("User not authenticated, redirecting to login");
   return <Navigate to="/login" replace />;
 }
