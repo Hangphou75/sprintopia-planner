@@ -1,12 +1,13 @@
 
 import { Users } from "lucide-react";
+import { memo } from "react";
 
 interface AthleteLoadingStatesProps {
   isLoading: boolean;
   error: unknown;
 }
 
-export const AthleteLoadingStates = ({ isLoading, error }: AthleteLoadingStatesProps) => {
+export const AthleteLoadingStates = memo(({ isLoading, error }: AthleteLoadingStatesProps) => {
   if (isLoading) {
     return (
       <div className="text-center py-4">
@@ -25,4 +26,6 @@ export const AthleteLoadingStates = ({ isLoading, error }: AthleteLoadingStatesP
   }
 
   return null;
-};
+});
+
+AthleteLoadingStates.displayName = "AthleteLoadingStates";

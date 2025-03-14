@@ -2,14 +2,19 @@
 import { Profile } from "@/types/database";
 import { Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { memo, useCallback } from "react";
 
 interface AthletesListProps {
   athletes: { athlete: { id: string; first_name: string; last_name: string; email: string } }[] | undefined;
   isAdmin: boolean;
 }
 
-export const AthletesList = ({ athletes, isAdmin }: AthletesListProps) => {
+export const AthletesList = memo(({ athletes, isAdmin }: AthletesListProps) => {
   const navigate = useNavigate();
+
+  const handleAthleteClick = useCallback((athleteId: string) => {
+    navigate(`/coach/athletes/${athleteId}`);
+  }, [navigate]);
 
   if (!athletes || athletes.length === 0) {
     return (
@@ -28,7 +33,7 @@ export const AthletesList = ({ athletes, isAdmin }: AthletesListProps) => {
         <div
           key={relation.athlete.id}
           className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 cursor-pointer"
-          onClick={() => navigate(`/coach/athletes/${relation.athlete.id}`)}
+          onClick={() => handleAthleteClick(relation.athlete.id)}
         >
           <div>
             <p className="font-medium">
@@ -42,4 +47,6 @@ export const AthletesList = ({ athletes, isAdmin }: AthletesListProps) => {
       ))}
     </div>
   );
-};
+});
+
+AthletesList.displayName = "AthletesList";

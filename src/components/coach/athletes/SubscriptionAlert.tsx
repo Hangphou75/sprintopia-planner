@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
+import { memo } from "react";
 
 interface SubscriptionAlertProps {
   isSubscriptionExpired: boolean;
@@ -8,7 +9,7 @@ interface SubscriptionAlertProps {
   onUpgrade: () => void;
 }
 
-export const SubscriptionAlert = ({ 
+export const SubscriptionAlert = memo(({ 
   isSubscriptionExpired, 
   isAdmin, 
   onUpgrade 
@@ -24,4 +25,6 @@ export const SubscriptionAlert = ({
       </Button>
     </div>
   );
-};
+});
+
+SubscriptionAlert.displayName = "SubscriptionAlert";

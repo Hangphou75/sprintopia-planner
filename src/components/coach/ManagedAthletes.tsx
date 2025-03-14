@@ -7,6 +7,7 @@ import { AthletesList } from "./athletes/AthletesList";
 import { AthletePagination } from "./athletes/AthletePagination";
 import { AthleteLoadingStates } from "./athletes/AthleteLoadingStates";
 import { useAthleteManagement } from "./athletes/useAthleteManagement";
+import { useCallback, useMemo } from "react";
 
 type ManagedAthletesProps = {
   coachId: string | undefined;
@@ -27,9 +28,12 @@ export const ManagedAthletes = ({ coachId }: ManagedAthletesProps) => {
     usageInfo
   } = useAthleteManagement(coachId);
 
-  const handleUpgradeClick = () => {
+  const handleUpgradeClick = useCallback(() => {
     navigate("/coach/profile");
-  };
+  }, [navigate]);
+
+  // Memoize athletes to prevent unnecessary re-renders of AthletesList
+  const memoizedAthletes = useMemo(() => athletes, [athletes]);
 
   return (
     <div className="space-y-4">
@@ -45,7 +49,7 @@ export const ManagedAthletes = ({ coachId }: ManagedAthletesProps) => {
 
       {!isLoading && !error && (
         <>
-          <AthletesList athletes={athletes} isAdmin={isAdmin} />
+          <AthletesList athletes={memoizedAthletes} isAdmin={isAdmin} />
           
           {athletes && athletes.length > 0 && (
             <AthletePagination 

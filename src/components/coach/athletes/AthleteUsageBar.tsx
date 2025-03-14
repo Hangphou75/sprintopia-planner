@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { memo } from "react";
 
 type UsageInfo = {
   current: number;
@@ -10,7 +10,7 @@ interface AthleteUsageBarProps {
   usageInfo: UsageInfo | null;
 }
 
-export const AthleteUsageBar = ({ usageInfo }: AthleteUsageBarProps) => {
+export const AthleteUsageBar = memo(({ usageInfo }: AthleteUsageBarProps) => {
   if (!usageInfo || usageInfo.limit === null) return null;
   
   const percentage = (usageInfo.current / usageInfo.limit) * 100;
@@ -32,4 +32,6 @@ export const AthleteUsageBar = ({ usageInfo }: AthleteUsageBarProps) => {
       </div>
     </div>
   );
-};
+});
+
+AthleteUsageBar.displayName = "AthleteUsageBar";
