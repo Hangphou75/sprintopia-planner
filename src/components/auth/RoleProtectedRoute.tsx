@@ -32,7 +32,7 @@ export const RoleProtectedRoute = ({ allowedRoles }: RoleProtectedRouteProps) =>
   // If not authenticated or role doesn't match, redirect to login
   if (!isAuthenticated || !user || !user.role || !allowedRoles.includes(user.role)) {
     console.log("Access denied for role:", user?.role);
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace state={{ from: window.location.pathname }} />;
   }
 
   console.log("Access granted for role:", user.role);

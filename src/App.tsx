@@ -31,22 +31,24 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<Layout />}>
+        <Route path="/" element={<Layout />}>
           {/* Public routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/legal" element={<Legal />} />
-          <Route path="/pricing" element={<Pricing />} />
+          <Route index element={<Index />} />
+          <Route path="home" element={<Home />} />
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="reset-password" element={<ResetPassword />} />
+          <Route path="contact" element={<Contact />} />
+          <Route path="legal" element={<Legal />} />
+          <Route path="pricing" element={<Pricing />} />
 
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
-            <Route path="/profile" element={<Profile />} />
+            <Route path="profile" element={<Profile />} />
             
             {/* Admin routes */}
-            <Route path="/admin" element={<RoleProtectedRoute allowedRoles={["admin"]} />}>
+            <Route path="admin" element={<RoleProtectedRoute allowedRoles={["admin"]} />}>
               <Route index element={<Navigate to="/admin/users" replace />} />
               <Route path="home" element={<AdminHome />} />
               <Route path="users" element={<UsersList />} />
@@ -57,27 +59,25 @@ function App() {
             </Route>
 
             {/* Individual Athlete routes */}
-            <Route path="/individual-athlete" element={<RoleProtectedRoute allowedRoles={["individual_athlete"]} />}>
+            <Route path="individual-athlete" element={<RoleProtectedRoute allowedRoles={["individual_athlete"]} />}>
               <Route path="planning" element={<div>Individual Athlete Planning</div>} />
               {/* Add more individual athlete routes here */}
             </Route>
 
             {/* Coach routes */}
-            <Route path="/coach" element={<RoleProtectedRoute allowedRoles={["coach"]} />}>
+            <Route path="coach" element={<RoleProtectedRoute allowedRoles={["coach"]} />}>
               <Route path="dashboard" element={<div>Coach Dashboard</div>} />
               {/* Add more coach routes here */}
             </Route>
 
             {/* Athlete routes */}
-            <Route path="/athlete" element={<RoleProtectedRoute allowedRoles={["athlete"]} />}>
+            <Route path="athlete" element={<RoleProtectedRoute allowedRoles={["athlete"]} />}>
               <Route path="planning" element={<div>Athlete Planning</div>} />
               {/* Add more athlete routes here */}
             </Route>
           </Route>
 
-          {/* Redirect to the login page or home page */}
-          <Route path="/" element={<Index />} />
-          <Route path="/home" element={<Home />} />
+          {/* Catch all route */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
