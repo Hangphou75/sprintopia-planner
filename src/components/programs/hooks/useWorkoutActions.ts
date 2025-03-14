@@ -5,6 +5,7 @@ import { Event } from "../types";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 type UseWorkoutActionsProps = {
   programId: string;
@@ -14,7 +15,6 @@ type UseWorkoutActionsProps = {
 
 export const useWorkoutActions = ({ programId, userRole, onSuccess }: UseWorkoutActionsProps) => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const handleDuplicateWorkout = async (event: Event) => {
@@ -33,6 +33,10 @@ export const useWorkoutActions = ({ programId, userRole, onSuccess }: UseWorkout
           time: event.time,
           theme: event.theme,
           details: event.details,
+          recovery: event.recovery,
+          phase: event.phase,
+          type: event.type,
+          intensity: event.intensity,
         })
         .select()
         .single();
@@ -45,21 +49,14 @@ export const useWorkoutActions = ({ programId, userRole, onSuccess }: UseWorkout
       console.log("Workout duplicated successfully:", data);
       await queryClient.invalidateQueries({ queryKey: ["workouts", programId] });
 
-      toast({
-        title: "Séance dupliquée",
-        description: "La séance a été dupliquée avec succès.",
-      });
+      toast("Séance dupliquée avec succès");
 
       if (onSuccess) {
         onSuccess();
       }
     } catch (error) {
       console.error("Error duplicating workout:", error);
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la duplication de la séance.",
-        variant: "destructive",
-      });
+      toast("Une erreur est survenue lors de la duplication de la séance");
     }
   };
 
@@ -84,21 +81,14 @@ export const useWorkoutActions = ({ programId, userRole, onSuccess }: UseWorkout
       // Invalider également la requête des programmes pour mettre à jour la vue
       await queryClient.invalidateQueries({ queryKey: ["shared-programs"] });
 
-      toast({
-        title: "Séance supprimée",
-        description: "La séance a été supprimée avec succès.",
-      });
+      toast("Séance supprimée avec succès");
 
       if (onSuccess) {
         onSuccess();
       }
     } catch (error) {
       console.error("Error deleting workout:", error);
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la suppression de la séance.",
-        variant: "destructive",
-      });
+      toast("Une erreur est survenue lors de la suppression de la séance");
     }
   };
 

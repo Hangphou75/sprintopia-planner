@@ -28,6 +28,8 @@ export const useCalendarNavigation = ({ programId, userRole }: UseCalendarNaviga
   };
 
   const handleEditWorkout = (event: Event) => {
+    console.log("Editing workout", event);
+    
     if (event.type === "workout") {
       if (userRole === "coach") {
         navigate(`/coach/programs/${programId}/workouts/${event.id}/edit`);
