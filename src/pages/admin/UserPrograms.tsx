@@ -78,7 +78,24 @@ export const UserPrograms = () => {
 
         if (programsError) throw programsError;
         console.log("Programs data:", programsData);
-        setPrograms(programsData as Program[]);
+        
+        // Transform the data to match the Program type
+        const transformedPrograms = programsData.map((program: any) => ({
+          ...program,
+          main_competition: program.main_competition ? {
+            name: program.main_competition.name || '',
+            date: program.main_competition.date || '',
+            location: program.main_competition.location || '',
+          } : null,
+          intermediate_competitions: program.intermediate_competitions ? 
+            program.intermediate_competitions.map((comp: any) => ({
+              name: comp.name || '',
+              date: comp.date || '',
+              location: comp.location || '',
+            })) : null,
+        }));
+
+        setPrograms(transformedPrograms as Program[]);
       } catch (error) {
         console.error("Error fetching user and programs:", error);
       } finally {
