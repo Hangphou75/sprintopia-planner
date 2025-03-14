@@ -17,10 +17,10 @@ import Contact from './pages/Contact';
 import Legal from './pages/Legal';
 
 // Athlete pages
-import AthletePrograms from './pages/athlete/Programs';
+import { Programs as AthletePrograms } from './pages/athlete/Programs';
 import Planning from './pages/athlete/Planning';
-import AthleteProgramWorkouts from './pages/athlete/ProgramWorkouts';
-import IndividualEditWorkout from "./pages/individual-athlete/EditWorkout";
+import { ProgramWorkouts as AthleteProgramWorkouts } from './pages/athlete/ProgramWorkouts';
+import { EditWorkout as IndividualEditWorkout } from "./pages/individual-athlete/EditWorkout";
 
 // Admin pages
 import AdminHome from './pages/admin/Home';
@@ -36,7 +36,7 @@ import Athletes from './pages/coach/Athletes';
 import Programs from './pages/coach/Programs';
 import CreateProgram from './pages/coach/CreateProgram';
 import { EditProgram } from './pages/coach/EditProgram';
-import CoachProgramWorkouts from './pages/coach/ProgramWorkouts';
+import { ProgramWorkouts as CoachProgramWorkouts } from './pages/coach/ProgramWorkouts';
 import { CreateWorkout } from './pages/coach/CreateWorkout';
 import { EditWorkout } from './pages/coach/EditWorkout';
 import CoachPlanning from './pages/coach/Planning';
