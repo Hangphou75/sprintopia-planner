@@ -68,6 +68,11 @@ export const UserAthletes = () => {
     navigate(`/admin/users/${athlete.id}/edit`);
   };
 
+  const handleViewCompetitions = (athlete: Profile) => {
+    // Dans un contexte admin, redirigez vers la page des compétitions de l'athlète
+    navigate(`/admin/users/${athlete.id}/competitions`);
+  };
+
   const handleDeleteAthlete = (athlete: Profile) => {
     // Dans un contexte admin, on ne veut probablement pas supprimer l'athlète
     // mais juste la relation coach-athlète
@@ -101,8 +106,9 @@ export const UserAthletes = () => {
                 <div className="text-center py-4">Aucun athlète trouvé pour ce coach</div>
               ) : (
                 <AthletesList
-                  athletes={athletes}
+                  athletes={athletes.map(athlete => ({ id: athlete.id, athlete }))}
                   onEditAthlete={handleEditAthlete}
+                  onViewCompetitions={handleViewCompetitions}
                   onDeleteAthlete={handleDeleteAthlete}
                 />
               )}

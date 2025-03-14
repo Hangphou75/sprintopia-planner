@@ -2,8 +2,13 @@
 import { Profile } from "@/types/database";
 import { AthleteCard } from "./AthleteCard";
 
-type AthletesListProps = {
-  athletes: any[];
+export type AthleteRelation = {
+  id: string;
+  athlete: Profile;
+};
+
+export type AthletesListProps = {
+  athletes: AthleteRelation[];
   onEditAthlete: (athlete: Profile) => void;
   onViewCompetitions: (athlete: Profile) => void;
   onDeleteAthlete: (athlete: Profile) => void;
