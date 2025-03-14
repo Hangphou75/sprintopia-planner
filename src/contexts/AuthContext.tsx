@@ -27,19 +27,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Check session on mount to ensure we're properly initialized
   useEffect(() => {
+    let isMounted = true;
+    
     const checkSession = async () => {
       try {
         const { data } = await supabase.auth.getSession();
+        
+        if (!isMounted) return;
+        
         console.log("Initial session check:", data.session ? "Found session" : "No session");
         
         if (data.session) {
           try {
             // Force refresh profile on initial load
             const userProfile = await fetchProfile(data.session.user.id);
-            if (userProfile) {
+            if (userProfile && isMounted) {
               console.log("Profile loaded:", userProfile.role);
               setProfile(userProfile);
-            } else {
+            } else if (isMounted) {
               console.log("No profile found despite valid session");
             }
           } catch (error) {
@@ -47,32 +52,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
         
-        setInitialized(true);
+        if (isMounted) setInitialized(true);
       } catch (error) {
         console.error("Error checking session:", error);
-        setInitialized(true);
+        if (isMounted) setInitialized(true);
       }
     };
     
     checkSession();
+    
+    return () => {
+      isMounted = false;
+    };
   }, [fetchProfile, setProfile]);
+
+  // Force a timeout to prevent an infinite loading state
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!initialized) {
+        console.log("Forcing initialization after timeout");
+        setInitialized(true);
+      }
+    }, 3000); // Force initialization after 3 seconds
+    
+    return () => clearTimeout(timer);
+  }, [initialized]);
 
   console.log("AuthProvider - Current state:", { 
     hasProfile: !!profile, 
     profileRole: profile?.role,
-    isLoading: initLoading || sessionLoading,
+    isLoading: initLoading || sessionLoading || !initialized,
     initialized
   });
-
-  // Add an effect to log authentication state changes
-  useEffect(() => {
-    console.log("AuthProvider - Authentication state updated:", {
-      hasProfile: !!profile,
-      profileRole: profile?.role,
-      isLoading: initLoading || sessionLoading,
-      initialized
-    });
-  }, [profile, initLoading, sessionLoading, initialized]);
 
   const login = async (email: string, password: string, role: string) => {
     try {
@@ -102,7 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login,
     logout,
     isAuthenticated: !!profile,
-    isLoading: initLoading || sessionLoading || !initialized
+    isLoading: (initLoading || sessionLoading || !initialized) && !profile
   };
 
   return (

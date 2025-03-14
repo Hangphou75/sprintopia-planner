@@ -26,8 +26,6 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
 
       if (session?.user) {
         console.log("Found existing session for user:", session.user.id);
-        // Clear loading early for a better UX
-        setIsLoading(true);
         
         const cachedProfile = localStorage.getItem(`userProfile_${session.user.id}`);
         if (cachedProfile) {
@@ -66,9 +64,19 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
 
   useEffect(() => {
     let mounted = true;
+    let timeoutId: NodeJS.Timeout;
 
     // Initial auth check
     initAuth();
+
+    // Force loading state to finish after 5 seconds to prevent infinite loading
+    timeoutId = setTimeout(() => {
+      if (mounted && isLoading) {
+        console.log("Forcing loading state to finish after timeout");
+        setIsLoading(false);
+        setIsInitialized(true);
+      }
+    }, 5000);
 
     // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -78,6 +86,8 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
         console.log("Component unmounted, ignoring auth change");
         return;
       }
+
+      clearTimeout(timeoutId); // Clear the timeout when auth state changes
 
       if (event === 'SIGNED_IN' && session?.user) {
         console.log("User signed in, updating profile");
@@ -122,9 +132,10 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
     return () => {
       console.log("Cleaning up auth listener");
       mounted = false;
+      clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
-  }, [fetchProfile, onProfileUpdate, isInitialized, initAuth]);
+  }, [fetchProfile, onProfileUpdate, isInitialized, initAuth, isLoading]);
 
   return {
     isLoading,
