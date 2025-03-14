@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Profile } from "@/types/database";
 import { useAthletes } from "@/hooks/useAthletes";
 import { useAthleteMutations } from "@/hooks/useAthleteMutations";
-import { AthletesList } from "@/components/athletes/AthletesList";
+import { AthletesList, AthleteRelation } from "@/components/athletes/AthletesList";
 import { InviteAthleteDialogEnhanced } from "@/components/athletes/InviteAthleteDialog";
 import { AssignProgramDialog } from "@/components/athletes/AssignProgramDialog";
 import { AthleteProgramsSheet } from "@/components/athletes/AthleteProgramsSheet";
@@ -88,6 +88,12 @@ const Athletes = () => {
     setSelectedView(view);
   };
 
+  // Convert the athletes data to match the AthleteRelation type
+  const formattedAthletes: AthleteRelation[] = sortedAthletes.map(relation => ({
+    id: relation.id,
+    athlete: relation.athlete as Profile
+  }));
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -135,9 +141,9 @@ const Athletes = () => {
           <p className="text-red-500">Une erreur est survenue lors du chargement des athlètes</p>
           <p className="mt-2 text-muted-foreground">{String(error)}</p>
         </div>
-      ) : sortedAthletes && sortedAthletes.length > 0 ? (
+      ) : formattedAthletes && formattedAthletes.length > 0 ? (
         <AthletesList
-          athletes={sortedAthletes}
+          athletes={formattedAthletes}
           onEditAthlete={(athlete) => handleAthleteSelect(athlete, "programs")}
           onViewCompetitions={(athlete) => handleAthleteSelect(athlete, "competitions")}
           onDeleteAthlete={handleDeleteAthlete}
