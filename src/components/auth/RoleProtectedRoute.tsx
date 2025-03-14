@@ -29,10 +29,27 @@ export const RoleProtectedRoute = ({ allowedRoles }: RoleProtectedRouteProps) =>
     return <Outlet />;
   }
 
-  // If not authenticated or role doesn't match, redirect to login
-  if (!isAuthenticated || !user || !user.role || !allowedRoles.includes(user.role)) {
-    console.log("Access denied for role:", user?.role);
+  // If not authenticated, redirect to login
+  if (!isAuthenticated || !user) {
+    console.log("User not authenticated, redirecting to login");
     return <Navigate to="/login" replace state={{ from: window.location.pathname }} />;
+  }
+
+  // If authenticated but role doesn't match, deny access
+  if (!user.role || !allowedRoles.includes(user.role)) {
+    console.log("Access denied for role:", user?.role);
+    
+    // Redirect to appropriate page based on user role
+    if (user.role === "individual_athlete") {
+      return <Navigate to="/individual-athlete" replace />;
+    } else if (user.role === "coach") {
+      return <Navigate to="/coach" replace />;
+    } else if (user.role === "athlete") {
+      return <Navigate to="/athlete" replace />;
+    } else {
+      // Fallback to login if role is unknown
+      return <Navigate to="/login" replace />;
+    }
   }
 
   console.log("Access granted for role:", user.role);

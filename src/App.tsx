@@ -26,12 +26,13 @@ import EditUser from "@/pages/admin/EditUser";
 import { UserAthletes } from "@/pages/admin/UserAthletes";
 import UserPrograms from "@/pages/admin/UserPrograms";
 import Competitions from "@/pages/admin/Competitions";
+import IndividualAthleteHome from "@/pages/individual-athlete/Home";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Layout />}>
+        <Route element={<Layout />}>
           {/* Public routes */}
           <Route index element={<Index />} />
           <Route path="home" element={<Home />} />
@@ -48,32 +49,41 @@ function App() {
             <Route path="profile" element={<Profile />} />
             
             {/* Admin routes */}
-            <Route path="admin" element={<RoleProtectedRoute allowedRoles={["admin"]} />}>
-              <Route index element={<Navigate to="/admin/users" replace />} />
-              <Route path="home" element={<AdminHome />} />
-              <Route path="users" element={<UsersList />} />
-              <Route path="users/:id/edit" element={<EditUser />} />
-              <Route path="users/:id/athletes" element={<UserAthletes />} />
-              <Route path="users/:id/programs" element={<UserPrograms />} />
-              <Route path="competitions" element={<Competitions />} />
+            <Route path="admin">
+              <Route element={<RoleProtectedRoute allowedRoles={["admin"]} />}>
+                <Route index element={<Navigate to="/admin/users" replace />} />
+                <Route path="home" element={<AdminHome />} />
+                <Route path="users" element={<UsersList />} />
+                <Route path="users/:id/edit" element={<EditUser />} />
+                <Route path="users/:id/athletes" element={<UserAthletes />} />
+                <Route path="users/:id/programs" element={<UserPrograms />} />
+                <Route path="competitions" element={<Competitions />} />
+              </Route>
             </Route>
 
             {/* Individual Athlete routes */}
-            <Route path="individual-athlete" element={<RoleProtectedRoute allowedRoles={["individual_athlete"]} />}>
-              <Route path="planning" element={<div>Individual Athlete Planning</div>} />
-              {/* Add more individual athlete routes here */}
+            <Route path="individual-athlete">
+              <Route element={<RoleProtectedRoute allowedRoles={["individual_athlete"]} />}>
+                <Route index element={<Navigate to="/individual-athlete/planning" replace />} />
+                <Route path="home" element={<IndividualAthleteHome />} />
+                <Route path="planning" element={<div>Individual Athlete Planning</div>} />
+              </Route>
             </Route>
 
             {/* Coach routes */}
-            <Route path="coach" element={<RoleProtectedRoute allowedRoles={["coach"]} />}>
-              <Route path="dashboard" element={<div>Coach Dashboard</div>} />
-              {/* Add more coach routes here */}
+            <Route path="coach">
+              <Route element={<RoleProtectedRoute allowedRoles={["coach"]} />}>
+                <Route index element={<Navigate to="/coach/dashboard" replace />} />
+                <Route path="dashboard" element={<div>Coach Dashboard</div>} />
+              </Route>
             </Route>
 
             {/* Athlete routes */}
-            <Route path="athlete" element={<RoleProtectedRoute allowedRoles={["athlete"]} />}>
-              <Route path="planning" element={<div>Athlete Planning</div>} />
-              {/* Add more athlete routes here */}
+            <Route path="athlete">
+              <Route element={<RoleProtectedRoute allowedRoles={["athlete"]} />}>
+                <Route index element={<Navigate to="/athlete/planning" replace />} />
+                <Route path="planning" element={<div>Athlete Planning</div>} />
+              </Route>
             </Route>
           </Route>
 

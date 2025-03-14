@@ -19,10 +19,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { profile, setProfile, fetchProfile } = useProfile();
   const { login: authLogin, logout: authLogout, isLoading: sessionLoading } = useAuthSession();
-  const { isLoading: initLoading } = useAuthInit({
-    onProfileUpdate: setProfile,
-    fetchProfile,
-  });
+  const [isInitLoading, setIsInitLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
 
   // Check session on mount to ensure we're properly initialized
@@ -46,7 +43,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setProfile(userProfile);
             } else if (isMounted) {
               console.log("No profile found despite valid session");
-              // Clear the session if no valid profile found
               localStorage.removeItem('userProfile');
             }
           } catch (error) {
@@ -54,17 +50,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
         
-        if (isMounted) setInitialized(true);
+        if (isMounted) {
+          setInitialized(true);
+          setIsInitLoading(false);
+        }
       } catch (error) {
         console.error("Error checking session:", error);
-        if (isMounted) setInitialized(true);
+        if (isMounted) {
+          setInitialized(true);
+          setIsInitLoading(false);
+        }
       }
     };
     
     checkSession();
     
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event);
+      
+      if (event === 'SIGNED_IN' && session?.user) {
+        try {
+          const userProfile = await fetchProfile(session.user.id);
+          if (isMounted && userProfile) {
+            setProfile(userProfile);
+          }
+        } catch (error) {
+          console.error("Error fetching profile after state change:", error);
+        }
+      } else if (event === 'SIGNED_OUT' && isMounted) {
+        setProfile(null);
+      }
+    });
+    
     return () => {
       isMounted = false;
+      subscription.unsubscribe();
     };
   }, [fetchProfile, setProfile]);
 
@@ -74,6 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!initialized) {
         console.log("Forcing initialization after timeout");
         setInitialized(true);
+        setIsInitLoading(false);
       }
     }, 3000); // Force initialization after 3 seconds
     
@@ -83,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   console.log("AuthProvider - Current state:", { 
     hasProfile: !!profile, 
     profileRole: profile?.role,
-    isLoading: initLoading || sessionLoading || !initialized,
+    isLoading: isInitLoading || sessionLoading || !initialized,
     initialized
   });
 
@@ -115,7 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login,
     logout,
     isAuthenticated: !!profile,
-    isLoading: (initLoading || sessionLoading || !initialized) && !profile
+    isLoading: (isInitLoading || sessionLoading || !initialized)
   };
 
   return (

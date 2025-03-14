@@ -4,27 +4,11 @@ import { LoginForm } from "@/components/auth/LoginForm";
 import { SignUpForm } from "@/components/auth/SignUpForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, useLocation } from "react-router-dom";
-import { useEffect } from "react";
 
 const Login = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
-
-  console.log("Login page - Auth state:", { 
-    user, 
-    userRole: user?.role, 
-    isAuthenticated, 
-    isLoading 
-  });
-  
-  useEffect(() => {
-    console.log("Login page mounted - Auth state:", { 
-      user, 
-      userRole: user?.role, 
-      isAuthenticated, 
-      isLoading 
-    });
-  }, [user, isAuthenticated, isLoading]);
+  const from = location.state?.from || "/";
 
   // Wait for authentication to be checked before redirecting
   if (isLoading) {
@@ -43,19 +27,17 @@ const Login = () => {
     console.log("User authenticated with role:", user.role);
     
     // If we have a URL of redirection stored in location.state, use it
-    if (location.state?.from) {
-      console.log("Redirecting to stored location:", location.state.from);
-      return <Navigate to={location.state.from} replace />;
+    if (from && from !== "/login") {
+      console.log("Redirecting to stored location:", from);
+      return <Navigate to={from} replace />;
     }
 
     // Otherwise, redirect based on role
-    const defaultPath = user.role === 'individual_athlete' 
-      ? '/individual-athlete/planning'
-      : user.role === 'coach'
-        ? '/coach/dashboard'
-        : user.role === 'admin'
-          ? '/admin/users'  // Redirect admin to users management page
-          : '/athlete/planning';
+    const defaultPath = 
+      user.role === 'individual_athlete' ? '/individual-athlete' :
+      user.role === 'coach' ? '/coach' :
+      user.role === 'admin' ? '/admin/users' :
+      user.role === 'athlete' ? '/athlete' : '/';
         
     console.log("Redirecting to default path:", defaultPath);
     return <Navigate to={defaultPath} replace />;
