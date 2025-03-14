@@ -8,6 +8,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { RoleProtectedRoute } from "./components/auth/RoleProtectedRoute";
 import { WorkoutDetails } from "./pages/athlete/WorkoutDetails";
 import Layout from "./components/Layout";
+import Login from "./pages/Login";
 
 // General pages
 import { Profile } from './pages/Profile';
@@ -51,6 +52,7 @@ function App() {
         <Routes>
           {/* General routes */}
           <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/legal" element={<Legal />} />
