@@ -36,28 +36,60 @@ export const ManagedAthletes = ({ coachId }: ManagedAthletesProps) => {
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
 
-      const { data: athletes, error: athletesError } = await supabase
-        .from("coach_athletes")
-        .select(`
-          athlete:profiles!coach_athletes_athlete_id_fkey (
-            id,
-            first_name,
-            last_name,
-            email
-          )
-        `)
-        .eq("coach_id", coachId)
-        .range(from, to);
+      // Different query for admin vs. coach
+      let queryBuilder;
+      
+      if (isAdmin) {
+        // Admin can see all coach-athlete relationships
+        queryBuilder = supabase
+          .from("coach_athletes")
+          .select(`
+            athlete:profiles!coach_athletes_athlete_id_fkey (
+              id,
+              first_name,
+              last_name,
+              email
+            )
+          `)
+          .range(from, to);
+      } else {
+        // Regular coach only sees their athletes
+        queryBuilder = supabase
+          .from("coach_athletes")
+          .select(`
+            athlete:profiles!coach_athletes_athlete_id_fkey (
+              id,
+              first_name,
+              last_name,
+              email
+            )
+          `)
+          .eq("coach_id", coachId)
+          .range(from, to);
+      }
+
+      const { data: athletes, error: athletesError } = await queryBuilder;
 
       if (athletesError) {
         console.error("Error fetching athletes:", athletesError);
         throw athletesError;
       }
 
-      const { count, error: countError } = await supabase
-        .from("coach_athletes")
-        .select("*", { count: "exact", head: true })
-        .eq("coach_id", coachId);
+      // Count query needs to match the filter used above
+      let countQueryBuilder;
+      
+      if (isAdmin) {
+        countQueryBuilder = supabase
+          .from("coach_athletes")
+          .select("*", { count: "exact", head: true });
+      } else {
+        countQueryBuilder = supabase
+          .from("coach_athletes")
+          .select("*", { count: "exact", head: true })
+          .eq("coach_id", coachId);
+      }
+
+      const { count, error: countError } = await countQueryBuilder;
 
       if (countError) {
         console.error("Error counting athletes:", countError);
@@ -145,7 +177,7 @@ export const ManagedAthletes = ({ coachId }: ManagedAthletesProps) => {
         <div className="text-center py-6">
           <Users className="mx-auto h-12 w-12 text-muted-foreground" />
           <p className="mt-2 text-sm text-muted-foreground">
-            Aucun athlète géré pour le moment
+            {isAdmin ? "Aucun athlète dans le système" : "Aucun athlète géré pour le moment"}
           </p>
         </div>
       ) : (

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,7 @@ import { InviteAthleteDialogEnhanced } from "@/components/athletes/InviteAthlete
 import { AssignProgramDialog } from "@/components/athletes/AssignProgramDialog";
 import { AthleteProgramsSheet } from "@/components/athletes/AthleteProgramsSheet";
 import { AthleteCompetitionsSheet } from "@/components/athletes/AthleteCompetitionsSheet";
-import { Plus, Filter, Search } from "lucide-react";
+import { Plus, Filter, Search, Users2 } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Athletes = () => {
   const { user } = useAuth();
@@ -28,6 +30,7 @@ const Athletes = () => {
   const [selectedView, setSelectedView] = useState<"programs" | "competitions">("programs");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("name");
+  const [selectedCoach, setSelectedCoach] = useState<string | null>(null);
   const isAdmin = user?.role === "admin";
 
   console.log("Athletes page - user:", user, "isAdmin:", isAdmin);
@@ -53,11 +56,27 @@ const Athletes = () => {
     }
   };
 
+  // Get unique coaches from the data (for admin filtering)
+  const coaches = isAdmin && athletes ? 
+    Array.from(new Set(athletes.map(a => a.coach_id))).map(coachId => {
+      const coachRelation = athletes.find(a => a.coach_id === coachId);
+      return coachRelation?.coach ? {
+        id: coachId,
+        name: `${coachRelation.coach.first_name} ${coachRelation.coach.last_name}`
+      } : null;
+    }).filter(Boolean) : [];
+
   const filteredAthletes = athletes?.filter(relation => {
     const athlete = relation.athlete;
-    const fullName = `${athlete.first_name} ${athlete.last_name}`.toLowerCase();
-    return fullName.includes(searchQuery.toLowerCase()) || 
-           athlete.email?.toLowerCase().includes(searchQuery.toLowerCase());
+    // First filter by search text
+    const matchesSearch = 
+      `${athlete.first_name} ${athlete.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      athlete.email?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Then filter by selected coach (admin only)
+    const matchesCoach = !isAdmin || !selectedCoach || relation.coach_id === selectedCoach;
+    
+    return matchesSearch && matchesCoach;
   });
 
   const sortedAthletes = [...(filteredAthletes || [])].sort((a, b) => {
@@ -99,6 +118,39 @@ const Athletes = () => {
           Inviter un athlète
         </Button>
       </div>
+
+      {isAdmin && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-lg">Vue administrateur</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Users2 className="h-5 w-5 text-muted-foreground" />
+                <span>Total des athlètes: {athletes?.length || 0}</span>
+              </div>
+              
+              <div className="flex-1">
+                <Select 
+                  value={selectedCoach || ""} 
+                  onValueChange={value => setSelectedCoach(value || null)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filtrer par coach" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Tous les coachs</SelectItem>
+                    {coaches.map(coach => coach && (
+                      <SelectItem key={coach.id} value={coach.id}>{coach.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">

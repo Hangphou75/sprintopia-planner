@@ -29,30 +29,55 @@ export const useAthletes = (coachId: string | undefined) => {
       const isAdmin = userProfile?.role === "admin";
       console.log("User is admin:", isAdmin);
       
-      let query = supabase
-        .from("coach_athletes")
-        .select(`
-          *,
-          athlete:profiles!coach_athletes_athlete_id_fkey (
-            id,
-            email,
-            first_name,
-            last_name,
-            bio,
-            avatar_url,
-            role,
-            created_at,
-            updated_at
-          )
-        `);
+      // For admin user, we want to fetch all coach-athlete relationships
+      let query;
       
-      // For admins, fetch all athlete relationships
-      // For regular coaches, fetch only their athletes
-      if (!isAdmin) {
-        query = query.eq("coach_id", coachId);
+      if (isAdmin) {
+        // Admin sees all coach-athlete relationships
+        query = await supabase
+          .from("coach_athletes")
+          .select(`
+            *,
+            coach:profiles!coach_athletes_coach_id_fkey(
+              id,
+              first_name,
+              last_name,
+              email
+            ),
+            athlete:profiles!coach_athletes_athlete_id_fkey (
+              id,
+              email,
+              first_name,
+              last_name,
+              bio,
+              avatar_url,
+              role,
+              created_at,
+              updated_at
+            )
+          `);
+      } else {
+        // Regular coach only sees their athletes
+        query = await supabase
+          .from("coach_athletes")
+          .select(`
+            *,
+            athlete:profiles!coach_athletes_athlete_id_fkey (
+              id,
+              email,
+              first_name,
+              last_name,
+              bio,
+              avatar_url,
+              role,
+              created_at,
+              updated_at
+            )
+          `)
+          .eq("coach_id", coachId);
       }
       
-      const { data, error } = await query;
+      const { data, error } = query;
 
       if (error) {
         console.error("Error fetching athletes:", error);
