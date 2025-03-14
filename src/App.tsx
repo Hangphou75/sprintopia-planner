@@ -1,3 +1,4 @@
+
 import {
   BrowserRouter,
   Routes,
@@ -6,25 +7,25 @@ import {
 } from "react-router-dom";
 import { Toaster } from "sonner";
 
-import Layout from "@/components/layout/Layout";
+import Layout from "@/components/Layout";
 import Home from "@/pages/Home";
 import Index from "@/pages/Index";
 import Login from "@/pages/Login";
-import Register from "@/pages/Register";
-import ForgotPassword from "@/pages/ForgotPassword";
-import ResetPassword from "@/pages/ResetPassword";
+import { Register } from "@/pages/auth/Register";
+import { ForgotPassword } from "@/pages/auth/ForgotPassword";
+import { ResetPassword } from "@/pages/auth/ResetPassword";
 import Contact from "@/pages/Contact";
 import Legal from "@/pages/Legal";
 import Pricing from "@/pages/Pricing";
-import Profile from "@/pages/Profile";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { Profile } from "@/pages/Profile";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { RoleProtectedRoute } from "@/components/auth/RoleProtectedRoute";
 import AdminHome from "@/pages/admin/Home";
 import { UsersList } from "@/pages/admin/UsersList";
 import EditUser from "@/pages/admin/EditUser";
 import { UserAthletes } from "@/pages/admin/UserAthletes";
 import UserPrograms from "@/pages/admin/UserPrograms";
-import Competitions from "@/pages/Competitions";
+import { Competitions } from "@/pages/admin/Competitions";
 
 function App() {
   return (
