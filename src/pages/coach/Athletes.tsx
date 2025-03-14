@@ -9,14 +9,26 @@ import { AthletesList } from "@/components/athletes/AthletesList";
 import { InviteAthleteDialogEnhanced } from "@/components/athletes/InviteAthleteDialog";
 import { AssignProgramDialog } from "@/components/athletes/AssignProgramDialog";
 import { AthleteProgramsSheet } from "@/components/athletes/AthleteProgramsSheet";
-import { Plus } from "lucide-react";
+import { AthleteCompetitionsSheet } from "@/components/athletes/AthleteCompetitionsSheet";
+import { Plus, Filter, Search } from "lucide-react";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const Athletes = () => {
   const { user } = useAuth();
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [isProgramDialogOpen, setIsProgramDialogOpen] = useState(false);
   const [selectedAthlete, setSelectedAthlete] = useState<Profile | null>(null);
+  const [selectedView, setSelectedView] = useState<"programs" | "competitions">("programs");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("name");
   const isAdmin = user?.role === "admin";
 
   console.log("Athletes page - user:", user, "isAdmin:", isAdmin);
@@ -46,6 +58,36 @@ const Athletes = () => {
     }
   };
 
+  const filteredAthletes = athletes?.filter(relation => {
+    const athlete = relation.athlete;
+    const fullName = `${athlete.first_name} ${athlete.last_name}`.toLowerCase();
+    return fullName.includes(searchQuery.toLowerCase()) || 
+           athlete.email?.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  const sortedAthletes = [...(filteredAthletes || [])].sort((a, b) => {
+    const athleteA = a.athlete;
+    const athleteB = b.athlete;
+
+    switch (sortBy) {
+      case "name":
+        return `${athleteA.first_name} ${athleteA.last_name}`.localeCompare(
+          `${athleteB.first_name} ${athleteB.last_name}`
+        );
+      case "email":
+        return (athleteA.email || "").localeCompare(athleteB.email || "");
+      case "date":
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      default:
+        return 0;
+    }
+  });
+
+  const handleAthleteSelect = (athlete: Profile, view: "programs" | "competitions") => {
+    setSelectedAthlete(athlete);
+    setSelectedView(view);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -58,6 +100,31 @@ const Athletes = () => {
         </Button>
       </div>
 
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Rechercher un athlète..."
+            className="pl-10"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <div className="w-full md:w-[200px]">
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger>
+              <Filter className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Trier par" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name">Nom</SelectItem>
+              <SelectItem value="email">Email</SelectItem>
+              <SelectItem value="date">Date d'ajout</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       {isLoading ? (
         <div className="py-8 text-center">
           <div className="animate-spin h-8 w-8 border-t-2 border-primary mx-auto"></div>
@@ -68,10 +135,11 @@ const Athletes = () => {
           <p className="text-red-500">Une erreur est survenue lors du chargement des athlètes</p>
           <p className="mt-2 text-muted-foreground">{String(error)}</p>
         </div>
-      ) : athletes && athletes.length > 0 ? (
+      ) : sortedAthletes && sortedAthletes.length > 0 ? (
         <AthletesList
-          athletes={athletes}
-          onEditAthlete={setSelectedAthlete}
+          athletes={sortedAthletes}
+          onEditAthlete={(athlete) => handleAthleteSelect(athlete, "programs")}
+          onViewCompetitions={(athlete) => handleAthleteSelect(athlete, "competitions")}
           onDeleteAthlete={handleDeleteAthlete}
         />
       ) : (
@@ -91,11 +159,20 @@ const Athletes = () => {
         selectedAthlete={selectedAthlete}
       />
 
-      <AthleteProgramsSheet
-        selectedAthlete={selectedAthlete}
-        onOpenChange={setSelectedAthlete}
-        onAddProgram={() => setIsProgramDialogOpen(true)}
-      />
+      {selectedView === "programs" && (
+        <AthleteProgramsSheet
+          selectedAthlete={selectedAthlete}
+          onOpenChange={setSelectedAthlete}
+          onAddProgram={() => setIsProgramDialogOpen(true)}
+        />
+      )}
+
+      {selectedView === "competitions" && (
+        <AthleteCompetitionsSheet
+          selectedAthlete={selectedAthlete}
+          onOpenChange={setSelectedAthlete}
+        />
+      )}
     </div>
   );
 };

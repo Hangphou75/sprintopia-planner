@@ -5,12 +5,14 @@ import { AthleteCard } from "./AthleteCard";
 type AthletesListProps = {
   athletes: any[];
   onEditAthlete: (athlete: Profile) => void;
+  onViewCompetitions: (athlete: Profile) => void;
   onDeleteAthlete: (athlete: Profile) => void;
 };
 
 export const AthletesList = ({
   athletes,
   onEditAthlete,
+  onViewCompetitions,
   onDeleteAthlete,
 }: AthletesListProps) => {
   return (
@@ -20,6 +22,7 @@ export const AthletesList = ({
           key={relation.id}
           athlete={relation.athlete}
           onEdit={onEditAthlete}
+          onViewCompetitions={onViewCompetitions}
           onDelete={onDeleteAthlete}
         />
       ))}
