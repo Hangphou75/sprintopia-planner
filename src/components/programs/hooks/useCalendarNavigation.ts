@@ -38,8 +38,10 @@ export const useCalendarNavigation = ({ programId, userRole }: UseCalendarNaviga
       const isCoachOrAdmin = userRole === "coach" || userRole === "admin";
       
       if (isCoachOrAdmin) {
+        console.log(`Navigating to: /coach/programs/${programId}/workouts/${event.id}/edit`);
         navigate(`/coach/programs/${programId}/workouts/${event.id}/edit`);
       } else if (userRole === "individual_athlete") {
+        console.log(`Navigating to: /individual-athlete/programs/${programId}/workouts/${event.id}/edit`);
         navigate(`/individual-athlete/programs/${programId}/workouts/${event.id}/edit`);
       }
     }

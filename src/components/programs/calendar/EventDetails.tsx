@@ -1,20 +1,22 @@
 
-import { Event, ThemeOption } from "../types";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { Event } from "../types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Pencil, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Pencil } from "lucide-react";
-import { WorkoutEventCard } from "./WorkoutEventCard";
-import { CompetitionEventCard } from "./CompetitionEventCard";
+import { cn } from "@/lib/utils";
 
 type EventDetailsProps = {
   events: Event[];
   selectedDate: Date;
-  themeOptions: ThemeOption[];
+  themeOptions: {
+    value: string;
+    label: string;
+  }[];
   onEventClick: (event: Event) => void;
-  onEditClick?: (event: Event) => void;
+  onEditClick: (event: Event) => void;
   readOnly?: boolean;
 };
 
@@ -26,8 +28,11 @@ export const EventDetails = ({
   onEditClick,
   readOnly = false,
 }: EventDetailsProps) => {
-  // Filter events for the selected date
-  const eventsForDate = events.filter((event) => {
+  const formatDate = (date: Date) => {
+    return format(date, "EEEE d MMMM yyyy", { locale: fr });
+  };
+
+  const eventsForSelectedDate = events.filter((event) => {
     const eventDate = new Date(event.date);
     return (
       eventDate.getDate() === selectedDate.getDate() &&
@@ -36,47 +41,87 @@ export const EventDetails = ({
     );
   });
 
-  // Sort events by time
-  const sortedEvents = [...eventsForDate].sort((a, b) => {
-    if (!a.time) return 1;
-    if (!b.time) return -1;
-    return a.time.localeCompare(b.time);
-  });
+  const getEventTheme = (theme: string) => {
+    const foundTheme = themeOptions.find((t) => t.value === theme);
+    return foundTheme ? foundTheme.label : theme;
+  };
+
+  const handleEditClick = (event: Event, e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log("Edit button clicked for event:", event);
+    onEditClick(event);
+  };
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">
-            {format(selectedDate, "EEEE d MMMM yyyy", { locale: fr })}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {sortedEvents.length > 0 ? (
-            sortedEvents.map((event) => (
-              <div 
-                key={event.id} 
-                onClick={() => onEventClick(event)}
-              >
-                {event.type === "workout" ? (
-                  <WorkoutEventCard 
-                    event={event} 
-                    themeOptions={themeOptions} 
-                    onEditClick={onEditClick}
-                    readOnly={readOnly}
-                  />
-                ) : (
-                  <CompetitionEventCard event={event} />
-                )}
-              </div>
-            ))
-          ) : (
-            <div className="text-center py-4 text-muted-foreground">
-              Aucun événement programmé
-            </div>
-          )}
-        </CardContent>
-      </Card>
+    <div>
+      <h2 className="text-xl font-semibold mb-4">
+        {formatDate(selectedDate)}
+      </h2>
+      {eventsForSelectedDate.length === 0 ? (
+        <div className="text-muted-foreground">Aucune séance prévue</div>
+      ) : (
+        <div className="space-y-4">
+          {eventsForSelectedDate.map((event) => (
+            <Card
+              key={event.id}
+              className={cn(
+                "cursor-pointer hover:border-primary transition-colors",
+                event.type === "workout"
+                  ? "border-l-4 border-l-primary"
+                  : "border-l-4 border-l-yellow-500"
+              )}
+              onClick={() => onEventClick(event)}
+            >
+              <CardHeader className="pb-2">
+                <CardTitle className="flex justify-between items-start">
+                  <div className="text-base">
+                    <span className="mr-2">{event.title}</span>
+                    {event.type === "workout" && event.theme && (
+                      <Badge variant="outline">
+                        {getEventTheme(event.theme)}
+                      </Badge>
+                    )}
+                    {event.type === "competition" && (
+                      <Badge variant="outline" className="bg-yellow-100">
+                        Compétition
+                      </Badge>
+                    )}
+                  </div>
+                  {!readOnly && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => handleEditClick(event, e)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  {event.time
+                    ? `${event.time} - ${
+                        event.type === "workout"
+                          ? event.description || "Aucune description"
+                          : event.description
+                      }`
+                    : event.description || "Aucune description"}
+                </p>
+                <div className="flex justify-end mt-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs flex items-center gap-1"
+                  >
+                    Voir les détails <ArrowRight className="h-3 w-3" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

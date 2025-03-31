@@ -1,3 +1,4 @@
+
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Pencil } from "lucide-react";
@@ -31,6 +32,13 @@ export const WorkoutDetails = ({ workout, onEditWorkout }: WorkoutDetailsProps) 
     return athletes;
   };
 
+  const handleEditClick = () => {
+    console.log("Edit workout clicked:", workout);
+    console.log("Program ID:", workout.program?.id);
+    console.log("Workout ID:", workout.id);
+    onEditWorkout(workout.program?.id, workout.id);
+  };
+
   return (
     <Card key={workout.id} className="border-l-4 border-primary">
       <CardHeader>
@@ -46,7 +54,7 @@ export const WorkoutDetails = ({ workout, onEditWorkout }: WorkoutDetailsProps) 
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => onEditWorkout(workout.program.id, workout.id)}
+            onClick={handleEditClick}
           >
             <Pencil className="h-4 w-4" />
           </Button>
