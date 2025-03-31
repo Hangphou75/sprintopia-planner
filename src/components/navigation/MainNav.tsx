@@ -15,6 +15,7 @@ import {
   Trophy,
   User
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 type NavItem = {
   title: string;
@@ -30,6 +31,8 @@ interface MainNavProps {
 
 export function MainNav({ isCoach, basePath }: MainNavProps) {
   const [pathname, setPathname] = useState(window.location.pathname);
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
 
   // Update pathname when location changes
   useEffect(() => {
@@ -109,26 +112,26 @@ export function MainNav({ isCoach, basePath }: MainNavProps) {
   // Déterminer les éléments à afficher en fonction du rôle et du chemin
   let items: NavItem[] = [];
   
-  // Si l'utilisateur est sur une route admin, montrer uniquement le menu admin
-  if (pathname.startsWith("/admin")) {
-    // Pour les admins dans la section admin, on ajoute aussi les items coach
+  // Pour les admins, toujours inclure les options d'administration, peu importe le chemin
+  if (isAdmin) {
     items = [...adminItems, ...coachItems];
-  } 
+  }
   // Sinon si l'utilisateur est coach ou sur une route coach
   else if (pathname.startsWith("/coach") || isCoach) {
-    // Si l'utilisateur est également admin, on ajoute les items admin
-    if (basePath === "/admin") {
-      items = [...adminItems, ...coachItems];
-    } else {
-      items = coachItems;
-    }
+    items = coachItems;
   } 
   // Sinon, c'est un athlète
   else {
     items = athleteItems;
   }
 
-  console.log("MainNav - Current state:", { pathname, isCoach, basePath, items });
+  console.log("MainNav - Current state:", { 
+    pathname, 
+    isCoach, 
+    isAdmin, 
+    basePath, 
+    itemsCount: items.length 
+  });
 
   return (
     <div className="flex flex-col p-2">

@@ -49,6 +49,7 @@ const Layout = () => {
 
   // Pour admin users, we want to provide access to both admin and coach interfaces
   const isCoach = user?.role === "coach" || user?.role === "admin";
+  const isAdmin = user?.role === "admin";
   
   // For profile navigation, we need to use the right base path
   let basePath = "/athlete";
@@ -56,18 +57,15 @@ const Layout = () => {
   if (user?.role === "individual_athlete") {
     basePath = "/individual-athlete";
   } else if (user?.role === "admin") {
-    // Check if we're currently in the coach section
-    if (window.location.pathname.startsWith("/coach")) {
-      basePath = "/coach";
-    } else {
-      basePath = "/admin";
-    }
+    // Pour les admins, utiliser toujours le chemin admin comme base
+    basePath = "/admin";
   } else if (user?.role === "coach") {
     basePath = "/coach";
   }
 
   console.log("Layout navigation setup:", { 
     isCoach, 
+    isAdmin,
     basePath,
     currentPath: window.location.pathname 
   });
