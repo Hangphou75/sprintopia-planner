@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Program } from "@/types/program";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 export const usePrograms = () => {
   const { user } = useAuth();
@@ -21,76 +22,85 @@ export const usePrograms = () => {
       const isAdmin = user?.role === "admin";
       console.log("User is admin:", isAdmin);
       
-      let query = supabase
-        .from("programs")
-        .select(`
-          *,
-          competitions(
-            id, name, date, location, distance, level, is_main, time
-          ),
-          shared_programs(
-            athlete:profiles!shared_programs_athlete_id_fkey(
-              id,
+      try {
+        let query = supabase
+          .from("programs")
+          .select(`
+            *,
+            competitions(
+              id, name, date, location, distance, level, is_main, time
+            ),
+            shared_programs(
+              athlete:profiles!shared_programs_athlete_id_fkey(
+                id,
+                first_name,
+                last_name,
+                email
+              )
+            ),
+            coach:profiles!programs_user_id_fkey(
               first_name,
-              last_name,
-              email
+              last_name
             )
-          ),
-          coach:profiles!programs_user_id_fkey(
-            first_name,
-            last_name
-          )
-        `)
-        .order("created_at", { ascending: false });
-      
-      // For regular coaches, fetch only their programs
-      // For admins, fetch all programs
-      if (!isAdmin) {
-        query = query.eq("user_id", user.id);
+          `)
+          .order("created_at", { ascending: false });
+        
+        // For regular coaches, fetch only their programs
+        // For admins, fetch all programs
+        if (!isAdmin) {
+          query = query.eq("user_id", user.id);
+        }
+        
+        const { data, error } = await query;
+
+        if (error) {
+          console.error("Error fetching programs:", error);
+          toast.error("Erreur lors du chargement des programmes");
+          throw error;
+        }
+
+        console.log("Raw programs data:", data);
+        console.log("Number of programs fetched:", data?.length || 0);
+
+        // Transform the data to match the Program type
+        const transformedData: Program[] = (data || []).map((program: any) => ({
+          ...program,
+          main_competition: program.main_competition ? {
+            name: program.main_competition.name || '',
+            date: program.main_competition.date || '',
+            location: program.main_competition.location || '',
+          } : null,
+          intermediate_competitions: program.intermediate_competitions ? 
+            program.intermediate_competitions.map((comp: any) => ({
+              name: comp.name || '',
+              date: comp.date || '',
+              location: comp.location || '',
+            })) : null,
+          shared_programs: program.shared_programs,
+          id: program.id,
+          name: program.name,
+          duration: program.duration,
+          objectives: program.objectives,
+          start_date: program.start_date,
+          created_at: program.created_at,
+          updated_at: program.updated_at,
+          user_id: program.user_id,
+          training_phase: program.training_phase,
+          phase_duration: program.phase_duration,
+          main_distance: program.main_distance,
+          generated: program.generated,
+        }));
+
+        console.log("Programs fetched:", transformedData);
+        return transformedData;
+      } catch (error) {
+        console.error("Error in usePrograms:", error);
+        toast.error("Erreur lors du chargement des programmes");
+        return []; // Return empty array to avoid undefined issues
       }
-      
-      const { data, error } = await query;
-
-      if (error) {
-        console.error("Error fetching programs:", error);
-        throw error;
-      }
-
-      console.log("Raw programs data:", data);
-      console.log("Number of programs fetched:", data?.length || 0);
-
-      // Transform the data to match the Program type
-      const transformedData: Program[] = (data || []).map((program: any) => ({
-        ...program,
-        main_competition: program.main_competition ? {
-          name: program.main_competition.name || '',
-          date: program.main_competition.date || '',
-          location: program.main_competition.location || '',
-        } : null,
-        intermediate_competitions: program.intermediate_competitions ? 
-          program.intermediate_competitions.map((comp: any) => ({
-            name: comp.name || '',
-            date: comp.date || '',
-            location: comp.location || '',
-          })) : null,
-        shared_programs: program.shared_programs,
-        id: program.id,
-        name: program.name,
-        duration: program.duration,
-        objectives: program.objectives,
-        start_date: program.start_date,
-        created_at: program.created_at,
-        updated_at: program.updated_at,
-        user_id: program.user_id,
-        training_phase: program.training_phase,
-        phase_duration: program.phase_duration,
-        main_distance: program.main_distance,
-        generated: program.generated,
-      }));
-
-      console.log("Programs fetched:", transformedData);
-      return transformedData;
     },
     enabled: !!user?.id,
+    staleTime: 30000, // Add stale time to avoid repeated requests
+    retry: 1, // Limit retries to prevent infinite loops
   });
 };

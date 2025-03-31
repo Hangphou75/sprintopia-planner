@@ -14,7 +14,10 @@ export const useCalendarNavigation = ({ programId, userRole }: UseCalendarNaviga
 
   const handleEventClick = (event: Event) => {
     if (event.type === "workout") {
-      if (userRole === "coach" || userRole === "admin") {
+      // Admin users should navigate like coaches
+      const isCoachOrAdmin = userRole === "coach" || userRole === "admin";
+      
+      if (isCoachOrAdmin) {
         navigate(`/coach/programs/${programId}/workouts/${event.id}`);
       } else if (userRole === "individual_athlete") {
         navigate(`/individual-athlete/programs/${programId}/workouts/${event.id}`);
@@ -32,7 +35,9 @@ export const useCalendarNavigation = ({ programId, userRole }: UseCalendarNaviga
     
     if (event.type === "workout") {
       // Permettre aux admins d'éditer les séances comme les coachs
-      if (userRole === "coach" || userRole === "admin") {
+      const isCoachOrAdmin = userRole === "coach" || userRole === "admin";
+      
+      if (isCoachOrAdmin) {
         navigate(`/coach/programs/${programId}/workouts/${event.id}/edit`);
       } else if (userRole === "individual_athlete") {
         navigate(`/individual-athlete/programs/${programId}/workouts/${event.id}/edit`);
