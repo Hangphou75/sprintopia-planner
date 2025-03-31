@@ -13,15 +13,20 @@ export const useCalendarNavigation = ({ programId, userRole }: UseCalendarNaviga
   const navigate = useNavigate();
 
   const handleEventClick = (event: Event) => {
+    console.log("handleEventClick - Navigation with:", { event, userRole, programId });
+    
     if (event.type === "workout") {
       // Admin users should navigate like coaches
       const isCoachOrAdmin = userRole === "coach" || userRole === "admin";
       
       if (isCoachOrAdmin) {
+        console.log(`Navigating to workout details: /coach/programs/${programId}/workouts/${event.id}`);
         navigate(`/coach/programs/${programId}/workouts/${event.id}`);
       } else if (userRole === "individual_athlete") {
+        console.log(`Navigating to individual athlete workout: /individual-athlete/programs/${programId}/workouts/${event.id}`);
         navigate(`/individual-athlete/programs/${programId}/workouts/${event.id}`);
       } else if (userRole === "athlete") {
+        console.log(`Navigating to athlete workout: /athlete/programs/${programId}/workouts/${event.id}`);
         navigate(`/athlete/programs/${programId}/workouts/${event.id}`);
       }
     } else if (event.type === "competition") {

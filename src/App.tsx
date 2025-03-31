@@ -35,6 +35,7 @@ import { EditWorkout } from "@/pages/coach/EditWorkout";
 import CoachProfile from "@/pages/coach/Profile";
 import { ProgramWorkouts } from "@/pages/coach/ProgramWorkouts";
 import { ManagedAthletes } from "@/components/coach/ManagedAthletes";
+import WorkoutDetails from "@/pages/coach/WorkoutDetails";
 
 function App() {
   return (
@@ -95,7 +96,7 @@ function App() {
                   <Route path="planning" element={<CoachPlanning />} />
                   <Route path="programs/*" element={<CoachPlanning />} />
                   <Route path="programs/:programId/workouts" element={<ProgramWorkouts />} />
-                  <Route path="programs/:programId/workouts/:workoutId" element={<div>Workout Details</div>} />
+                  <Route path="programs/:programId/workouts/:workoutId" element={<WorkoutDetails />} />
                   <Route path="feedback" element={<div>Coach Feedback</div>} />
                   <Route path="profile" element={<CoachProfile />} />
                   <Route path="programs/:programId/workouts/new" element={<CreateWorkout />} />
