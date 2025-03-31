@@ -4,6 +4,39 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+// Define proper types for our data structure
+interface Athlete {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  [key: string]: any; // For other potential properties in the athlete object
+}
+
+interface SharedAthlete {
+  athlete: Athlete;
+}
+
+interface Program {
+  id: string;
+  name: string;
+  athlete: Athlete;
+  shared_programs?: SharedAthlete[];
+}
+
+interface Workout {
+  id: string;
+  title: string;
+  description: string | null;
+  date: string;
+  time: string | null;
+  theme: string | null;
+  details: any;
+  recovery: string | null;
+  program: Program;
+  [key: string]: any; // For other properties in the workout
+}
+
 export const useWorkoutDetails = (workoutId: string | undefined) => {
   const [isLoading, setIsLoading] = useState(true);
 
@@ -29,7 +62,7 @@ export const useWorkoutDetails = (workoutId: string | undefined) => {
         throw error;
       }
 
-      // Si nous avons besoin des athlètes partagés, faisons une requête séparée
+      // If we need shared athletes, make a separate request
       if (data && data.program && data.program.id) {
         const { data: sharedData, error: sharedError } = await supabase
           .from("shared_programs")
@@ -40,15 +73,15 @@ export const useWorkoutDetails = (workoutId: string | undefined) => {
           .eq("program_id", data.program.id);
 
         if (!sharedError && sharedData) {
-          // Ajouter les données partagées au résultat
-          data.program.shared_programs = sharedData.map(item => ({
+          // Add shared data to the result with proper type casting
+          (data.program as Program).shared_programs = sharedData.map(item => ({
             athlete: item.athlete
           }));
         }
       }
 
       console.log("Workout details fetched:", data);
-      return data;
+      return data as Workout;
     },
     enabled: !!workoutId,
   });
