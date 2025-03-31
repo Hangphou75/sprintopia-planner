@@ -25,7 +25,9 @@ export const usePrograms = () => {
         .from("programs")
         .select(`
           *,
-          competitions(*),
+          competitions(
+            id, name, date, location, distance, level, is_main, time
+          ),
           shared_programs(
             athlete:profiles!shared_programs_athlete_id_fkey(
               id,

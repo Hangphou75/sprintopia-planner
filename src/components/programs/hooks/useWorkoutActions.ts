@@ -37,7 +37,6 @@ export const useWorkoutActions = ({ programId, userRole, onSuccess }: UseWorkout
       let workoutType: WorkoutTypeValue | null = null;
       if (event.type === "workout" && event.theme) {
         // Map theme to workout type if possible
-        // This is an approximation, adjust according to your actual data mappings
         const themeToType: Record<string, WorkoutTypeValue> = {
           "aerobic": "endurance",
           "anaerobic-alactic": "speed",

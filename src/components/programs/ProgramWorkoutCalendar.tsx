@@ -70,6 +70,12 @@ export const ProgramWorkoutCalendar = ({
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
   
+  useEffect(() => {
+    console.log("ProgramWorkoutCalendar - Rendering with user role:", user?.role);
+    console.log("Workouts data:", workouts);
+    console.log("Competitions data:", competitions);
+  }, [user, workouts, competitions]);
+  
   const events = useEvents({
     workouts,
     competitions
@@ -99,6 +105,7 @@ export const ProgramWorkoutCalendar = ({
   
   // Méthode pour créer une nouvelle séance
   const handleNewWorkout = () => {
+    // Autoriser également les admins à créer des séances
     if (user?.role === 'coach' || user?.role === 'admin') {
       navigate(`/coach/programs/${programId}/workouts/new`);
     } else if (user?.role === 'individual_athlete') {
@@ -108,6 +115,7 @@ export const ProgramWorkoutCalendar = ({
 
   // Méthode pour accéder aux paramètres du programme
   const handleProgramSettings = () => {
+    // Autoriser également les admins à modifier les programmes
     if (user?.role === 'coach' || user?.role === 'admin') {
       navigate(`/coach/programs/${programId}/edit`);
     } else if (user?.role === 'individual_athlete') {
@@ -127,11 +135,12 @@ export const ProgramWorkoutCalendar = ({
   });
 
   // Déterminer si on doit montrer les boutons d'action
+  // Inclure explicitement les admins pour les autorisations
   const showActionButtons = user?.role === 'coach' || user?.role === 'admin' || user?.role === 'individual_athlete';
 
   return (
     <div className="space-y-8">
-      {/* Actions du programme (uniquement pour coach, admin ou individual_athlete) */}
+      {/* Actions du programme (pour coach, admin ou individual_athlete) */}
       {showActionButtons && (
         <div className="flex justify-end gap-2">
           <Button 

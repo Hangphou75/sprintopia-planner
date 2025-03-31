@@ -31,6 +31,7 @@ export const useCalendarNavigation = ({ programId, userRole }: UseCalendarNaviga
     console.log("Editing workout", event);
     
     if (event.type === "workout") {
+      // Permettre aux admins d'éditer les séances comme les coachs
       if (userRole === "coach" || userRole === "admin") {
         navigate(`/coach/programs/${programId}/workouts/${event.id}/edit`);
       } else if (userRole === "individual_athlete") {

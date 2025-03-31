@@ -1,16 +1,14 @@
-
-import { Plus, Folder, ChevronRight, MoreVertical } from "lucide-react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useAuth } from "@/contexts/AuthContext";
+import { useState, useEffect } from "react";
+import { usePrograms } from "./hooks/usePrograms";
+import { useProgramFolders } from "@/hooks/useProgramFolders";
 import { ProgramCard } from "@/components/programs/ProgramCard";
-import { Program } from "@/types/program";
-import { useNavigate } from "react-router-dom";
+import { Plus, Folder, ChevronRight, MoreVertical } from "lucide-react";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useProgramFolders } from "@/hooks/useProgramFolders";
 import {
   Dialog,
   DialogContent,
@@ -25,7 +23,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const CoachPlanning = () => {
   const { user } = useAuth();
@@ -40,95 +39,36 @@ const CoachPlanning = () => {
 
   const { folders, createFolder, updateFolder, deleteFolder, moveProgram } = useProgramFolders(user?.id);
 
-  const { data: programs, isLoading } = useQuery({
-    queryKey: ["programs", currentFolderId],
-    queryFn: async () => {
-      console.log("Fetching programs for user:", user?.id);
-      const query = supabase
-        .from("programs")
-        .select(`
-          *,
-          competitions(*),
-          shared_programs(
-            athlete:profiles!shared_programs_athlete_id_fkey(
-              id,
-              first_name,
-              last_name,
-              email
-            )
-          )
-        `)
-        .eq("user_id", user?.id)
-        .order("created_at", { ascending: false });
+  const { data: programs, isLoading, error } = usePrograms();
 
-      // Si nous sommes à la racine (currentFolderId est null), on récupère tous les programmes sans dossier
-      if (currentFolderId === null) {
-        query.is("folder_id", null);
-      } else {
-        // Sinon, on récupère les programmes du dossier sélectionné
-        query.eq("folder_id", currentFolderId);
-      }
+  useEffect(() => {
+    if (error) {
+      console.error("Error loading programs:", error);
+      toast.error("Erreur lors du chargement des programmes");
+    }
+  }, [error]);
 
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      // Transform the data to match the Program type
-      const transformedData: Program[] = (data || []).map(program => ({
-        ...program,
-        id: program.id,
-        name: program.name,
-        duration: program.duration,
-        objectives: program.objectives,
-        start_date: program.start_date,
-        created_at: program.created_at,
-        updated_at: program.updated_at,
-        user_id: program.user_id,
-        training_phase: program.training_phase,
-        phase_duration: program.phase_duration,
-        main_distance: program.main_distance,
-        main_competition: program.main_competition ? {
-          name: (program.main_competition as any).name || '',
-          date: (program.main_competition as any).date || '',
-          location: (program.main_competition as any).location || '',
-        } : null,
-        intermediate_competitions: program.intermediate_competitions ? 
-          (program.intermediate_competitions as any[]).map((comp: any) => ({
-            name: comp.name || '',
-            date: comp.date || '',
-            location: comp.location || '',
-          })) : null,
-        generated: program.generated,
-        shared_programs: program.shared_programs
-      }));
-
-      console.log("Programs fetched:", transformedData);
-      return transformedData;
-    },
-    enabled: !!user?.id,
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (programId: string) => {
+  const handleDeleteProgram = async (programId: string) => {
+    try {
       const { error } = await supabase
         .from("programs")
         .delete()
         .eq("id", programId);
 
       if (error) throw error;
-    },
-    onSuccess: () => {
+      
       queryClient.invalidateQueries({ queryKey: ["programs"] });
       toast.success("Programme supprimé avec succès");
-    },
-    onError: (error) => {
-      console.error("Error deleting program:", error);
+    } catch (err) {
+      console.error("Error deleting program:", err);
       toast.error("Erreur lors de la suppression du programme");
-    },
-  });
+    }
+  };
 
-  const duplicateMutation = useMutation({
-    mutationFn: async (programId: string) => {
+  const handleDuplicateProgram = async (programId: string) => {
+    try {
+      toast.info("Duplication du programme en cours...");
+      
       // Fetch the program to duplicate
       const { data: program, error: fetchError } = await supabase
         .from("programs")
@@ -153,64 +93,12 @@ const CoachPlanning = () => {
 
       if (createError) throw createError;
 
-      // Duplicate competitions
-      const { data: competitions, error: compFetchError } = await supabase
-        .from("competitions")
-        .select("*")
-        .eq("program_id", programId);
-
-      if (compFetchError) throw compFetchError;
-
-      if (competitions && competitions.length > 0) {
-        const { error: compCreateError } = await supabase
-          .from("competitions")
-          .insert(
-            competitions.map((comp) => ({
-              ...comp,
-              id: undefined,
-              program_id: newProgram.id,
-            }))
-          );
-
-        if (compCreateError) throw compCreateError;
-      }
-
-      // Duplicate workouts
-      const { data: workouts, error: workoutFetchError } = await supabase
-        .from("workouts")
-        .select("*")
-        .eq("program_id", programId);
-
-      if (workoutFetchError) throw workoutFetchError;
-
-      if (workouts && workouts.length > 0) {
-        const { error: workoutCreateError } = await supabase
-          .from("workouts")
-          .insert(
-            workouts.map((workout) => ({
-              ...workout,
-              id: undefined,
-              program_id: newProgram.id,
-            }))
-          );
-
-        if (workoutCreateError) throw workoutCreateError;
-      }
-
-      return newProgram;
-    },
-    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["programs"] });
       toast.success("Programme dupliqué avec succès");
-    },
-    onError: (error) => {
-      console.error("Error duplicating program:", error);
+    } catch (err) {
+      console.error("Error duplicating program:", err);
       toast.error("Erreur lors de la duplication du programme");
-    },
-  });
-
-  const handleDeleteProgram = (programId: string) => {
-    deleteMutation.mutate(programId);
+    }
   };
 
   const handleCreateFolder = (e: React.FormEvent) => {
@@ -254,11 +142,26 @@ const CoachPlanning = () => {
     return path;
   };
 
+  const filteredPrograms = programs?.filter(program => {
+    if (currentFolderId === null) {
+      return program.folder_id === null;
+    }
+    return program.folder_id === currentFolderId;
+  });
+
+  useEffect(() => {
+    console.log("Folders:", folders);
+    console.log("Current folder ID:", currentFolderId);
+    console.log("Programs:", programs);
+    console.log("Filtered programs:", filteredPrograms);
+  }, [folders, currentFolderId, programs, filteredPrograms]);
+
   if (isLoading) {
     return (
       <div className="container mx-auto py-6 px-4">
         <div className="text-center">
-          <p className="text-muted-foreground">Chargement des programmes...</p>
+          <div className="animate-spin h-8 w-8 border-t-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Chargement des programmes...</p>
         </div>
       </div>
     );
@@ -324,7 +227,7 @@ const CoachPlanning = () => {
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -354,18 +257,19 @@ const CoachPlanning = () => {
               </div>
             ))}
 
-          {programs?.map((program) => (
+          {filteredPrograms?.map((program) => (
             <ProgramCard
               key={program.id}
               program={program}
               onDelete={handleDeleteProgram}
-              onDuplicate={(id) => duplicateMutation.mutate(id)}
+              onDuplicate={handleDuplicateProgram}
               folders={folders || []}
               onMove={(folderId) => moveProgram({ programId: program.id, folderId })}
             />
           ))}
 
-          {!programs?.length && !folders?.filter((f) => f.parent_folder_id === currentFolderId).length && (
+          {(!filteredPrograms || filteredPrograms.length === 0) && 
+           (!folders?.filter((f) => f.parent_folder_id === currentFolderId).length) && (
             <p className="text-muted-foreground col-span-full text-center py-8">
               Aucun programme ou dossier
             </p>
