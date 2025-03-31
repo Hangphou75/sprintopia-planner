@@ -14,7 +14,7 @@ export const useCalendarNavigation = ({ programId, userRole }: UseCalendarNaviga
 
   const handleEventClick = (event: Event) => {
     if (event.type === "workout") {
-      if (userRole === "coach") {
+      if (userRole === "coach" || userRole === "admin") {
         navigate(`/coach/programs/${programId}/workouts/${event.id}`);
       } else if (userRole === "individual_athlete") {
         navigate(`/individual-athlete/programs/${programId}/workouts/${event.id}`);
@@ -31,7 +31,7 @@ export const useCalendarNavigation = ({ programId, userRole }: UseCalendarNaviga
     console.log("Editing workout", event);
     
     if (event.type === "workout") {
-      if (userRole === "coach") {
+      if (userRole === "coach" || userRole === "admin") {
         navigate(`/coach/programs/${programId}/workouts/${event.id}/edit`);
       } else if (userRole === "individual_athlete") {
         navigate(`/individual-athlete/programs/${programId}/workouts/${event.id}/edit`);

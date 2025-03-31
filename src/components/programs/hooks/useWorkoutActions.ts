@@ -19,8 +19,8 @@ export const useWorkoutActions = ({ programId, userRole, onSuccess }: UseWorkout
   const queryClient = useQueryClient();
 
   const handleDuplicateWorkout = async (event: Event) => {
-    // Allow both coaches and individual athletes to duplicate workouts
-    if (event.type !== "workout" || (userRole !== 'coach' && userRole !== 'individual_athlete')) return;
+    // Allow both coaches, admins and individual athletes to duplicate workouts
+    if (event.type !== "workout" || (userRole !== 'coach' && userRole !== 'individual_athlete' && userRole !== 'admin')) return;
     
     try {
       console.log("Attempting to duplicate workout:", event);
@@ -92,8 +92,8 @@ export const useWorkoutActions = ({ programId, userRole, onSuccess }: UseWorkout
   };
 
   const handleDeleteWorkout = async (event: Event) => {
-    // Allow both coaches and individual athletes to delete workouts
-    if (event.type !== "workout" || (userRole !== 'coach' && userRole !== 'individual_athlete')) return;
+    // Allow both coaches, admins and individual athletes to delete workouts
+    if (event.type !== "workout" || (userRole !== 'coach' && userRole !== 'individual_athlete' && userRole !== 'admin')) return;
     
     try {
       console.log("Attempting to delete workout:", event);

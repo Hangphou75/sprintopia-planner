@@ -94,6 +94,27 @@ export const ProgramWorkoutCalendar = ({
     userRole: user?.role
   });
 
+  // Déterminer si l'utilisateur est en lecture seule
+  const isReadOnly = user?.role === 'athlete';
+  
+  // Méthode pour créer une nouvelle séance
+  const handleNewWorkout = () => {
+    if (user?.role === 'coach' || user?.role === 'admin') {
+      navigate(`/coach/programs/${programId}/workouts/new`);
+    } else if (user?.role === 'individual_athlete') {
+      navigate(`/individual-athlete/programs/${programId}/workouts/new`);
+    }
+  };
+
+  // Méthode pour accéder aux paramètres du programme
+  const handleProgramSettings = () => {
+    if (user?.role === 'coach' || user?.role === 'admin') {
+      navigate(`/coach/programs/${programId}/edit`);
+    } else if (user?.role === 'individual_athlete') {
+      navigate(`/individual-athlete/programs/${programId}/edit`);
+    }
+  };
+
   let filteredWorkouts = events.filter(event => event.type === "workout");
   if (selectedTheme) {
     filteredWorkouts = filteredWorkouts.filter(event => event.theme === selectedTheme);
@@ -105,8 +126,32 @@ export const ProgramWorkoutCalendar = ({
     return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
   });
 
+  // Déterminer si on doit montrer les boutons d'action
+  const showActionButtons = user?.role === 'coach' || user?.role === 'admin' || user?.role === 'individual_athlete';
+
   return (
     <div className="space-y-8">
+      {/* Actions du programme (uniquement pour coach, admin ou individual_athlete) */}
+      {showActionButtons && (
+        <div className="flex justify-end gap-2">
+          <Button 
+            variant="outline"
+            size={isMobile ? "icon" : "default"}
+            onClick={handleProgramSettings}
+          >
+            <Settings className="h-4 w-4" />
+            {!isMobile && "Paramètres du programme"}
+          </Button>
+          <Button 
+            size={isMobile ? "icon" : "default"}
+            onClick={handleNewWorkout}
+          >
+            <Plus className="h-4 w-4" />
+            {!isMobile && "Nouvelle séance"}
+          </Button>
+        </div>
+      )}
+
       {/* Vue mensuelle et détails - réorganisés pour mobile */}
       <div className={`${isMobile ? 'flex flex-col space-y-6' : 'grid md:grid-cols-2 gap-4'}`}>
         {isMobile ? (
@@ -117,7 +162,7 @@ export const ProgramWorkoutCalendar = ({
               themeOptions={themeOptions} 
               onEventClick={handleEventClick} 
               onEditClick={handleEditWorkout}
-              readOnly={user?.role === 'athlete'}
+              readOnly={isReadOnly}
             />
             <CalendarView 
               events={events} 
@@ -138,7 +183,7 @@ export const ProgramWorkoutCalendar = ({
               themeOptions={themeOptions} 
               onEventClick={handleEventClick} 
               onEditClick={handleEditWorkout}
-              readOnly={user?.role === 'athlete'}
+              readOnly={isReadOnly}
             />
           </>
         )}

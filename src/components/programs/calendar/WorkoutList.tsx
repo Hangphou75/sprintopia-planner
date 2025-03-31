@@ -36,6 +36,9 @@ export const WorkoutList = ({
   onEditWorkout,
   userRole,
 }: WorkoutListProps) => {
+  // Vérifier si l'utilisateur peut modifier les séances (coach, admin ou athlète individuel)
+  const canEditWorkouts = userRole === 'coach' || userRole === 'individual_athlete' || userRole === 'admin';
+  
   return (
     <div className="grid gap-4">
       {filteredWorkouts.map((event) => {
@@ -67,7 +70,7 @@ export const WorkoutList = ({
                   )}
                 </div>
               </div>
-              {(userRole === 'coach' || userRole === 'individual_athlete') && (
+              {canEditWorkouts && (
                 <div className="flex gap-2">
                   {onEditWorkout && (
                     <Button
