@@ -18,10 +18,7 @@ export const useWorkoutDetails = (workoutId: string | undefined) => {
           program:program_id (
             id,
             name,
-            athlete:user_id (*),
-            shared_programs (
-              athlete:user_id (*)
-            )
+            athlete:user_id (*)
           )
         `)
         .eq("id", workoutId)
@@ -30,6 +27,24 @@ export const useWorkoutDetails = (workoutId: string | undefined) => {
       if (error) {
         console.error("Error fetching workout:", error);
         throw error;
+      }
+
+      // Si nous avons besoin des athlètes partagés, faisons une requête séparée
+      if (data && data.program && data.program.id) {
+        const { data: sharedData, error: sharedError } = await supabase
+          .from("shared_programs")
+          .select(`
+            athlete_id,
+            athlete:athlete_id (*)
+          `)
+          .eq("program_id", data.program.id);
+
+        if (!sharedError && sharedData) {
+          // Ajouter les données partagées au résultat
+          data.program.shared_programs = sharedData.map(item => ({
+            athlete: item.athlete
+          }));
+        }
       }
 
       console.log("Workout details fetched:", data);
