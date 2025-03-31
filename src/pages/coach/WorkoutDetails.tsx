@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Edit, Calendar, Clock, Dumbbell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { WorkoutDetails as WorkoutDetailsComponent } from "@/components/coach/calendar/WorkoutDetails";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 
@@ -173,7 +173,9 @@ export const WorkoutDetails = () => {
               </CardHeader>
               <CardContent>
                 <div className="whitespace-pre-wrap text-sm">
-                  {workout.details}
+                  {typeof workout.details === 'string' 
+                    ? workout.details 
+                    : JSON.stringify(workout.details, null, 2)}
                 </div>
               </CardContent>
             </Card>
