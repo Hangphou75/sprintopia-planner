@@ -75,7 +75,7 @@ export const useWorkoutDetails = (workoutId: string | undefined) => {
         if (!sharedError && sharedData) {
           // Add shared data to the result with proper type casting
           (data.program as Program).shared_programs = sharedData.map(item => ({
-            athlete: item.athlete as Athlete
+            athlete: (item.athlete as unknown) as Athlete
           }));
         }
       }
