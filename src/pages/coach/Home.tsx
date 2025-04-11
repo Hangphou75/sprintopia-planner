@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CoachCalendar } from "@/components/coach/CoachCalendar";
 import { ManagedAthletes } from "@/components/coach/ManagedAthletes";
 import { WeeklyCompetitions } from "@/components/coach/WeeklyCompetitions";
-import { WeatherWidget } from "@/components/weather/WeatherWidget";
 
 const CoachHome = () => {
   const { user } = useAuth();
@@ -25,11 +24,6 @@ const CoachHome = () => {
             <CoachCalendar coachId={user?.id} />
           </CardContent>
         </Card>
-
-        {/* Widget Météo */}
-        <div className="lg:col-span-1">
-          <WeatherWidget />
-        </div>
 
         <Card>
           <CardHeader>
