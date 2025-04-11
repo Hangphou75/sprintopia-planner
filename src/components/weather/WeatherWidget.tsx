@@ -6,15 +6,25 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Sun, Cloud, CloudRain, CloudSnow, CloudFog, Wind, Thermometer, Droplets, AlertTriangle } from "lucide-react";
+import { Sun, Cloud, CloudRain, CloudSnow, CloudFog, Wind, Thermometer, Droplets, AlertTriangle, Sunrise, Sun as SunIcon, Sunset } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from 'date-fns/locale';
+import { cn } from "@/lib/utils";
 
 // Types pour les données météo
+interface DayPart {
+  temperature: number;
+  condition: string;
+  description: string;
+  time: string;
+}
+
 interface WeatherData {
   location: string;
   date: string;
-  temperature: number;
+  morning: DayPart;
+  noon: DayPart;
+  evening: DayPart;
   humidity: number;
   windSpeed: number;
   description: string;
@@ -86,29 +96,71 @@ export const WeatherWidget = () => {
       'Ensoleillé', 'Brumeux', 'Nuageux', 'Venteux'
     ];
     
-    const randomCondition = conditions[Math.floor(Math.random() * conditions.length)];
-    const randomDescription = descriptions[Math.floor(Math.random() * descriptions.length)];
+    // Fonction pour générer une température en fonction de l'heure de la journée et de la saison
+    const generateTemperature = (hour: number, month: number) => {
+      let baseTemp = 15;
+      
+      // Ajuster la température en fonction de la saison
+      if (month >= 5 && month <= 7) baseTemp = 25; // été
+      else if (month >= 2 && month <= 4) baseTemp = 15; // printemps
+      else if (month >= 8 && month <= 10) baseTemp = 15; // automne
+      else baseTemp = 5; // hiver
+      
+      // Ajuster en fonction de l'heure
+      if (hour >= 11 && hour <= 15) {
+        baseTemp += 5; // Plus chaud à midi
+      } else if (hour >= 17 || hour <= 6) {
+        baseTemp -= 3; // Plus frais le soir/matin
+      }
+      
+      const tempVariation = Math.random() * 6 - 3;
+      return parseFloat((baseTemp + tempVariation).toFixed(1));
+    };
     
-    // Calculer la température en fonction de la saison
+    // Générer une condition météo aléatoire
+    const getRandomCondition = () => {
+      return conditions[Math.floor(Math.random() * conditions.length)];
+    };
+    
+    // Générer une description météo aléatoire
+    const getRandomDescription = () => {
+      return descriptions[Math.floor(Math.random() * descriptions.length)];
+    };
+    
     const month = date.getMonth();
-    let baseTemp = 15;
+    const randomCondition = getRandomCondition();
     
-    // Ajuster la température en fonction de la saison
-    if (month >= 5 && month <= 7) baseTemp = 25; // été
-    else if (month >= 2 && month <= 4) baseTemp = 15; // printemps
-    else if (month >= 8 && month <= 10) baseTemp = 15; // automne
-    else baseTemp = 5; // hiver
+    // Créer les données météo pour chaque partie de la journée
+    const morning: DayPart = {
+      temperature: generateTemperature(8, month),
+      condition: getRandomCondition(),
+      description: getRandomDescription(),
+      time: "08:00"
+    };
     
-    const tempVariation = Math.random() * 10 - 5;
-    const finalTemp = baseTemp + tempVariation;
+    const noon: DayPart = {
+      temperature: generateTemperature(13, month),
+      condition: getRandomCondition(),
+      description: getRandomDescription(),
+      time: "13:00"
+    };
+    
+    const evening: DayPart = {
+      temperature: generateTemperature(19, month),
+      condition: getRandomCondition(),
+      description: getRandomDescription(),
+      time: "19:00"
+    };
 
     const mockData: WeatherData = {
       location: location,
       date: format(date, 'dd/MM/yyyy'),
-      temperature: parseFloat(finalTemp.toFixed(1)),
+      morning,
+      noon,
+      evening,
       humidity: Math.floor(Math.random() * 50) + 30,
       windSpeed: parseFloat((Math.random() * 30).toFixed(1)),
-      description: randomDescription,
+      description: getRandomDescription(),
       condition: randomCondition
     };
 
@@ -248,9 +300,51 @@ export const WeatherWidget = () => {
                 <div className="text-sm text-muted-foreground">{weatherData.date}</div>
               </div>
               
-              <div className="bg-accent/50 rounded-lg p-3">
+              {/* Prévisions par période de la journée */}
+              <div className="grid grid-cols-3 gap-2 mt-4">
+                {/* Matin */}
+                <div className="bg-accent/30 rounded-lg p-2 text-center">
+                  <div className="flex justify-center items-center">
+                    <Sunrise className="h-4 w-4 text-orange-400 mr-1" />
+                    <span className="text-xs font-medium">Matin</span>
+                  </div>
+                  <div className="flex justify-center my-1">
+                    {getWeatherIcon(weatherData.morning.condition)}
+                  </div>
+                  <div className="text-lg font-bold">{weatherData.morning.temperature}°C</div>
+                  <div className="text-xs truncate">{weatherData.morning.description}</div>
+                </div>
+                
+                {/* Midi */}
+                <div className="bg-accent/50 rounded-lg p-2 text-center">
+                  <div className="flex justify-center items-center">
+                    <SunIcon className="h-4 w-4 text-yellow-500 mr-1" />
+                    <span className="text-xs font-medium">Midi</span>
+                  </div>
+                  <div className="flex justify-center my-1">
+                    {getWeatherIcon(weatherData.noon.condition)}
+                  </div>
+                  <div className="text-lg font-bold">{weatherData.noon.temperature}°C</div>
+                  <div className="text-xs truncate">{weatherData.noon.description}</div>
+                </div>
+                
+                {/* Soir */}
+                <div className="bg-accent/30 rounded-lg p-2 text-center">
+                  <div className="flex justify-center items-center">
+                    <Sunset className="h-4 w-4 text-red-400 mr-1" />
+                    <span className="text-xs font-medium">Soir</span>
+                  </div>
+                  <div className="flex justify-center my-1">
+                    {getWeatherIcon(weatherData.evening.condition)}
+                  </div>
+                  <div className="text-lg font-bold">{weatherData.evening.temperature}°C</div>
+                  <div className="text-xs truncate">{weatherData.evening.description}</div>
+                </div>
+              </div>
+              
+              <div className="bg-accent/50 rounded-lg p-3 mt-3">
                 <div className="flex justify-between items-center">
-                  <div className="text-2xl font-bold">{weatherData.temperature}°C</div>
+                  <div className="text-sm font-medium">Conditions générales</div>
                   <div className="text-sm">{weatherData.description}</div>
                 </div>
               </div>
@@ -276,4 +370,3 @@ export const WeatherWidget = () => {
     </Card>
   );
 };
-
