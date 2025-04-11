@@ -1,4 +1,3 @@
-
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -73,7 +72,7 @@ export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
     defaultValues: {
       title: initialValues?.title || "",
       description: initialValues?.description || "",
-      date: initialValues?.date || new Date(),
+      date: initialValues?.date ? new Date(initialValues.date) : new Date(),
       time: initialValues?.time || "09:00",
       theme: initialValues?.theme || themes[0].value,
       recovery: initialValues?.recovery || "",
@@ -92,9 +91,8 @@ export const WorkoutForm = ({ onSubmit, initialValues }: WorkoutFormProps) => {
     try {
       setIsSubmitting(true);
       await onSubmit(values);
-      toast.success(isEditMode ? "Séance modifiée avec succès" : "Séance créée avec succès");
     } catch (error) {
-      console.error("Error creating workout:", error);
+      console.error("Error submitting workout:", error);
       toast.error(isEditMode ? "Erreur lors de la modification de la séance" : "Erreur lors de la création de la séance");
     } finally {
       setIsSubmitting(false);

@@ -11,9 +11,10 @@ import { cn } from "@/lib/utils";
 type WorkoutDetailsProps = {
   workout: any;
   onEditWorkout: (programId: string, workoutId: string) => void;
+  onWorkoutUpdated?: () => void;
 };
 
-export const WorkoutDetails = ({ workout, onEditWorkout }: WorkoutDetailsProps) => {
+export const WorkoutDetails = ({ workout, onEditWorkout, onWorkoutUpdated }: WorkoutDetailsProps) => {
   const getAthletes = (workout: any) => {
     const athletes = [];
     
@@ -37,6 +38,9 @@ export const WorkoutDetails = ({ workout, onEditWorkout }: WorkoutDetailsProps) 
     console.log("Program ID:", workout.program?.id);
     console.log("Workout ID:", workout.id);
     onEditWorkout(workout.program?.id, workout.id);
+    if (onWorkoutUpdated) {
+      onWorkoutUpdated();
+    }
   };
 
   return (

@@ -1,11 +1,14 @@
+
 import { useParams, useNavigate } from "react-router-dom";
 import { WorkoutForm, WorkoutFormValues } from "@/components/workouts/WorkoutForm";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const IndividualCreateWorkout = () => {
   const { programId } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const handleSubmit = async (values: WorkoutFormValues) => {
     try {
@@ -36,6 +39,11 @@ export const IndividualCreateWorkout = () => {
       }
 
       console.log("Workout created successfully:", data);
+      
+      // Invalider les requêtes pour forcer un rafraîchissement des données
+      await queryClient.invalidateQueries({ queryKey: ["workouts", programId] });
+      await queryClient.invalidateQueries({ queryKey: ["programs"] });
+      
       toast.success("Séance créée avec succès");
       navigate(`/individual-athlete/programs/${programId}/workouts`);
     } catch (error) {

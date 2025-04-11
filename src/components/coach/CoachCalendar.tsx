@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar } from "@/components/ui/calendar";
 import { startOfDay, parseISO, addDays } from "date-fns";
@@ -16,6 +16,7 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: workouts, isLoading: isLoadingWorkouts } = useQuery({
     queryKey: ["coach-workouts", coachId, selectedDate],
@@ -149,6 +150,11 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
     navigate(`/coach/programs/${programId}/workouts/${workoutId}/edit`);
   };
 
+  const refreshData = () => {
+    queryClient.invalidateQueries({ queryKey: ["coach-workouts"] });
+    queryClient.invalidateQueries({ queryKey: ["coach-all-workouts"] });
+  };
+
   return (
     <div>
       <Calendar
@@ -189,6 +195,7 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
         workouts={workouts || []}
         isLoading={isLoadingWorkouts}
         onEditWorkout={handleEditWorkout}
+        onWorkoutUpdated={refreshData}
       />
     </div>
   );

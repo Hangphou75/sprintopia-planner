@@ -17,6 +17,7 @@ type WorkoutSheetProps = {
   workouts: any[];
   isLoading: boolean;
   onEditWorkout: (programId: string, workoutId: string) => void;
+  onWorkoutUpdated?: () => void;
 };
 
 export const WorkoutSheet = ({
@@ -26,6 +27,7 @@ export const WorkoutSheet = ({
   workouts,
   isLoading,
   onEditWorkout,
+  onWorkoutUpdated,
 }: WorkoutSheetProps) => {
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
@@ -48,6 +50,7 @@ export const WorkoutSheet = ({
                 key={workout.id}
                 workout={workout}
                 onEditWorkout={onEditWorkout}
+                onWorkoutUpdated={onWorkoutUpdated}
               />
             ))
           ) : (
