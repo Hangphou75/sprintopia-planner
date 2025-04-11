@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { BarChart, Users, User, UsersRound, UserCheck, Award } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { WeatherWidget } from "@/components/weather/WeatherWidget";
 
 interface UserStats {
   total: number;
@@ -96,6 +97,11 @@ const AdminHome = () => {
             <p className="text-xs text-muted-foreground">Athlètes encadrés</p>
           </CardContent>
         </Card>
+        
+        {/* Widget Météo */}
+        <div className="lg:col-span-1">
+          <WeatherWidget />
+        </div>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">

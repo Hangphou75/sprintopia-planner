@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Timer, Trophy, Dumbbell, Activity, Zap, Flame, Settings, Plus } from "lucide-react";
 import { CalendarView } from "./calendar/CalendarView";
@@ -131,8 +132,14 @@ export const ProgramWorkoutCalendar = ({
   return <div className="space-y-8">
       {/* Actions du programme (pour coach, admin ou individual_athlete) */}
       {showActionButtons && <div className="flex justify-end gap-2">
-          
-          
+          <Button variant="outline" size="sm" onClick={handleProgramSettings}>
+            <Settings className="h-4 w-4 mr-2" />
+            Paramètres
+          </Button>
+          <Button size="sm" onClick={handleNewWorkout}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nouvelle séance
+          </Button>
         </div>}
 
       {/* Vue mensuelle et détails - réorganisés pour mobile */}

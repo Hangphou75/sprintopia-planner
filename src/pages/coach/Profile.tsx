@@ -6,6 +6,7 @@ import { SubscriptionInfo } from "@/components/profile/SubscriptionInfo";
 import { UpgradeSubscriptionDialog } from "@/components/profile/UpgradeSubscriptionDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { SubscriptionTier } from "@/hooks/useProfile";
+import { WeatherWidget } from "@/components/weather/WeatherWidget";
 
 const CoachProfile = () => {
   const { user } = useAuth();
@@ -37,6 +38,11 @@ const CoachProfile = () => {
             onUpgrade={handleUpgrade}
           />
         )}
+        
+        {/* Widget Météo */}
+        <div className="md:col-span-1">
+          <WeatherWidget />
+        </div>
       </div>
       
       <UpgradeSubscriptionDialog
