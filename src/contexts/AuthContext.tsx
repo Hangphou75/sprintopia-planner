@@ -27,6 +27,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     const checkSession = async () => {
       try {
+        // Initialize from localStorage if available
+        const cachedProfile = localStorage.getItem('userProfile');
+        if (cachedProfile && isMounted) {
+          setProfile(JSON.parse(cachedProfile));
+        }
+        
         const { data } = await supabase.auth.getSession();
         
         if (!isMounted) return;
