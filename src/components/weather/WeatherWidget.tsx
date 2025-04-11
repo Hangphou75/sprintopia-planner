@@ -147,9 +147,9 @@ export const WeatherWidget = () => {
       <CardContent>
         <div className="space-y-4">
           {/* Sélecteur de localisation */}
-          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 items-start">
+          <div className="space-y-2">
             {!showCustomInput ? (
-              <div className="flex-1">
+              <div className="w-full">
                 <Select 
                   value={location} 
                   onValueChange={(value) => {
@@ -174,42 +174,66 @@ export const WeatherWidget = () => {
                 </Select>
               </div>
             ) : (
-              <div className="flex flex-1 space-x-2">
+              <div className="space-y-2">
                 <Input
                   placeholder="Saisir une ville"
                   value={customLocation}
                   onChange={(e) => setCustomLocation(e.target.value)}
-                  className="flex-1"
+                  className="w-full"
                 />
-                <Button size="sm" onClick={handleLocationInput}>
-                  Ok
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => setShowCustomInput(false)}
-                >
-                  Annuler
-                </Button>
+                <div className="flex space-x-2 items-center justify-between">
+                  <div className="flex space-x-2">
+                    <Button size="sm" onClick={handleLocationInput}>
+                      Ok
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => setShowCustomInput(false)}
+                    >
+                      Annuler
+                    </Button>
+                  </div>
+                  
+                  {/* Sélecteur de date */}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        {format(date, 'dd/MM/yyyy')}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={(date) => date && setDate(date)}
+                        locale={fr}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
             )}
 
-            {/* Sélecteur de date */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm">
-                  {format(date, 'dd/MM/yyyy')}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={(date) => date && setDate(date)}
-                  locale={fr}
-                />
-              </PopoverContent>
-            </Popover>
+            {!showCustomInput && (
+              <div className="flex justify-end">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      {format(date, 'dd/MM/yyyy')}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={date}
+                      onSelect={(date) => date && setDate(date)}
+                      locale={fr}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )}
           </div>
 
           {/* Affichage des données météo */}
@@ -252,3 +276,4 @@ export const WeatherWidget = () => {
     </Card>
   );
 };
+
