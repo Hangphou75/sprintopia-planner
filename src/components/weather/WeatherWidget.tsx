@@ -1,12 +1,13 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sunrise, Sun, Sunset } from "lucide-react";
+import { Sunrise, Sun, Sunset, AlertTriangle } from "lucide-react";
 import { useWeather } from "./useWeather";
 import { getWeatherIcon } from "./utils";
 import { LocationSelector } from "./LocationSelector";
 import { DateSelector } from "./DateSelector";
 import { DayPartForecast } from "./DayPartForecast";
 import { CurrentConditions } from "./CurrentConditions";
+import { Switch } from "@/components/ui/switch";
 
 export const WeatherWidget = () => {
   const {
@@ -20,7 +21,10 @@ export const WeatherWidget = () => {
     loading,
     showCustomInput,
     setShowCustomInput,
-    handleLocationInput
+    handleLocationInput,
+    useRealData,
+    toggleDataSource,
+    error
   } = useWeather();
 
   return (
@@ -49,6 +53,23 @@ export const WeatherWidget = () => {
               <DateSelector date={date} setDate={setDate} />
             )}
           </div>
+
+          {/* Option pour basculer entre données réelles et simulées */}
+          <div className="flex items-center justify-between text-sm">
+            <span>Utiliser les données Météo France</span>
+            <Switch 
+              checked={useRealData} 
+              onCheckedChange={toggleDataSource}
+            />
+          </div>
+
+          {/* Affichage des erreurs */}
+          {error && (
+            <div className="bg-red-50 text-red-500 p-2 rounded-lg flex items-center">
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              <span className="text-xs">{error}</span>
+            </div>
+          )}
 
           {/* Affichage des données météo */}
           {loading ? (
@@ -82,6 +103,11 @@ export const WeatherWidget = () => {
               </div>
               
               <CurrentConditions weatherData={weatherData} />
+              
+              {/* Source des données */}
+              <div className="text-xs text-right text-muted-foreground mt-2">
+                Source: {useRealData ? "Météo France" : "Simulation"}
+              </div>
             </div>
           ) : (
             <div className="h-24 flex items-center justify-center">
