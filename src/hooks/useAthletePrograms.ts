@@ -4,6 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Program } from "@/types/program";
 import { toast } from "sonner";
 
+// Extend Program type to include shared_id
+export type ExtendedProgram = Program & {
+  shared_id?: string;
+  coach_id?: string;
+};
+
 export const useAthletePrograms = (userId: string | undefined) => {
   return useQuery({
     queryKey: ["athlete-programs", userId],
@@ -100,7 +106,7 @@ export const useAthletePrograms = (userId: string | undefined) => {
       }).filter(Boolean);
       
       console.log("Transformed programs for athlete:", programs);
-      return programs as Program[];
+      return programs as ExtendedProgram[];
     },
     enabled: !!userId,
   });

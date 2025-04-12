@@ -1,4 +1,3 @@
-
 import { Profile } from "@/types/database";
 import {
   Sheet,
@@ -8,7 +7,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { AthletePrograms } from "./AthletePrograms";
-import { useAthletePrograms } from "@/hooks/useAthletePrograms";
+import { useAthletePrograms, ExtendedProgram } from "@/hooks/useAthletePrograms";
 import { useAthleteMutations } from "@/hooks/useAthleteMutations";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
@@ -31,12 +30,10 @@ export const AthleteProgramsSheet = ({
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    // Update isOpen state when selectedAthlete changes
     setIsOpen(!!selectedAthlete);
   }, [selectedAthlete]);
 
   useEffect(() => {
-    // Handle errors
     if (error) {
       console.error("Error loading athlete programs:", error);
       toast.error("Erreur lors du chargement des programmes");

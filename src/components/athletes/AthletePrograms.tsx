@@ -6,8 +6,13 @@ import { Trash2, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
+// Extend the Program type to include shared_id property
+type ExtendedProgram = Program & {
+  shared_id?: string;
+};
+
 type AthleteProgramsProps = {
-  programs: Program[];
+  programs: ExtendedProgram[];
   onDeleteProgram: (programId: string, sharedId?: string) => void;
   onAddProgram?: () => void;
   showAddButton?: boolean;
