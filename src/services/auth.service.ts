@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export type UserRole = "athlete" | "coach";
@@ -35,8 +36,21 @@ export const authService = {
 
   logout: async () => {
     try {
+      console.log("Auth service: attempting logout");
+      
+      // Utiliser la méthode signOut de supabase pour déconnecter l'utilisateur
       const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      
+      if (error) {
+        console.error("Auth service: logout error", error);
+        throw error;
+      }
+      
+      // Nettoyer le localStorage pour s'assurer que tous les éléments liés à l'authentification sont supprimés
+      localStorage.removeItem('userProfile');
+      
+      console.log("Auth service: logout successful");
+      return true;
     } catch (error) {
       console.error("Auth service: logout error", error);
       throw error;

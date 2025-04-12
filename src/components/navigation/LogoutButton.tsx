@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -9,8 +10,13 @@ export const LogoutButton = () => {
 
   const handleLogout = async () => {
     try {
+      // Effectuer la déconnexion d'abord
       await logout();
-      navigate("/login");
+      
+      // Une fois la déconnexion réussie, naviguer vers la page de connexion
+      // Utiliser replace: true pour éviter de revenir à l'état précédent lors de la navigation arrière
+      navigate("/login", { replace: true });
+      
       toast.success("Déconnexion réussie");
     } catch (error) {
       console.error("Erreur lors de la déconnexion:", error);
