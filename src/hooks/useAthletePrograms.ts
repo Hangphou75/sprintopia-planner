@@ -34,7 +34,15 @@ export const useAthletePrograms = (userId: string | undefined) => {
             training_phase,
             user_id,
             created_at,
-            updated_at
+            updated_at,
+            phase_duration,
+            main_distance,
+            sessions_per_week,
+            training_days,
+            main_competition,
+            intermediate_competitions,
+            generated,
+            folder_id
           )
         `)
         .eq("athlete_id", userId);
@@ -48,11 +56,14 @@ export const useAthletePrograms = (userId: string | undefined) => {
       console.log("Fetched shared programs:", sharedProgramsData);
 
       // Transformer les données pour correspondre au type Program
-      return sharedProgramsData.map(sp => ({
+      // Ensure all required properties from Program type are included
+      const programs = sharedProgramsData.map(sp => ({
         ...sp.programs,
         shared_id: sp.id,
         coach_id: sp.coach_id
-      })) as Program[];
+      }));
+      
+      return programs as Program[];
     },
     enabled: !!userId,
   });
