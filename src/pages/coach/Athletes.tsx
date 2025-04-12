@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAthletes } from "@/hooks/useAthletes";
 import { toast } from "sonner";
@@ -12,12 +12,12 @@ import { useAthleteFiltering } from "@/components/athletes/hooks/useAthleteFilte
 import { useAthleteActions } from "@/components/athletes/hooks/useAthleteActions";
 import { AthleteHeader } from "@/components/athletes/AthleteHeader";
 import { AthleteContent } from "@/components/athletes/AthleteContent";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 const Athletes = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
-
-  console.log("Athletes page - user:", user, "isAdmin:", isAdmin);
+  const [activeTab, setActiveTab] = useState("all");
 
   // Fetch athletes data
   const { data: athletesData, isLoading, error } = useAthletes(user?.id);
@@ -61,11 +61,15 @@ const Athletes = () => {
     athlete: relation.athlete
   }));
 
+  // Pour simuler les invitations en attente (à remplacer par une véritable implémentation)
+  const pendingInvitesCount = 0;
+
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto py-6 space-y-6">
       <AthleteHeader 
         isAdmin={isAdmin} 
         onInvite={() => setIsInviteDialogOpen(true)} 
+        totalAthletes={athletesData?.length || 0}
       />
 
       {isAdmin && (
@@ -89,6 +93,9 @@ const Athletes = () => {
         onViewCompetitions={(athlete) => handleAthleteSelect(athlete, "competitions")}
         onDeleteAthlete={handleDeleteAthlete}
         onInvite={() => setIsInviteDialogOpen(true)}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        pendingInvitesCount={pendingInvitesCount}
       />
 
       {/* Dialogs and sheets */}

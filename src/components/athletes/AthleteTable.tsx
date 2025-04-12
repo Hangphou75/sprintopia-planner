@@ -3,7 +3,7 @@ import { Profile } from "@/types/database";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
-import { CalendarClock, Award, Trash2, User } from "lucide-react";
+import { CalendarClock, Award, Trash2, User, MoreHorizontal } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -14,6 +14,13 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export type AthleteRelation = {
   id: string;
@@ -61,15 +68,11 @@ export const AthleteTable = ({
                     <span className="text-sm text-muted-foreground">
                       {relation.athlete.email}
                     </span>
+                    <Badge variant="outline" className="mt-1 max-w-fit">
+                      {relation.athlete.role}
+                    </Badge>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onDeleteAthlete(relation.athlete)}
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
               </div>
               <div className="text-xs text-muted-foreground mb-3">
                 Ajouté le{" "}
@@ -101,6 +104,13 @@ export const AthleteTable = ({
                 <Award className="h-4 w-4 mr-2" />
                 Compétitions
               </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onDeleteAthlete(relation.athlete)}
+              >
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
             </CardFooter>
           </Card>
         ))}
@@ -115,6 +125,7 @@ export const AthleteTable = ({
           <TableRow>
             <TableHead>Athlète</TableHead>
             <TableHead>Email</TableHead>
+            <TableHead>Statut</TableHead>
             <TableHead>Date d'ajout</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
@@ -145,6 +156,11 @@ export const AthleteTable = ({
               </TableCell>
               <TableCell>{relation.athlete.email}</TableCell>
               <TableCell>
+                <Badge variant="outline">
+                  {relation.athlete.role || "athlete"}
+                </Badge>
+              </TableCell>
+              <TableCell>
                 {relation.athlete.created_at
                   ? format(
                       new Date(relation.athlete.created_at),
@@ -154,31 +170,30 @@ export const AthleteTable = ({
                   : "-"}
               </TableCell>
               <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onEditAthlete(relation.athlete)}
-                  >
-                    <CalendarClock className="h-4 w-4 mr-2" />
-                    Programmes
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onViewCompetitions(relation.athlete)}
-                  >
-                    <Award className="h-4 w-4 mr-2" />
-                    Compétitions
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onDeleteAthlete(relation.athlete)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => onEditAthlete(relation.athlete)}>
+                      <CalendarClock className="h-4 w-4 mr-2" />
+                      Programmes
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onViewCompetitions(relation.athlete)}>
+                      <Award className="h-4 w-4 mr-2" />
+                      Compétitions
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => onDeleteAthlete(relation.athlete)}
+                      className="text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Supprimer
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
           ))}

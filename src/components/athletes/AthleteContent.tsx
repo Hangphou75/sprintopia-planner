@@ -5,6 +5,8 @@ import { AthleteTable, AthleteRelation } from "@/components/athletes/AthleteTabl
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { AthleteLoadingState } from "@/components/athletes/AthleteLoadingState";
+import { AthleteTabs } from "./AthleteTabs";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface AthleteContentProps {
   isLoading: boolean;
@@ -18,6 +20,9 @@ interface AthleteContentProps {
   onViewCompetitions: (athlete: Profile) => void;
   onDeleteAthlete: (athlete: Profile) => void;
   onInvite: () => void;
+  activeTab: string;
+  onTabChange: (value: string) => void;
+  pendingInvitesCount: number;
 }
 
 export const AthleteContent = ({
@@ -31,40 +36,52 @@ export const AthleteContent = ({
   onEditAthlete,
   onViewCompetitions,
   onDeleteAthlete,
-  onInvite
+  onInvite,
+  activeTab,
+  onTabChange,
+  pendingInvitesCount
 }: AthleteContentProps) => {
   return (
-    <>
-      <AthleteFilters
-        searchQuery={searchQuery}
-        onSearchChange={onSearchChange}
-        sortBy={sortBy}
-        onSortChange={onSortChange}
-      />
-
-      <AthleteLoadingState isLoading={isLoading} error={error} />
-
-      {!isLoading && !error && athletes && athletes.length > 0 ? (
-        <AthleteTable
-          athletes={athletes}
-          onEditAthlete={onEditAthlete}
-          onViewCompetitions={onViewCompetitions}
-          onDeleteAthlete={onDeleteAthlete}
+    <Card>
+      <CardContent className="p-6 space-y-6">
+        <AthleteTabs 
+          activeTab={activeTab}
+          onTabChange={onTabChange}
+          totalCount={athletes.length}
+          pendingInvitesCount={pendingInvitesCount}
         />
-      ) : !isLoading && !error ? (
-        <div className="py-8 text-center border rounded-md">
-          <p className="text-muted-foreground">Aucun athlète trouvé</p>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="mt-4"
-            onClick={onInvite}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Inviter un athlète
-          </Button>
-        </div>
-      ) : null}
-    </>
+
+        <AthleteFilters
+          searchQuery={searchQuery}
+          onSearchChange={onSearchChange}
+          sortBy={sortBy}
+          onSortChange={onSortChange}
+        />
+
+        <AthleteLoadingState isLoading={isLoading} error={error} />
+
+        {!isLoading && !error && athletes && athletes.length > 0 ? (
+          <AthleteTable
+            athletes={athletes}
+            onEditAthlete={onEditAthlete}
+            onViewCompetitions={onViewCompetitions}
+            onDeleteAthlete={onDeleteAthlete}
+          />
+        ) : !isLoading && !error ? (
+          <div className="py-8 text-center border rounded-md">
+            <p className="text-muted-foreground">Aucun athlète trouvé</p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mt-4"
+              onClick={onInvite}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Inviter un athlète
+            </Button>
+          </div>
+        ) : null}
+      </CardContent>
+    </Card>
   );
 };

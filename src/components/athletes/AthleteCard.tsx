@@ -2,10 +2,17 @@
 import { Profile } from "@/types/database";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Trash2, CalendarClock, Award, User } from "lucide-react";
+import { Trash2, CalendarClock, Award, User, MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
 
 type AthleteCardProps = {
   athlete: Profile;
@@ -20,8 +27,14 @@ export const AthleteCard = ({
   onViewCompetitions, 
   onDelete 
 }: AthleteCardProps) => {
+  const navigate = useNavigate();
+
+  const handleCardClick = () => {
+    navigate(`/coach/athletes/${athlete.id}`);
+  };
+
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer" onClick={handleCardClick}>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -38,9 +51,30 @@ export const AthleteCard = ({
             )}
             <span>{athlete.first_name} {athlete.last_name}</span>
           </div>
-          <Button variant="ghost" size="icon" onClick={() => onDelete(athlete)}>
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+              <Button variant="ghost" size="sm">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(athlete); }}>
+                <CalendarClock className="h-4 w-4 mr-2" />
+                Programmes
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onViewCompetitions(athlete); }}>
+                <Award className="h-4 w-4 mr-2" />
+                Compétitions
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={(e) => { e.stopPropagation(); onDelete(athlete); }}
+                className="text-destructive"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Supprimer
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </CardTitle>
       </CardHeader>
       <CardContent className="pb-2">
@@ -59,7 +93,7 @@ export const AthleteCard = ({
           variant="outline" 
           size="sm" 
           className="flex-1"
-          onClick={() => onEdit(athlete)}
+          onClick={(e) => { e.stopPropagation(); onEdit(athlete); }}
         >
           <CalendarClock className="h-4 w-4 mr-2" />
           Programmes
@@ -68,7 +102,7 @@ export const AthleteCard = ({
           variant="outline" 
           size="sm" 
           className="flex-1"
-          onClick={() => onViewCompetitions(athlete)}
+          onClick={(e) => { e.stopPropagation(); onViewCompetitions(athlete); }}
         >
           <Award className="h-4 w-4 mr-2" />
           Compétitions

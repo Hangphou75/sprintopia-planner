@@ -6,6 +6,7 @@ type AthleteRelation = {
   id: string;
   athlete: Profile;
   coach_id: string;
+  created_at?: string; // Ajout de cette propriété manquante
   coach?: {
     id: string;
     first_name: string;
@@ -67,7 +68,14 @@ export const useAthleteFiltering = (athletesData: AthleteRelation[] | undefined)
         case "email":
           return (athleteA.email || "").localeCompare(athleteB.email || "");
         case "date":
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          // Utiliser athlete.created_at ou relation.created_at selon ce qui est disponible
+          const createdAtA = a.created_at || a.athlete.created_at;
+          const createdAtB = b.created_at || b.athlete.created_at;
+          
+          if (!createdAtA) return 1;
+          if (!createdAtB) return -1;
+          
+          return new Date(createdAtA).getTime() - new Date(createdAtB).getTime();
         default:
           return 0;
       }
