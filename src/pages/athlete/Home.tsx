@@ -23,7 +23,7 @@ const Home = () => {
       const { data: sharedData, error: sharedError } = await supabase
         .from("shared_programs")
         .select(`
-          program:programs (
+          program:program_id (
             id,
             name,
             workouts (

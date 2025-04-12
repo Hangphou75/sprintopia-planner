@@ -24,7 +24,7 @@ export const useAthletePrograms = (userId: string | undefined) => {
           coach_id,
           athlete_id,
           created_at,
-          programs:programs!inner (
+          programs:program_id (
             id,
             name,
             duration,
@@ -45,7 +45,8 @@ export const useAthletePrograms = (userId: string | undefined) => {
             folder_id
           )
         `)
-        .eq("athlete_id", userId);
+        .eq("athlete_id", userId)
+        .eq("status", "active");
 
       if (sharedError) {
         console.error("Error fetching shared programs:", sharedError);
@@ -88,6 +89,7 @@ export const useAthletePrograms = (userId: string | undefined) => {
         };
       });
       
+      console.log("Transformed programs for athlete:", programs);
       return programs as Program[];
     },
     enabled: !!userId,

@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,7 +15,7 @@ const AthletePlanning = () => {
       const { data: sharedProgramsData, error } = await supabase
         .from("shared_programs")
         .select(`
-          program:programs (
+          program:program_id (
             id,
             name,
             workouts (
