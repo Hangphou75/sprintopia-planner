@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
@@ -14,7 +15,14 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Log the API key existence (without showing the actual key)
+    console.log("API Key exists:", !!RESEND_API_KEY);
+    
     const { email, coachName } = await req.json();
+    
+    if (!RESEND_API_KEY) {
+      throw new Error("Resend API key is not configured");
+    }
 
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -37,18 +45,23 @@ const handler = async (req: Request): Promise<Response> => {
       }),
     });
 
+    const responseText = await res.text();
+    console.log("Resend API response:", responseText);
+
     if (res.ok) {
-      const data = await res.json();
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        data = { id: "email-sent", text: responseText };
+      }
+      
       return new Response(JSON.stringify(data), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     } else {
-      const error = await res.text();
-      return new Response(JSON.stringify({ error }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      throw new Error(responseText);
     }
   } catch (error: any) {
     console.error("Error in send-invitation function:", error);

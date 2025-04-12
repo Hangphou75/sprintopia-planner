@@ -38,7 +38,7 @@ export const useAthleteMutations = () => {
         .single();
         
       const coachName = coachData 
-        ? `${coachData.first_name} ${coachData.last_name}` 
+        ? `${coachData.first_name || ''} ${coachData.last_name || ''}`.trim() || "Votre coach"
         : "Votre coach";
         
       // Call the edge function to send invitation email
@@ -53,12 +53,31 @@ export const useAthleteMutations = () => {
       });
       
       if (!response.ok) {
-        console.error("Error sending invitation email:", await response.text());
+        const errorText = await response.text();
+        console.error("Error sending invitation email:", errorText);
+        
+        // L'invitation a été créée dans la base de données,
+        // mais l'envoi d'email a échoué, on informe l'utilisateur
+        // mais on ne lance pas d'erreur pour ne pas annuler la création
+        // de l'invitation
+        toast.warning("L'invitation a été créée mais l'email n'a pas pu être envoyé. Problème de configuration du service d'emails.");
+        
+        // On ne lance pas d'erreur pour que le processus soit considéré comme réussi
+        // puisque l'invitation a bien été créée dans la base
+        return { status: "invitation_created_email_failed", email };
       }
+      
+      return { status: "success", email };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["coach-athletes"] });
-      toast.success("Invitation envoyée avec succès");
+      queryClient.invalidateQueries({ queryKey: ["athlete-invitations"] });
+      
+      if (data.status === "invitation_created_email_failed") {
+        // On a déjà affiché un toast dans la mutationFn
+      } else {
+        toast.success("Invitation envoyée avec succès");
+      }
     },
     onError: (error: any) => {
       console.error("Error sending invitation:", error);

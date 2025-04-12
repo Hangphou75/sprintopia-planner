@@ -69,9 +69,11 @@ export const InviteAthleteDialogEnhanced = ({
           setEmail("");
           onOpenChange(false);
           setIsSubmitting(false);
+          toast.success(`Invitation envoyée à ${email} avec succès`);
         },
-        onError: () => {
+        onError: (error: any) => {
           setIsSubmitting(false);
+          // The error message will come from the mutation
         }
       }
     );
