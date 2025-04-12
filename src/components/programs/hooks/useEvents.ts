@@ -11,18 +11,29 @@ export const useEvents = ({ workouts, competitions }: UseEventsProps): Event[] =
   console.log("Raw workouts in useEvents:", workouts);
   console.log("Raw competitions in useEvents:", competitions);
 
+  // Protection contre les entrées invalides
+  if (!Array.isArray(workouts)) workouts = [];
+  if (!Array.isArray(competitions)) competitions = [];
+
   const events = [
-    ...(workouts?.map((workout) => {
+    ...(workouts.map((workout) => {
       try {
         if (!workout) return null;
         
         // Utilisation de parseISO pour une meilleure gestion des dates ISO
-        const date = workout.date ? parseISO(workout.date) : new Date();
+        let date: Date;
         
-        // Vérifie si la date est valide
-        if (isNaN(date.getTime())) {
-          console.error("Invalid date for workout:", workout);
-          return null;
+        try {
+          date = workout.date ? parseISO(workout.date) : new Date();
+          
+          // Vérifie si la date est valide
+          if (isNaN(date.getTime())) {
+            console.error("Invalid date for workout:", workout);
+            date = new Date(); // Fallback à la date actuelle
+          }
+        } catch (error) {
+          console.error("Error parsing date for workout:", workout, error);
+          date = new Date(); // Fallback à la date actuelle
         }
         
         // On s'assure que les détails sont dans un format valide
@@ -46,17 +57,25 @@ export const useEvents = ({ workouts, competitions }: UseEventsProps): Event[] =
         return null;
       }
     }).filter(Boolean) || []),
-    ...(competitions?.map((competition) => {
+    
+    ...(competitions.map((competition) => {
       try {
         if (!competition) return null;
 
         // Utilisation de parseISO pour une meilleure gestion des dates ISO
-        const date = competition.date ? parseISO(competition.date) : new Date();
+        let date: Date;
         
-        // Vérifie si la date est valide
-        if (isNaN(date.getTime())) {
-          console.error("Invalid date for competition:", competition);
-          return null;
+        try {
+          date = competition.date ? parseISO(competition.date) : new Date();
+          
+          // Vérifie si la date est valide
+          if (isNaN(date.getTime())) {
+            console.error("Invalid date for competition:", competition);
+            date = new Date(); // Fallback à la date actuelle
+          }
+        } catch (error) {
+          console.error("Error parsing date for competition:", competition, error);
+          date = new Date(); // Fallback à la date actuelle
         }
 
         return {

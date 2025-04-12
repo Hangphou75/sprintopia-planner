@@ -9,7 +9,8 @@ import {
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { WorkoutDetails } from "./WorkoutDetails";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 type WorkoutSheetProps = {
   isOpen: boolean;
@@ -30,25 +31,56 @@ export const WorkoutSheet = ({
   onEditWorkout,
   onWorkoutUpdated,
 }: WorkoutSheetProps) => {
-  // Safety check to close the sheet if selectedDate becomes undefined
+  const [formattedDate, setFormattedDate] = useState<string>("Date non sélectionnée");
+
+  // Formater la date de manière sécurisée avec gestion des erreurs
   useEffect(() => {
-    if (!selectedDate && isOpen) {
-      console.log("Closing sheet because selectedDate is undefined");
-      onOpenChange(false);
+    if (!selectedDate) {
+      setFormattedDate("Date non sélectionnée");
+      return;
+    }
+
+    try {
+      // Vérifier que la date est valide avant le formatage
+      if (!(selectedDate instanceof Date) || isNaN(selectedDate.getTime())) {
+        console.error("Invalid date object:", selectedDate);
+        setFormattedDate("Date invalide");
+        return;
+      }
+      
+      const formatted = format(selectedDate, "EEEE d MMMM yyyy", { locale: fr });
+      setFormattedDate(formatted);
+    } catch (error) {
+      console.error("Error formatting date:", error, selectedDate);
+      setFormattedDate("Erreur de formatage de date");
+      
+      // Fermer la feuille en cas d'erreur de date
+      if (isOpen) {
+        setTimeout(() => onOpenChange(false), 100);
+        toast.error("Erreur de formatage de date");
+      }
     }
   }, [selectedDate, isOpen, onOpenChange]);
 
-  // Format date safely with error handling
-  const formattedDate = selectedDate 
-    ? (() => {
-        try {
-          return format(selectedDate, "EEEE d MMMM yyyy", { locale: fr });
-        } catch (error) {
-          console.error("Error formatting date:", error);
-          return "Date invalide";
-        }
-      })() 
-    : "Date non sélectionnée";
+  // Vérification de sécurité pour fermer la feuille si selectedDate devient undefined
+  useEffect(() => {
+    if (!selectedDate && isOpen) {
+      console.log("Closing sheet because selectedDate is undefined");
+      setTimeout(() => onOpenChange(false), 100);
+    }
+  }, [selectedDate, isOpen, onOpenChange]);
+
+  // Nettoyage à la déconnexion du composant
+  useEffect(() => {
+    return () => {
+      if (isOpen) {
+        onOpenChange(false);
+      }
+    };
+  }, []);
+
+  // État local sécurisé pour les séances
+  const safeWorkouts = Array.isArray(workouts) ? workouts : [];
 
   return (
     <Sheet 
@@ -58,8 +90,9 @@ export const WorkoutSheet = ({
           onOpenChange(open);
         } catch (error) {
           console.error("Error in onOpenChange handler:", error);
-          // Force close if we encounter an error
+          // Forcer la fermeture en cas d'erreur
           onOpenChange(false);
+          toast.error("Une erreur est survenue");
         }
       }}
     >
@@ -76,10 +109,10 @@ export const WorkoutSheet = ({
         <div className="mt-6 space-y-4">
           {isLoading ? (
             <p>Chargement des séances...</p>
-          ) : workouts && workouts.length > 0 ? (
-            workouts.map((workout) => (
+          ) : safeWorkouts.length > 0 ? (
+            safeWorkouts.map((workout) => (
               <WorkoutDetails
-                key={workout.id}
+                key={workout.id || Math.random().toString()}
                 workout={workout}
                 onEditWorkout={onEditWorkout}
                 onWorkoutUpdated={onWorkoutUpdated}
