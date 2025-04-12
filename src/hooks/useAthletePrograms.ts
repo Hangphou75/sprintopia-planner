@@ -57,11 +57,36 @@ export const useAthletePrograms = (userId: string | undefined) => {
 
       // Transformer les données pour correspondre au type Program
       // Ensure all required properties from Program type are included
-      const programs = sharedProgramsData.map(sp => ({
-        ...sp.programs,
-        shared_id: sp.id,
-        coach_id: sp.coach_id
-      }));
+      const programs = sharedProgramsData.map(sp => {
+        // Process main_competition to ensure it matches the expected structure
+        let mainCompetition = null;
+        if (sp.programs.main_competition) {
+          const mc = sp.programs.main_competition as any;
+          mainCompetition = {
+            name: mc.name || '',
+            date: mc.date || '',
+            location: mc.location || ''
+          };
+        }
+
+        // Process intermediate_competitions to ensure it matches the expected structure
+        let intermediateCompetitions = null;
+        if (sp.programs.intermediate_competitions && Array.isArray(sp.programs.intermediate_competitions)) {
+          intermediateCompetitions = sp.programs.intermediate_competitions.map((comp: any) => ({
+            name: comp.name || '',
+            date: comp.date || '',
+            location: comp.location || ''
+          }));
+        }
+
+        return {
+          ...sp.programs,
+          main_competition: mainCompetition,
+          intermediate_competitions: intermediateCompetitions,
+          shared_id: sp.id,
+          coach_id: sp.coach_id
+        };
+      });
       
       return programs as Program[];
     },
