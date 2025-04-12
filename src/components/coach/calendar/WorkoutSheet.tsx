@@ -9,6 +9,7 @@ import {
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { WorkoutDetails } from "./WorkoutDetails";
+import { useEffect } from "react";
 
 type WorkoutSheetProps = {
   isOpen: boolean;
@@ -29,12 +30,43 @@ export const WorkoutSheet = ({
   onEditWorkout,
   onWorkoutUpdated,
 }: WorkoutSheetProps) => {
+  // Safety check to close the sheet if selectedDate becomes undefined
+  useEffect(() => {
+    if (!selectedDate && isOpen) {
+      console.log("Closing sheet because selectedDate is undefined");
+      onOpenChange(false);
+    }
+  }, [selectedDate, isOpen, onOpenChange]);
+
+  // Format date safely with error handling
+  const formattedDate = selectedDate 
+    ? (() => {
+        try {
+          return format(selectedDate, "EEEE d MMMM yyyy", { locale: fr });
+        } catch (error) {
+          console.error("Error formatting date:", error);
+          return "Date invalide";
+        }
+      })() 
+    : "Date non sélectionnée";
+
   return (
-    <Sheet open={isOpen} onOpenChange={onOpenChange}>
+    <Sheet 
+      open={isOpen} 
+      onOpenChange={(open) => {
+        try {
+          onOpenChange(open);
+        } catch (error) {
+          console.error("Error in onOpenChange handler:", error);
+          // Force close if we encounter an error
+          onOpenChange(false);
+        }
+      }}
+    >
       <SheetContent>
         <SheetHeader>
           <SheetTitle>
-            {selectedDate && format(selectedDate, "EEEE d MMMM yyyy", { locale: fr })}
+            {formattedDate}
           </SheetTitle>
           <SheetDescription>
             Séances prévues pour vos athlètes

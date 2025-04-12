@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar } from "@/components/ui/calendar";
@@ -18,82 +18,89 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  // Avoid multiple successive click handling
+  const [isProcessingClick, setIsProcessingClick] = useState(false);
+
   const { data: workouts, isLoading: isLoadingWorkouts } = useQuery({
-    queryKey: ["coach-workouts", coachId, selectedDate],
+    queryKey: ["coach-workouts", coachId, selectedDate?.toISOString()],
     queryFn: async () => {
       if (!coachId || !selectedDate) return [];
 
-      const startDate = startOfDay(selectedDate);
-      const endDate = addDays(startDate, 1);
-      
-      const formattedStartDate = startDate.toISOString();
-      const formattedEndDate = endDate.toISOString();
-      
-      console.log("Fetching workouts between:", formattedStartDate, "and", formattedEndDate);
+      try {
+        const startDate = startOfDay(selectedDate);
+        const endDate = addDays(startDate, 1);
+        
+        const formattedStartDate = startDate.toISOString();
+        const formattedEndDate = endDate.toISOString();
+        
+        console.log("Fetching workouts between:", formattedStartDate, "and", formattedEndDate);
 
-      const { data: coachAthletes, error: athletesError } = await supabase
-        .from("coach_athletes")
-        .select("athlete_id")
-        .eq("coach_id", coachId);
+        const { data: coachAthletes, error: athletesError } = await supabase
+          .from("coach_athletes")
+          .select("athlete_id")
+          .eq("coach_id", coachId);
 
-      if (athletesError) {
-        console.error("Error fetching athletes:", athletesError);
-        return [];
-      }
+        if (athletesError) {
+          console.error("Error fetching athletes:", athletesError);
+          return [];
+        }
 
-      if (!coachAthletes?.length) return [];
+        if (!coachAthletes?.length) return [];
 
-      const athleteIds = coachAthletes.map(row => row.athlete_id);
+        const athleteIds = coachAthletes.map(row => row.athlete_id);
 
-      // On ne récupère plus les séances directes du coach
-      const { data: sharedPrograms, error: sharedError } = await supabase
-        .from("shared_programs")
-        .select("program_id")
-        .in("athlete_id", athleteIds);
+        const { data: sharedPrograms, error: sharedError } = await supabase
+          .from("shared_programs")
+          .select("program_id")
+          .in("athlete_id", athleteIds);
 
-      if (sharedError) {
-        console.error("Error fetching shared programs:", sharedError);
-        return [];
-      }
+        if (sharedError) {
+          console.error("Error fetching shared programs:", sharedError);
+          return [];
+        }
 
-      if (!sharedPrograms?.length) {
-        return [];
-      }
+        if (!sharedPrograms?.length) {
+          return [];
+        }
 
-      const programIds = [...new Set(sharedPrograms.map(sp => sp.program_id))];
+        const programIds = [...new Set(sharedPrograms.map(sp => sp.program_id))];
 
-      const { data: sharedWorkouts, error: workoutsError } = await supabase
-        .from("workouts")
-        .select(`
-          *,
-          program:programs (
-            id,
-            name,
-            user_id,
-            athlete:profiles!programs_user_id_fkey (
+        const { data: sharedWorkouts, error: workoutsError } = await supabase
+          .from("workouts")
+          .select(`
+            *,
+            program:programs (
               id,
-              first_name,
-              last_name
-            ),
-            shared_programs (
-              athlete:profiles!shared_programs_athlete_id_fkey (
+              name,
+              user_id,
+              athlete:profiles!programs_user_id_fkey (
                 id,
                 first_name,
                 last_name
+              ),
+              shared_programs (
+                athlete:profiles!shared_programs_athlete_id_fkey (
+                  id,
+                  first_name,
+                  last_name
+                )
               )
             )
-          )
-        `)
-        .in("program_id", programIds)
-        .gte('date', formattedStartDate)
-        .lt('date', formattedEndDate);
+          `)
+          .in("program_id", programIds)
+          .gte('date', formattedStartDate)
+          .lt('date', formattedEndDate);
 
-      if (workoutsError) {
-        console.error("Error fetching workouts from shared programs:", workoutsError);
+        if (workoutsError) {
+          console.error("Error fetching workouts from shared programs:", workoutsError);
+          return [];
+        }
+
+        return sharedWorkouts || [];
+      } catch (error) {
+        console.error("Error in workout query:", error);
         return [];
       }
-
-      return sharedWorkouts || [];
     },
     enabled: !!coachId && !!selectedDate,
   });
@@ -103,57 +110,79 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
     queryFn: async () => {
       if (!coachId) return [];
 
-      const { data: coachAthletes } = await supabase
-        .from("coach_athletes")
-        .select("athlete_id")
-        .eq("coach_id", coachId);
+      try {
+        const { data: coachAthletes } = await supabase
+          .from("coach_athletes")
+          .select("athlete_id")
+          .eq("coach_id", coachId);
 
-      if (!coachAthletes?.length) return [];
+        if (!coachAthletes?.length) return [];
 
-      const athleteIds = coachAthletes.map(row => row.athlete_id);
+        const athleteIds = coachAthletes.map(row => row.athlete_id);
 
-      const { data: sharedPrograms } = await supabase
-        .from("shared_programs")
-        .select("program_id")
-        .in("athlete_id", athleteIds);
+        const { data: sharedPrograms } = await supabase
+          .from("shared_programs")
+          .select("program_id")
+          .in("athlete_id", athleteIds);
 
-      if (!sharedPrograms?.length) {
+        if (!sharedPrograms?.length) {
+          return [];
+        }
+
+        const programIds = [...new Set(sharedPrograms.map(sp => sp.program_id))];
+
+        const { data: sharedWorkouts } = await supabase
+          .from("workouts")
+          .select(`
+            date,
+            program:programs (
+              user_id
+            )
+          `)
+          .in("program_id", programIds);
+
+        return sharedWorkouts || [];
+      } catch (error) {
+        console.error("Error in allWorkouts query:", error);
         return [];
       }
-
-      const programIds = [...new Set(sharedPrograms.map(sp => sp.program_id))];
-
-      const { data: sharedWorkouts } = await supabase
-        .from("workouts")
-        .select(`
-          date,
-          program:programs (
-            user_id
-          )
-        `)
-        .in("program_id", programIds);
-
-      return sharedWorkouts || [];
     },
     enabled: !!coachId,
   });
 
-  const handleDateSelect = (date: Date | undefined) => {
+  // Separate date selection logic into a callback that includes debounce
+  const handleDateSelect = useCallback((date: Date | undefined) => {
+    if (isProcessingClick) return;
+    
+    setIsProcessingClick(true);
     console.log("Selected date:", date);
+    
     setSelectedDate(date);
     if (date) {
       setIsDetailsOpen(true);
     }
-  };
+    
+    // Reset processing flag after a short delay
+    setTimeout(() => {
+      setIsProcessingClick(false);
+    }, 300);
+  }, [isProcessingClick]);
 
-  const handleEditWorkout = (programId: string, workoutId: string) => {
+  const handleEditWorkout = useCallback((programId: string, workoutId: string) => {
     navigate(`/coach/programs/${programId}/workouts/${workoutId}/edit`);
-  };
+  }, [navigate]);
 
-  const refreshData = () => {
+  const refreshData = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["coach-workouts"] });
     queryClient.invalidateQueries({ queryKey: ["coach-all-workouts"] });
-  };
+  }, [queryClient]);
+
+  // Ensure sheet is closed when navigating away
+  useEffect(() => {
+    return () => {
+      setIsDetailsOpen(false);
+    };
+  }, []);
 
   return (
     <div>
@@ -168,9 +197,14 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
             const hasWorkouts = allWorkouts?.some(
               workout => {
                 if (!workout.date) return false;
-                const workoutDate = startOfDay(parseISO(workout.date));
-                const currentDate = startOfDay(date);
-                return workoutDate.getTime() === currentDate.getTime();
+                try {
+                  const workoutDate = startOfDay(parseISO(workout.date));
+                  const currentDate = startOfDay(date);
+                  return workoutDate.getTime() === currentDate.getTime();
+                } catch (error) {
+                  console.error("Error comparing dates:", error);
+                  return false;
+                }
               }
             );
 
