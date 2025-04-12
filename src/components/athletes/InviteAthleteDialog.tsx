@@ -1,7 +1,4 @@
 
-// Réimplémentez le composant InviteAthleteDialog avec la vérification des limites
-// Ce fichier est en lecture seule, nous allons donc en créer une nouvelle version améliorée
-
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -19,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { useNavigate } from "react-router-dom";
+import { useAthleteMutations } from "@/hooks/useAthleteMutations";
 
 interface InviteAthleteDialogProps {
   isOpen: boolean;
@@ -34,61 +32,49 @@ export const InviteAthleteDialogEnhanced = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { checkAthletesLimit, isSubscriptionExpired } = useSubscriptionLimits();
   const navigate = useNavigate();
+  const { inviteMutation } = useAthleteMutations();
+  
+  const isAdmin = user?.role === "admin";
 
   const handleInviteAthlete = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!user?.id) return;
     
-    // Vérifier si l'abonnement a expiré
-    if (isSubscriptionExpired) {
-      toast.error("Votre abonnement a expiré. Veuillez le renouveler pour inviter des athlètes.");
-      onOpenChange(false);
-      navigate("/coach/profile");
-      return;
-    }
-    
-    // Vérifier les limites d'athlètes
-    const withinLimits = await checkAthletesLimit();
-    if (!withinLimits) {
-      onOpenChange(false);
-      navigate("/coach/profile");
-      return;
+    // Pour les admins, on bypasse les vérifications de limite et d'abonnement
+    if (!isAdmin) {
+      // Vérifier si l'abonnement a expiré
+      if (isSubscriptionExpired) {
+        toast.error("Votre abonnement a expiré. Veuillez le renouveler pour inviter des athlètes.");
+        onOpenChange(false);
+        navigate("/coach/profile");
+        return;
+      }
+      
+      // Vérifier les limites d'athlètes (sauf pour les admins)
+      const withinLimits = await checkAthletesLimit();
+      if (!withinLimits) {
+        onOpenChange(false);
+        navigate("/coach/profile");
+        return;
+      }
     }
     
     setIsSubmitting(true);
     
-    try {
-      const { data, error } = await supabase
-        .from("athlete_invitations")
-        .insert({
-          coach_id: user.id,
-          email,
-          status: "pending",
-        })
-        .select()
-        .single();
-      
-      if (error) {
-        if (error.code === "23505") {
-          // Duplicate key error
-          toast.error("Une invitation a déjà été envoyée à cet athlète");
-        } else {
-          console.error("Error inviting athlete:", error);
-          toast.error("Erreur lors de l'invitation de l'athlète");
+    inviteMutation.mutate(
+      { coachId: user.id, email },
+      {
+        onSuccess: () => {
+          setEmail("");
+          onOpenChange(false);
+          setIsSubmitting(false);
+        },
+        onError: () => {
+          setIsSubmitting(false);
         }
-        return;
       }
-      
-      toast.success("Invitation envoyée avec succès");
-      setEmail("");
-      onOpenChange(false);
-    } catch (error) {
-      console.error("Error inviting athlete:", error);
-      toast.error("Erreur lors de l'invitation de l'athlète");
-    } finally {
-      setIsSubmitting(false);
-    }
+    );
   };
 
   return (
@@ -117,8 +103,8 @@ export const InviteAthleteDialogEnhanced = ({
           </div>
           
           <DialogFooter>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Invitation en cours..." : "Inviter"}
+            <Button type="submit" disabled={isSubmitting || inviteMutation.isPending}>
+              {isSubmitting || inviteMutation.isPending ? "Invitation en cours..." : "Inviter"}
             </Button>
           </DialogFooter>
         </form>

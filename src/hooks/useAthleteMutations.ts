@@ -47,7 +47,7 @@ export const useAthleteMutations = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${supabase.auth.getSession()}`
+          "Authorization": `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
         },
         body: JSON.stringify({ email, coachName })
       });
@@ -72,12 +72,32 @@ export const useAthleteMutations = () => {
 
   const deleteAthleteMutation = useMutation({
     mutationFn: async ({ coachId, athleteId }: { coachId: string; athleteId: string }) => {
-      const { error } = await supabase
-        .from("coach_athletes")
-        .delete()
-        .eq("athlete_id", athleteId)
-        .eq("coach_id", coachId);
-
+      // For admin users, we don't need to check coachId
+      const { data: userProfile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", coachId)
+        .single();
+        
+      const isAdmin = userProfile?.role === "admin";
+      
+      let query;
+      if (isAdmin) {
+        // Admin can delete any coach-athlete relationship
+        query = supabase
+          .from("coach_athletes")
+          .delete()
+          .eq("athlete_id", athleteId);
+      } else {
+        // Regular coach can only delete their own relationships
+        query = supabase
+          .from("coach_athletes")
+          .delete()
+          .eq("athlete_id", athleteId)
+          .eq("coach_id", coachId);
+      }
+      
+      const { error } = await query;
       if (error) throw error;
     },
     onSuccess: () => {
@@ -101,6 +121,15 @@ export const useAthleteMutations = () => {
       athleteId?: string;
       sharedId?: string;
     }) => {
+      // Check if admin
+      const { data: userProfile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", coachId)
+        .single();
+        
+      const isAdmin = userProfile?.role === "admin";
+      
       let query;
       
       // Si un sharedId est fourni, on utilise cet ID directement
@@ -110,12 +139,20 @@ export const useAthleteMutations = () => {
           .delete()
           .eq("id", sharedId);
       } else {
-        // Sinon, on utilise les autres paramètres
-        query = supabase
-          .from("shared_programs")
-          .delete()
-          .eq("program_id", programId)
-          .eq("coach_id", coachId);
+        // Si c'est un admin, on ne filtre pas par coach_id
+        if (isAdmin) {
+          query = supabase
+            .from("shared_programs")
+            .delete()
+            .eq("program_id", programId);
+        } else {
+          // Pour les coaches normaux, on filtre aussi par coach_id
+          query = supabase
+            .from("shared_programs")
+            .delete()
+            .eq("program_id", programId)
+            .eq("coach_id", coachId);
+        }
 
         // Si un athleteId est fourni, on filtre également par cet ID
         if (athleteId) {
@@ -143,7 +180,6 @@ export const useAthleteMutations = () => {
       const { data: existingShared, error: checkError } = await supabase
         .from("shared_programs")
         .select("*")
-        .eq("coach_id", coachId)
         .eq("athlete_id", athleteId)
         .eq("program_id", programId);
         
