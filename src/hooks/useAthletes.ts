@@ -2,6 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Profile } from "@/types/database";
+import { toast } from "sonner";
 
 export const useAthletes = (coachId: string | undefined) => {
   return useQuery({
@@ -23,6 +24,7 @@ export const useAthletes = (coachId: string | undefined) => {
         
       if (profileError) {
         console.error("Error fetching user profile:", profileError);
+        toast.error("Erreur lors du chargement du profil utilisateur");
         throw profileError;
       }
       
@@ -81,6 +83,7 @@ export const useAthletes = (coachId: string | undefined) => {
 
       if (error) {
         console.error("Error fetching athletes:", error);
+        toast.error("Erreur lors du chargement des athlètes");
         throw error;
       }
       

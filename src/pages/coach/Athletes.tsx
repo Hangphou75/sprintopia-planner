@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Profile } from "@/types/database";
@@ -35,25 +35,41 @@ const Athletes = () => {
 
   console.log("Athletes page - user:", user, "isAdmin:", isAdmin);
 
-  const { data: athletes, isLoading, error } = useAthletes(user?.id);
+  const { data: athletesData, isLoading, error } = useAthletes(user?.id);
   const { deleteAthleteMutation } = useAthleteMutations();
 
+  useEffect(() => {
+    if (error) {
+      console.error("Error fetching athletes:", error);
+      toast.error("Erreur lors du chargement des athlètes");
+    }
+  }, [error]);
+
   const handleDeleteAthlete = (athlete: Profile) => {
-    if (user?.id && window.confirm(`Êtes-vous sûr de vouloir supprimer ${athlete.first_name} ${athlete.last_name} ?`)) {
+    if (!user?.id) return;
+    
+    if (window.confirm(`Êtes-vous sûr de vouloir supprimer ${athlete.first_name} ${athlete.last_name} ?`)) {
       deleteAthleteMutation.mutate(
         { coachId: user.id, athleteId: athlete.id },
         {
-          onSuccess: () => setSelectedAthlete(null),
+          onSuccess: () => {
+            setSelectedAthlete(null);
+            toast.success(`${athlete.first_name} ${athlete.last_name} a été supprimé(e) avec succès`);
+          },
+          onError: (error) => {
+            console.error("Error deleting athlete:", error);
+            toast.error("Erreur lors de la suppression de l'athlète");
+          }
         }
       );
     }
   };
 
   // Get unique coaches from the data (for admin filtering)
-  const coaches: CoachInfo[] = isAdmin && athletes ? 
-    Array.from(new Set(athletes.map(a => a.coach_id)))
+  const coaches: CoachInfo[] = isAdmin && athletesData ? 
+    Array.from(new Set(athletesData.map(a => a.coach_id)))
       .map(coachId => {
-        const coachRelation = athletes.find(a => a.coach_id === coachId);
+        const coachRelation = athletesData.find(a => a.coach_id === coachId);
         if (coachRelation?.coach) {
           return {
             id: coachId,
@@ -64,7 +80,7 @@ const Athletes = () => {
       })
       .filter((coach): coach is CoachInfo => coach !== null) : [];
 
-  const filteredAthletes = athletes?.filter(relation => {
+  const filteredAthletes = athletesData?.filter(relation => {
     const athlete = relation.athlete;
     // First filter by search text
     const matchesSearch = 
@@ -119,7 +135,7 @@ const Athletes = () => {
 
       {isAdmin && (
         <AthleteAdminFilters
-          totalAthletes={athletes?.length || 0}
+          totalAthletes={athletesData?.length || 0}
           coaches={coaches}
           selectedCoach={selectedCoach}
           onCoachChange={setSelectedCoach}
@@ -143,8 +159,17 @@ const Athletes = () => {
           onDeleteAthlete={handleDeleteAthlete}
         />
       ) : !isLoading && !error ? (
-        <div className="py-8 text-center">
+        <div className="py-8 text-center border rounded-md">
           <p className="text-muted-foreground">Aucun athlète trouvé</p>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="mt-4"
+            onClick={() => setIsInviteDialogOpen(true)}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Inviter un athlète
+          </Button>
         </div>
       ) : null}
 

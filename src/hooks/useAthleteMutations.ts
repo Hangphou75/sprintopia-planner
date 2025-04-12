@@ -9,19 +9,64 @@ export const useAthleteMutations = () => {
 
   const inviteMutation = useMutation({
     mutationFn: async ({ coachId, email }: { coachId: string; email: string }) => {
+      // Vérifier si l'athlète existe déjà
+      const { data: existingInvitations, error: checkError } = await supabase
+        .from("athlete_invitations")
+        .select("*")
+        .eq("coach_id", coachId)
+        .eq("email", email)
+        .eq("status", "pending");
+
+      if (checkError) throw checkError;
+      
+      if (existingInvitations && existingInvitations.length > 0) {
+        throw new Error("Une invitation a déjà été envoyée à cet athlète");
+      }
+
+      // Créer l'invitation
       const { error } = await supabase
         .from("athlete_invitations")
-        .insert([{ coach_id: coachId, email }]);
+        .insert([{ coach_id: coachId, email, status: "pending" }]);
 
       if (error) throw error;
+      
+      // Déclencher l'envoi de l'email d'invitation via la Edge Function
+      const { data: coachData } = await supabase
+        .from("profiles")
+        .select("first_name, last_name")
+        .eq("id", coachId)
+        .single();
+        
+      const coachName = coachData 
+        ? `${coachData.first_name} ${coachData.last_name}` 
+        : "Votre coach";
+        
+      // Call the edge function to send invitation email
+      const functionUrl = "https://oolikhpmpzqoptnnzctx.supabase.co/functions/v1/send-invitation";
+      const response = await fetch(functionUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${supabase.auth.getSession()}`
+        },
+        body: JSON.stringify({ email, coachName })
+      });
+      
+      if (!response.ok) {
+        console.error("Error sending invitation email:", await response.text());
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["coach-athletes"] });
       toast.success("Invitation envoyée avec succès");
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Error sending invitation:", error);
-      toast.error("Erreur lors de l'envoi de l'invitation");
+      if (error.message === "Une invitation a déjà été envoyée à cet athlète") {
+        toast.error(error.message);
+      } else {
+        toast.error("Erreur lors de l'envoi de l'invitation");
+      }
     },
   });
 
@@ -37,7 +82,6 @@ export const useAthleteMutations = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["coach-athletes"] });
-      toast.success("Athlète supprimé avec succès");
     },
     onError: (error) => {
       console.error("Error deleting athlete:", error);
@@ -65,7 +109,6 @@ export const useAthleteMutations = () => {
       queryClient.invalidateQueries({ queryKey: ["coach-athletes"] });
       queryClient.invalidateQueries({ queryKey: ["athlete-programs"] });
       queryClient.invalidateQueries({ queryKey: ["programs"] });
-      toast.success("Programme retiré avec succès");
     },
     onError: (error) => {
       console.error("Error deleting program:", error);
@@ -75,6 +118,20 @@ export const useAthleteMutations = () => {
 
   const assignProgramMutation = useMutation({
     mutationFn: async ({ coachId, athleteId, programId }: { coachId: string; athleteId: string; programId: string }) => {
+      // Vérifier si le programme est déjà associé à l'athlète
+      const { data: existingShared, error: checkError } = await supabase
+        .from("shared_programs")
+        .select("*")
+        .eq("coach_id", coachId)
+        .eq("athlete_id", athleteId)
+        .eq("program_id", programId);
+        
+      if (checkError) throw checkError;
+      
+      if (existingShared && existingShared.length > 0) {
+        throw new Error("Ce programme est déjà associé à cet athlète");
+      }
+
       const { error } = await supabase
         .from("shared_programs")
         .insert({
@@ -92,9 +149,13 @@ export const useAthleteMutations = () => {
       queryClient.invalidateQueries({ queryKey: ["athlete-programs"] });
       toast.success("Programme associé avec succès");
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Error assigning program:", error);
-      toast.error("Erreur lors de l'association du programme");
+      if (error.message === "Ce programme est déjà associé à cet athlète") {
+        toast.error(error.message);
+      } else {
+        toast.error("Erreur lors de l'association du programme");
+      }
     },
   });
 

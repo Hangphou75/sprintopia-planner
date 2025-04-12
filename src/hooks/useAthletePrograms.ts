@@ -8,6 +8,13 @@ export const useAthletePrograms = (userId: string | undefined) => {
   return useQuery({
     queryKey: ["athlete-programs", userId],
     queryFn: async () => {
+      if (!userId) {
+        console.log("No user ID provided to useAthletePrograms");
+        return [];
+      }
+      
+      console.log("Fetching programs for athlete:", userId);
+      
       // On récupère les programmes partagés avec l'athlète
       const { data: sharedProgramsData, error: sharedError } = await supabase
         .from("shared_programs")
@@ -33,6 +40,8 @@ export const useAthletePrograms = (userId: string | undefined) => {
         toast.error("Erreur lors du chargement des programmes");
         throw sharedError;
       }
+
+      console.log("Fetched shared programs:", sharedProgramsData);
 
       // Transformer les données pour correspondre au type Program
       return sharedProgramsData.map(sp => ({
