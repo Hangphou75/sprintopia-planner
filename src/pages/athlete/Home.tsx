@@ -8,6 +8,7 @@ import { startOfWeek, endOfWeek, isWithinInterval, isSameDay } from "date-fns";
 import { ProgramWorkoutCalendar } from "@/components/programs/ProgramWorkoutCalendar";
 import { TodayWorkout } from "@/components/athlete/TodayWorkout";
 import { UpcomingCompetition } from "@/components/athlete/UpcomingCompetition";
+import { toast } from "sonner";
 
 const Home = () => {
   const { user } = useAuth();
@@ -56,10 +57,20 @@ const Home = () => {
 
       if (sharedError) {
         console.error("Error fetching shared programs:", sharedError);
+        toast.error("Erreur lors du chargement des programmes");
         throw sharedError;
       }
 
       console.log("Shared programs data:", sharedData);
+
+      if (!sharedData || sharedData.length === 0) {
+        console.log("No shared programs found for athlete:", user?.id);
+        return {
+          programs: [],
+          workouts: [],
+          competitions: []
+        };
+      }
 
       const allWorkouts = sharedData?.reduce((acc, sp) => {
         return acc.concat(sp.program?.workouts || []);

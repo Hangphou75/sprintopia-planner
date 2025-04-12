@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ProgramWorkoutCalendar } from "@/components/programs/ProgramWorkoutCalendar";
+import { toast } from "sonner";
 
 const AthletePlanning = () => {
   const { user } = useAuth();
@@ -44,10 +45,20 @@ const AthletePlanning = () => {
 
       if (error) {
         console.error("Error fetching shared programs:", error);
+        toast.error("Erreur lors du chargement des programmes");
         throw error;
       }
 
       console.log("Shared programs data:", sharedProgramsData);
+      
+      if (!sharedProgramsData || sharedProgramsData.length === 0) {
+        console.log("No shared programs found for athlete:", user?.id);
+        return {
+          programs: [],
+          workouts: [],
+          competitions: []
+        };
+      }
       
       // S'assurer que nous avons un tableau valide avant d'utiliser flatMap
       const programs = sharedProgramsData?.map(sp => sp.program) || [];

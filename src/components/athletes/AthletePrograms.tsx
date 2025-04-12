@@ -8,7 +8,7 @@ import { fr } from "date-fns/locale";
 
 type AthleteProgramsProps = {
   programs: Program[];
-  onDeleteProgram: (programId: string) => void;
+  onDeleteProgram: (programId: string, sharedId?: string) => void;
   onAddProgram?: () => void;
   showAddButton?: boolean;
 };
@@ -40,7 +40,7 @@ export const AthletePrograms = ({
             <CardHeader>
               <CardTitle className="flex items-center justify-between text-base">
                 <span>{program.name}</span>
-                <Button variant="ghost" size="icon" onClick={() => onDeleteProgram(program.id)}>
+                <Button variant="ghost" size="icon" onClick={() => onDeleteProgram(program.id, program.shared_id)}>
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </CardTitle>

@@ -15,7 +15,7 @@ export const useAthletePrograms = (userId: string | undefined) => {
       
       console.log("Fetching programs for athlete:", userId);
       
-      // On récupère les programmes partagés avec l'athlète
+      // Récupérer les programmes partagés avec l'athlète
       const { data: sharedProgramsData, error: sharedError } = await supabase
         .from("shared_programs")
         .select(`
@@ -24,6 +24,7 @@ export const useAthletePrograms = (userId: string | undefined) => {
           coach_id,
           athlete_id,
           created_at,
+          status,
           programs:program_id (
             id,
             name,
@@ -54,14 +55,18 @@ export const useAthletePrograms = (userId: string | undefined) => {
         throw sharedError;
       }
 
-      console.log("Fetched shared programs:", sharedProgramsData);
+      console.log("Fetched shared programs raw data:", sharedProgramsData);
+
+      if (!sharedProgramsData || sharedProgramsData.length === 0) {
+        console.log("No shared programs found for athlete:", userId);
+        return [];
+      }
 
       // Transformer les données pour correspondre au type Program
-      // Ensure all required properties from Program type are included
       const programs = sharedProgramsData.map(sp => {
         // Process main_competition to ensure it matches the expected structure
         let mainCompetition = null;
-        if (sp.programs.main_competition) {
+        if (sp.programs?.main_competition) {
           const mc = sp.programs.main_competition as any;
           mainCompetition = {
             name: mc.name || '',
@@ -72,12 +77,17 @@ export const useAthletePrograms = (userId: string | undefined) => {
 
         // Process intermediate_competitions to ensure it matches the expected structure
         let intermediateCompetitions = null;
-        if (sp.programs.intermediate_competitions && Array.isArray(sp.programs.intermediate_competitions)) {
+        if (sp.programs?.intermediate_competitions && Array.isArray(sp.programs.intermediate_competitions)) {
           intermediateCompetitions = sp.programs.intermediate_competitions.map((comp: any) => ({
             name: comp.name || '',
             date: comp.date || '',
             location: comp.location || ''
           }));
+        }
+
+        if (!sp.programs) {
+          console.error("Missing program data for shared program:", sp);
+          return null;
         }
 
         return {
@@ -87,7 +97,7 @@ export const useAthletePrograms = (userId: string | undefined) => {
           shared_id: sp.id,
           coach_id: sp.coach_id
         };
-      });
+      }).filter(Boolean);
       
       console.log("Transformed programs for athlete:", programs);
       return programs as Program[];
