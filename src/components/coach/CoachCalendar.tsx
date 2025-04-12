@@ -26,12 +26,26 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
   const [isProcessingClick, setIsProcessingClick] = useState(false);
   // Suivi du dernier clic pour éviter les doubles clics
   const lastClickTime = useRef(0);
+  // Dernière date sélectionnée pour éviter la double sélection de la même date
+  const lastSelectedDateRef = useRef<Date | null>(null);
+  
+  // Nettoyage de tous les états à la déconnexion du composant
+  useEffect(() => {
+    return () => {
+      setIsProcessingClick(false);
+      isFetchingRef.current = false;
+      setIsDetailsOpen(false);
+    };
+  }, []);
 
   const { data: workouts, isLoading: isLoadingWorkouts, error: workoutsError } = useQuery({
     queryKey: ["coach-workouts", coachId, selectedDate?.toISOString()],
     queryFn: async () => {
       if (!coachId || !selectedDate) return [];
-      if (isFetchingRef.current) return [];
+      if (isFetchingRef.current) {
+        console.log("Already fetching workouts, skipping");
+        return [];
+      }
 
       try {
         isFetchingRef.current = true;
@@ -110,10 +124,13 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
         console.error("Error in workout query:", error);
         return [];
       } finally {
-        isFetchingRef.current = false;
+        // Délai avant de réinitialiser pour éviter les requêtes en rafale
+        setTimeout(() => {
+          isFetchingRef.current = false;
+        }, 500);
       }
     },
-    enabled: !!coachId && !!selectedDate,
+    enabled: !!coachId && !!selectedDate && selectedDate instanceof Date && !isNaN(selectedDate.getTime()),
     retry: 1,
     staleTime: 30000, // 30 secondes
   });
@@ -130,7 +147,10 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
     queryKey: ["coach-all-workouts", coachId],
     queryFn: async () => {
       if (!coachId) return [];
-      if (isFetchingRef.current) return [];
+      if (isFetchingRef.current) {
+        console.log("Already fetching all workouts, skipping");
+        return [];
+      }
 
       try {
         isFetchingRef.current = true;
@@ -170,7 +190,10 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
         console.error("Error in allWorkouts query:", error);
         return [];
       } finally {
-        isFetchingRef.current = false;
+        // Délai avant de réinitialiser pour éviter les requêtes en rafale
+        setTimeout(() => {
+          isFetchingRef.current = false;
+        }, 500);
       }
     },
     enabled: !!coachId,
@@ -192,8 +215,15 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
     const now = Date.now();
     const timeSinceLastClick = now - lastClickTime.current;
     
-    if (isProcessingClick || timeSinceLastClick < 500) {
+    if (isProcessingClick || timeSinceLastClick < 800) {
       console.log("Ignoring click, too soon or already processing");
+      return;
+    }
+    
+    // Protection contre les doubles clics sur la même date
+    if (date && lastSelectedDateRef.current && 
+        date.toDateString() === lastSelectedDateRef.current.toDateString()) {
+      console.log("Ignoring repeated click on same date");
       return;
     }
     
@@ -203,22 +233,29 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
     
     try {
       // Vérifier si la date est valide
-      if (date && !isNaN(date.getTime())) {
+      if (date && date instanceof Date && !isNaN(date.getTime())) {
+        lastSelectedDateRef.current = date;
         setSelectedDate(date);
-        setIsDetailsOpen(true);
+        
+        // Délai pour ouvrir la feuille pour éviter les problèmes de rendu
+        setTimeout(() => {
+          setIsDetailsOpen(true);
+        }, 50);
       } else {
         console.error("Invalid date selected:", date);
         setSelectedDate(new Date());
+        toast.error("Date invalide sélectionnée");
       }
     } catch (error) {
       console.error("Error in date selection:", error);
       // En cas d'erreur, revenir à aujourd'hui
       setSelectedDate(new Date());
+      toast.error("Erreur lors de la sélection de date");
     } finally {
-      // Réinitialiser l'état de traitement après un court délai
+      // Réinitialiser l'état de traitement après un délai
       setTimeout(() => {
         setIsProcessingClick(false);
-      }, 500);
+      }, 800);
     }
   }, [isProcessingClick]);
 
@@ -251,6 +288,24 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
     };
   }, []);
 
+  // Gestion de l'ouverture/fermeture de la feuille
+  const handleSheetOpenChange = useCallback((open: boolean) => {
+    // Protection contre les appels trop rapides
+    if (isProcessingClick) {
+      console.log("Ignoring sheet open change, still processing click");
+      return;
+    }
+    
+    console.log("Setting sheet open state to:", open);
+    try {
+      setIsDetailsOpen(open);
+    } catch (error) {
+      console.error("Error changing sheet open state:", error);
+      // Forcer la réinitialisation en cas d'erreur
+      setIsDetailsOpen(false);
+    }
+  }, [isProcessingClick]);
+
   // Si des erreurs se produisent, montrer un message d'erreur
   if (workoutsError && allWorkoutsError) {
     return (
@@ -260,20 +315,24 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
     );
   }
 
+  // Validation supplémentaire du selectedDate
+  const validSelectedDate = selectedDate instanceof Date && !isNaN(selectedDate.getTime())
+    ? selectedDate
+    : undefined;
+
   return (
     <div>
       <Calendar
         mode="single"
-        selected={selectedDate}
+        selected={validSelectedDate}
         onSelect={handleDateSelect}
         className="rounded-md border"
         locale={fr}
         components={{
           DayContent: ({ date }) => {
             // Protection contre les dates non valides
-            if (!date || isNaN(date.getTime())) {
-              console.error("Invalid date in DayContent:", date);
-              return <div>--</div>;
+            if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+              return <div className="text-muted-foreground">--</div>;
             }
             
             // Protection contre les entrées allWorkouts non valides
@@ -307,8 +366,8 @@ export const CoachCalendar = ({ coachId }: CoachCalendarProps) => {
 
       <WorkoutSheet
         isOpen={isDetailsOpen}
-        onOpenChange={setIsDetailsOpen}
-        selectedDate={selectedDate}
+        onOpenChange={handleSheetOpenChange}
+        selectedDate={validSelectedDate}
         workouts={workouts || []}
         isLoading={isLoadingWorkouts}
         onEditWorkout={handleEditWorkout}

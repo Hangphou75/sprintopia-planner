@@ -2,7 +2,8 @@
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { Event } from "../types";
-import { useCallback, useState, useRef } from "react";
+import { useCallback, useState, useRef, useEffect } from "react";
+import { toast } from "sonner";
 
 type CalendarViewProps = {
   events: Event[];
@@ -18,10 +19,21 @@ export const CalendarView = ({
   // Protection contre les clics rapides
   const [isProcessing, setIsProcessing] = useState(false);
   const lastClickTime = useRef(0);
+  const lastSelectedDate = useRef<Date | null>(null);
 
-  const formatDate = useCallback((date: Date): string => {
+  // Protéger contre les événements non valides
+  const safeEvents = Array.isArray(events) ? events : [];
+
+  // Nettoyer le traitement à la déconnexion du composant
+  useEffect(() => {
+    return () => {
+      setIsProcessing(false);
+    };
+  }, []);
+
+  const formatDate = useCallback((date: Date | null | undefined): string => {
     try {
-      if (!date || isNaN(date.getTime())) {
+      if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
         console.error("Invalid date in formatDate:", date);
         return "";
       }
@@ -35,8 +47,15 @@ export const CalendarView = ({
   const handleDateSelect = useCallback((date: Date | undefined) => {
     // Protection contre les clics trop rapides
     const now = Date.now();
-    if (isProcessing || (now - lastClickTime.current < 500)) {
-      console.log("Ignoring fast click");
+    if (isProcessing || (now - lastClickTime.current < 800)) {
+      console.log("Ignoring fast click in CalendarView");
+      return;
+    }
+
+    // Protection contre le double clic sur la même date
+    if (date && lastSelectedDate.current && 
+        formatDate(date) === formatDate(lastSelectedDate.current)) {
+      console.log("Ignoring repeated click on same date");
       return;
     }
 
@@ -45,37 +64,41 @@ export const CalendarView = ({
 
     try {
       // Vérifier que la date est valide
-      if (date && !isNaN(date.getTime())) {
+      if (date && date instanceof Date && !isNaN(date.getTime())) {
+        lastSelectedDate.current = date;
         onSelectDate(date);
       } else if (date) {
         console.error("Invalid date selected:", date);
+        toast.error("Date invalide sélectionnée");
         onSelectDate(new Date()); // Fallback sur aujourd'hui
       } else {
         onSelectDate(undefined);
       }
     } catch (error) {
       console.error("Error in date selection:", error);
+      toast.error("Erreur lors de la sélection de date");
     } finally {
       // Réinitialiser après un court délai
       setTimeout(() => {
         setIsProcessing(false);
-      }, 300);
+      }, 600);
     }
-  }, [isProcessing, onSelectDate]);
+  }, [isProcessing, onSelectDate, formatDate]);
 
-  const renderDayContent = useCallback(({ date }: { date: Date }) => {
+  const renderDayContent = useCallback(({ date }: { date: Date | null | undefined }) => {
     try {
       // Vérifier que la date est valide
-      if (!date || isNaN(date.getTime())) {
-        console.error("Invalid date in DayContent:", date);
-        return <div>--</div>;
+      if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+        return <div className="text-muted-foreground">--</div>;
       }
 
       const currentDateStr = formatDate(date);
-      const dayEvents = events.filter((event) => {
+      
+      const dayEvents = safeEvents.filter((event) => {
         try {
           if (!event || !event.date) return false;
           
+          // S'assurer que la date de l'événement est valide
           const eventDate = event.date instanceof Date 
             ? event.date 
             : new Date(event.date);
@@ -115,14 +138,19 @@ export const CalendarView = ({
       );
     } catch (error) {
       console.error("Error rendering day content:", error);
-      return <div>{date?.getDate?.() || "--"}</div>;
+      return <div className="text-muted-foreground">--</div>;
     }
-  }, [events, formatDate]);
+  }, [safeEvents, formatDate]);
+
+  // Validation supplémentaire du selectedDate passé
+  const validSelectedDate = selectedDate instanceof Date && !isNaN(selectedDate.getTime())
+    ? selectedDate 
+    : undefined;
 
   return (
     <Calendar
       mode="single"
-      selected={selectedDate}
+      selected={validSelectedDate}
       onSelect={handleDateSelect}
       className="rounded-md border"
       components={{

@@ -7,7 +7,8 @@ import { CompetitionEventCard } from "./CompetitionEventCard";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { useCallback } from "react";
+import { useCallback, useState, useRef, useEffect } from "react";
+import { toast } from "sonner";
 
 interface WeekViewProps {
   events: Event[];
@@ -28,6 +29,17 @@ export const WeekView = ({
   readOnly = false,
   themeOptions = []
 }: WeekViewProps) => {
+  // Protection contre les clics trop fréquents
+  const [isProcessing, setIsProcessing] = useState(false);
+  const lastClickTime = useRef(0);
+
+  // Nettoyage à la déconnexion du composant
+  useEffect(() => {
+    return () => {
+      setIsProcessing(false);
+    };
+  }, []);
+
   // Protection contre les dates non valides
   const validCurrentDate = currentDate instanceof Date && !isNaN(currentDate.getTime())
     ? currentDate
@@ -43,12 +55,44 @@ export const WeekView = ({
   
   // Utilisation de useCallback pour éviter les re-renders inutiles
   const prevWeek = useCallback(() => {
-    onDateChange(addDays(startDate, -7));
-  }, [startDate, onDateChange]);
+    const now = Date.now();
+    if (isProcessing || (now - lastClickTime.current < 500)) {
+      console.log("Ignoring fast click in WeekView navigation");
+      return;
+    }
+    
+    lastClickTime.current = now;
+    setIsProcessing(true);
+    
+    try {
+      onDateChange(addDays(startDate, -7));
+    } catch (error) {
+      console.error("Error in prevWeek:", error);
+      toast.error("Erreur de navigation");
+    } finally {
+      setTimeout(() => setIsProcessing(false), 500);
+    }
+  }, [startDate, onDateChange, isProcessing]);
   
   const nextWeek = useCallback(() => {
-    onDateChange(addDays(startDate, 7));
-  }, [startDate, onDateChange]);
+    const now = Date.now();
+    if (isProcessing || (now - lastClickTime.current < 500)) {
+      console.log("Ignoring fast click in WeekView navigation");
+      return;
+    }
+    
+    lastClickTime.current = now;
+    setIsProcessing(true);
+    
+    try {
+      onDateChange(addDays(startDate, 7));
+    } catch (error) {
+      console.error("Error in nextWeek:", error);
+      toast.error("Erreur de navigation");
+    } finally {
+      setTimeout(() => setIsProcessing(false), 500);
+    }
+  }, [startDate, onDateChange, isProcessing]);
   
   // Fonction sécurisée pour filtrer les événements par date
   const getEventsForDay = useCallback((day: Date) => {
@@ -64,13 +108,12 @@ export const WeekView = ({
           : new Date(event.date);
           
         if (isNaN(eventDate.getTime())) {
-          console.error("Invalid event date in getEventsForDay:", event);
           return false;
         }
           
         return isSameDay(day, eventDate);
       } catch (error) {
-        console.error("Error comparing dates:", error, event);
+        console.error("Error comparing dates:", error);
         return false;
       }
     });
@@ -78,24 +121,36 @@ export const WeekView = ({
 
   // Protection contre les clics rapides qui pourraient causer des erreurs
   const handleEventClick = useCallback((event: Event) => {
-    if (!event || !event.id) {
-      console.error("Invalid event in handleEventClick:", event);
+    const now = Date.now();
+    if (isProcessing || (now - lastClickTime.current < 500)) {
+      console.log("Ignoring fast click on event");
       return;
     }
     
-    if (onEventClick) {
-      try {
-        onEventClick(event);
-      } catch (error) {
-        console.error("Error in onEventClick:", error);
+    lastClickTime.current = now;
+    setIsProcessing(true);
+    
+    try {
+      if (!event || !event.id) {
+        console.error("Invalid event in handleEventClick:", event);
+        return;
       }
+      
+      if (onEventClick) {
+        onEventClick(event);
+      }
+    } catch (error) {
+      console.error("Error in onEventClick:", error);
+      toast.error("Erreur lors de la sélection d'un événement");
+    } finally {
+      setTimeout(() => setIsProcessing(false), 500);
     }
-  }, [onEventClick]);
+  }, [onEventClick, isProcessing]);
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <Button variant="outline" size="icon" onClick={prevWeek}>
+        <Button variant="outline" size="icon" onClick={prevWeek} disabled={isProcessing}>
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <h3 className="font-semibold text-sm text-center">
@@ -103,7 +158,7 @@ export const WeekView = ({
             locale: fr
           })}
         </h3>
-        <Button variant="outline" size="icon" onClick={nextWeek}>
+        <Button variant="outline" size="icon" onClick={nextWeek} disabled={isProcessing}>
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
@@ -112,10 +167,11 @@ export const WeekView = ({
         {weekDays.map(day => {
           // Vérifier que la date est valide avant de continuer
           if (!day || isNaN(day.getTime())) {
-            console.error("Invalid day in weekDays:", day);
-            return <Card key={Math.random()} className="p-4 min-h-[200px]">
-              <h4 className="font-medium mb-3 pb-2 border-b">Jour invalide</h4>
-            </Card>;
+            return (
+              <Card key={Math.random().toString()} className="p-4 min-h-[200px]">
+                <h4 className="font-medium mb-3 pb-2 border-b">Jour invalide</h4>
+              </Card>
+            );
           }
           
           const dayEvents = getEventsForDay(day);
@@ -136,10 +192,7 @@ export const WeekView = ({
                   <p className="text-sm text-muted-foreground">Aucun événement</p>
                 ) : (
                   dayEvents.map(event => {
-                    if (!event || !event.id) {
-                      console.error("Invalid event in dayEvents:", event);
-                      return null;
-                    }
+                    if (!event || !event.id) return null;
                     
                     return (
                       <div 
