@@ -39,7 +39,10 @@ export const useAthletes = (coachId: string | undefined) => {
         query = await supabase
           .from("coach_athletes")
           .select(`
-            *,
+            id,
+            coach_id,
+            athlete_id,
+            created_at,
             coach:profiles!coach_athletes_coach_id_fkey(
               id,
               first_name,
@@ -63,7 +66,10 @@ export const useAthletes = (coachId: string | undefined) => {
         query = await supabase
           .from("coach_athletes")
           .select(`
-            *,
+            id,
+            coach_id,
+            athlete_id,
+            created_at,
             athlete:profiles!coach_athletes_athlete_id_fkey (
               id,
               email,

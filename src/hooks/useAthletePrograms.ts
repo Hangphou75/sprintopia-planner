@@ -19,7 +19,11 @@ export const useAthletePrograms = (userId: string | undefined) => {
       const { data: sharedProgramsData, error: sharedError } = await supabase
         .from("shared_programs")
         .select(`
+          id,
           program_id,
+          coach_id,
+          athlete_id,
+          created_at,
           programs:programs!inner (
             id,
             name,
@@ -46,6 +50,8 @@ export const useAthletePrograms = (userId: string | undefined) => {
       // Transformer les données pour correspondre au type Program
       return sharedProgramsData.map(sp => ({
         ...sp.programs,
+        shared_id: sp.id,
+        coach_id: sp.coach_id
       })) as Program[];
     },
     enabled: !!userId,

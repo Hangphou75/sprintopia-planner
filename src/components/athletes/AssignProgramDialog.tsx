@@ -13,7 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAthleteMutations } from "@/hooks/useAthleteMutations";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -34,10 +34,23 @@ export const AssignProgramDialog = ({
   const { assignProgramMutation } = useAthleteMutations();
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: availablePrograms, isLoading } = useQuery({
+  // Réinitialiser la recherche quand le dialogue s'ouvre
+  useEffect(() => {
+    if (isOpen) {
+      setSearchQuery("");
+    }
+  }, [isOpen]);
+
+  const { data: availablePrograms, isLoading, error } = useQuery({
     queryKey: ["coach-programs", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
+      
+      // Si c'est un admin, on peut récupérer tous les programmes
+      // ou juste les programmes de l'admin en fonction du besoin
+      const isAdmin = user.role === "admin";
+      
+      console.log("Fetching programs for user:", user.id, "isAdmin:", isAdmin);
       
       const { data, error } = await supabase
         .from("programs")
@@ -55,6 +68,14 @@ export const AssignProgramDialog = ({
     },
     enabled: !!user?.id && isOpen,
   });
+
+  // Afficher le message d'erreur si nécessaire
+  useEffect(() => {
+    if (error) {
+      console.error("Error in AssignProgramDialog:", error);
+      toast.error("Erreur lors du chargement des programmes");
+    }
+  }, [error]);
 
   // Filtrer les programmes par la recherche
   const filteredPrograms = availablePrograms?.filter(program => 
@@ -105,6 +126,10 @@ export const AssignProgramDialog = ({
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
+            </div>
+          ) : error ? (
+            <div className="text-center py-4 text-red-500">
+              Erreur lors du chargement des programmes
             </div>
           ) : filteredPrograms && filteredPrograms.length > 0 ? (
             <div className="grid gap-2">

@@ -43,7 +43,7 @@ export const AthleteProgramsSheet = ({
     }
   }, [error]);
 
-  const handleDeleteProgram = (programId: string) => {
+  const handleDeleteProgram = (programId: string, sharedId?: string) => {
     if (!selectedAthlete?.id || !user?.id) return;
     
     if (window.confirm("Êtes-vous sûr de vouloir retirer ce programme ?")) {
@@ -51,7 +51,8 @@ export const AthleteProgramsSheet = ({
         { 
           coachId: user.id, 
           programId, 
-          athleteId: selectedAthlete.id 
+          athleteId: selectedAthlete.id,
+          sharedId: sharedId
         },
         {
           onSuccess: () => {

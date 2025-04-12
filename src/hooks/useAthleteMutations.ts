@@ -90,16 +90,37 @@ export const useAthleteMutations = () => {
   });
 
   const deleteProgramMutation = useMutation({
-    mutationFn: async ({ coachId, programId, athleteId }: { coachId: string; programId: string; athleteId?: string }) => {
-      const query = supabase
-        .from("shared_programs")
-        .delete()
-        .eq("program_id", programId)
-        .eq("coach_id", coachId);
+    mutationFn: async ({ 
+      coachId, 
+      programId, 
+      athleteId,
+      sharedId 
+    }: { 
+      coachId: string; 
+      programId: string; 
+      athleteId?: string;
+      sharedId?: string;
+    }) => {
+      let query;
+      
+      // Si un sharedId est fourni, on utilise cet ID directement
+      if (sharedId) {
+        query = supabase
+          .from("shared_programs")
+          .delete()
+          .eq("id", sharedId);
+      } else {
+        // Sinon, on utilise les autres paramètres
+        query = supabase
+          .from("shared_programs")
+          .delete()
+          .eq("program_id", programId)
+          .eq("coach_id", coachId);
 
-      // Si un athleteId est fourni, on filtre également par cet ID
-      if (athleteId) {
-        query.eq("athlete_id", athleteId);
+        // Si un athleteId est fourni, on filtre également par cet ID
+        if (athleteId) {
+          query.eq("athlete_id", athleteId);
+        }
       }
 
       const { error } = await query;
