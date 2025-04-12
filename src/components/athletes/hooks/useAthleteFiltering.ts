@@ -1,81 +1,80 @@
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Profile } from "@/types/database";
 
-type AthleteRelation = {
-  id: string;
-  athlete: Profile;
-  coach_id: string;
-  created_at?: string; // Ajout de cette propriété manquante
-  coach?: {
-    id: string;
-    first_name: string;
-    last_name: string;
-    email: string;
-  };
-};
-
-export const useAthleteFiltering = (athletesData: AthleteRelation[] | undefined) => {
+export const useAthleteFiltering = (athletesData: any[] | undefined) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("name");
   const [selectedCoach, setSelectedCoach] = useState<string | null>(null);
-  
-  // Get unique coaches from the data (for admin filtering)
-  const coaches = useMemo(() => {
-    if (!athletesData) return [];
-    
-    return Array.from(new Set(athletesData.map(a => a.coach_id)))
-      .map(coachId => {
-        const coachRelation = athletesData.find(a => a.coach_id === coachId);
-        if (coachRelation?.coach) {
-          return {
-            id: coachId,
-            name: `${coachRelation.coach.first_name} ${coachRelation.coach.last_name}`
-          };
-        }
-        return null;
-      })
-      .filter((coach): coach is {id: string; name: string} => coach !== null);
-  }, [athletesData]);
 
-  // Filter athletes based on search and coach selection
+  // Ensure we have a valid data array to work with
+  const athletes = useMemo(() => athletesData || [], [athletesData]);
+
+  // Extract unique coaches for admin filtering
+  const coaches = useMemo(() => {
+    if (!athletes?.length) return [];
+
+    const uniqueCoaches = new Map();
+    
+    athletes.forEach(relation => {
+      if (relation.coach && !uniqueCoaches.has(relation.coach.id)) {
+        uniqueCoaches.set(relation.coach.id, {
+          id: relation.coach.id,
+          name: `${relation.coach.first_name || ''} ${relation.coach.last_name || ''}`.trim() || relation.coach.email,
+        });
+      }
+    });
+    
+    return Array.from(uniqueCoaches.values());
+  }, [athletes]);
+
+  // Filter athletes based on search query and selected coach
   const filteredAthletes = useMemo(() => {
-    return athletesData?.filter(relation => {
+    if (!athletes?.length) return [];
+    
+    return athletes.filter(relation => {
       const athlete = relation.athlete;
-      // First filter by search text
-      const matchesSearch = 
-        `${athlete.first_name} ${athlete.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        athlete.email?.toLowerCase().includes(searchQuery.toLowerCase());
+      const coach = relation.coach;
       
-      // Then filter by selected coach (admin only)
+      // Skip if no athlete data
+      if (!athlete) return false;
+      
+      // Search filter
+      const searchLower = searchQuery.toLowerCase();
+      const fullName = `${athlete.first_name || ''} ${athlete.last_name || ''}`.toLowerCase();
+      const email = (athlete.email || '').toLowerCase();
+      
+      const matchesSearch = !searchQuery || 
+        fullName.includes(searchLower) || 
+        email.includes(searchLower);
+      
+      // Coach filter (for admin view)
       const matchesCoach = !selectedCoach || relation.coach_id === selectedCoach;
       
       return matchesSearch && matchesCoach;
     });
-  }, [athletesData, searchQuery, selectedCoach]);
+  }, [athletes, searchQuery, selectedCoach]);
 
-  // Sort filtered athletes
+  // Sort athletes by the chosen sort method
   const sortedAthletes = useMemo(() => {
-    return [...(filteredAthletes || [])].sort((a, b) => {
+    if (!filteredAthletes.length) return [];
+    
+    return [...filteredAthletes].sort((a, b) => {
       const athleteA = a.athlete;
       const athleteB = b.athlete;
-  
+      
       switch (sortBy) {
         case "name":
-          return `${athleteA.first_name} ${athleteA.last_name}`.localeCompare(
-            `${athleteB.first_name} ${athleteB.last_name}`
-          );
+          const nameA = `${athleteA.last_name || ''} ${athleteA.first_name || ''}`.toLowerCase();
+          const nameB = `${athleteB.last_name || ''} ${athleteB.first_name || ''}`.toLowerCase();
+          return nameA.localeCompare(nameB);
+          
         case "email":
-          return (athleteA.email || "").localeCompare(athleteB.email || "");
+          return (athleteA.email || '').localeCompare(athleteB.email || '');
+          
         case "date":
-          // Utiliser athlete.created_at ou relation.created_at selon ce qui est disponible
-          const createdAtA = a.created_at || a.athlete.created_at;
-          const createdAtB = b.created_at || b.athlete.created_at;
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
           
-          if (!createdAtA) return 1;
-          if (!createdAtB) return -1;
-          
-          return new Date(createdAtA).getTime() - new Date(createdAtB).getTime();
         default:
           return 0;
       }

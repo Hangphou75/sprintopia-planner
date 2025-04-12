@@ -35,14 +35,14 @@ export const AthleteAdminFilters = ({
           
           <div className="flex-1">
             <Select 
-              value={selectedCoach || ""} 
-              onValueChange={value => onCoachChange(value || null)}
+              value={selectedCoach || "all_coaches"} 
+              onValueChange={value => onCoachChange(value === "all_coaches" ? null : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Filtrer par coach" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les coachs</SelectItem>
+                <SelectItem value="all_coaches">Tous les coachs</SelectItem>
                 {coaches.map(coach => (
                   <SelectItem key={coach.id} value={coach.id}>{coach.name}</SelectItem>
                 ))}

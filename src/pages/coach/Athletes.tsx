@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAthletes } from "@/hooks/useAthletes";
+import { useAthleteInvitations } from "@/hooks/useAthleteInvitations";
 import { toast } from "sonner";
 import { InviteAthleteDialogEnhanced } from "@/components/athletes/InviteAthleteDialog";
 import { AssignProgramDialog } from "@/components/athletes/AssignProgramDialog";
@@ -12,7 +13,6 @@ import { useAthleteFiltering } from "@/components/athletes/hooks/useAthleteFilte
 import { useAthleteActions } from "@/components/athletes/hooks/useAthleteActions";
 import { AthleteHeader } from "@/components/athletes/AthleteHeader";
 import { AthleteContent } from "@/components/athletes/AthleteContent";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 const Athletes = () => {
   const { user } = useAuth();
@@ -21,6 +21,9 @@ const Athletes = () => {
 
   // Fetch athletes data
   const { data: athletesData, isLoading, error } = useAthletes(user?.id);
+  
+  // Fetch athlete invitations
+  const { invitations, count: pendingInvitesCount } = useAthleteInvitations(user?.id);
 
   // Handle athlete filtering and sorting
   const {
@@ -60,9 +63,6 @@ const Athletes = () => {
     id: relation.id,
     athlete: relation.athlete
   }));
-
-  // Pour simuler les invitations en attente (à remplacer par une véritable implémentation)
-  const pendingInvitesCount = 0;
 
   return (
     <div className="container mx-auto py-6 space-y-6">
