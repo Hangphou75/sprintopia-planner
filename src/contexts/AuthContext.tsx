@@ -21,9 +21,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isInitLoading, setIsInitLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
 
+  // Function to handle profile refresh
+  const refreshUserProfile = async (userId: string) => {
+    if (!userId) return null;
+    
+    try {
+      console.log("Refreshing profile for user:", userId);
+      const userProfile = await fetchProfile(userId);
+      if (userProfile) {
+        console.log("Profile refreshed successfully:", userProfile.role);
+        setProfile(userProfile);
+        return userProfile;
+      } else {
+        console.log("No profile found during refresh");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error refreshing profile:", error);
+      return null;
+    }
+  };
+
   // Check session on mount to ensure we're properly initialized
   useEffect(() => {
     let isMounted = true;
+    let visibilityChangeHandler: null | ((e: Event) => void) = null;
     
     const checkSession = async () => {
       try {
@@ -42,14 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (data.session) {
           try {
             // Force refresh profile on initial load
-            const userProfile = await fetchProfile(data.session.user.id);
-            if (userProfile && isMounted) {
-              console.log("Profile loaded:", userProfile.role);
-              setProfile(userProfile);
-            } else if (isMounted) {
-              console.log("No profile found despite valid session");
-              setProfile(null);
-            }
+            await refreshUserProfile(data.session.user.id);
           } catch (error) {
             console.error("Error refreshing profile:", error);
             if (isMounted) setProfile(null);
@@ -72,6 +87,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
     
+    // Function to handle visibility change (tab switch)
+    visibilityChangeHandler = async () => {
+      if (document.visibilityState === 'visible') {
+        console.log("Tab became visible, checking auth session");
+        try {
+          const { data } = await supabase.auth.getSession();
+          if (data.session?.user?.id) {
+            // Refresh the profile when tab becomes visible
+            await refreshUserProfile(data.session.user.id);
+          }
+        } catch (error) {
+          console.error("Error handling visibility change:", error);
+        }
+      }
+    };
+    
     checkSession();
     
     // Set up auth state change listener
@@ -80,10 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (event === 'SIGNED_IN' && session?.user) {
         try {
-          const userProfile = await fetchProfile(session.user.id);
-          if (isMounted && userProfile) {
-            setProfile(userProfile);
-          }
+          await refreshUserProfile(session.user.id);
         } catch (error) {
           console.error("Error fetching profile after state change:", error);
         }
@@ -92,24 +120,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
     
-    return () => {
-      isMounted = false;
-      subscription.unsubscribe();
-    };
-  }, [fetchProfile, setProfile]);
-
-  // Force a timeout to prevent an infinite loading state
-  useEffect(() => {
+    // Add visibility change listener to handle tab switching
+    document.addEventListener('visibilitychange', visibilityChangeHandler);
+    
+    // Force initialization to prevent infinite loading
     const timer = setTimeout(() => {
-      if (isInitLoading) {
+      if (isMounted && isInitLoading) {
         console.log("Forcing initialization after timeout");
         setInitialized(true);
         setIsInitLoading(false);
       }
-    }, 3000); // Force initialization after 3 seconds
+    }, 2000); // Reduced timeout to 2 seconds
     
-    return () => clearTimeout(timer);
-  }, [isInitLoading]);
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+      
+      if (visibilityChangeHandler) {
+        document.removeEventListener('visibilitychange', visibilityChangeHandler);
+      }
+      clearTimeout(timer);
+    };
+  }, [fetchProfile, setProfile, isInitLoading]);
 
   console.log("AuthProvider - Current state:", { 
     hasProfile: !!profile, 
