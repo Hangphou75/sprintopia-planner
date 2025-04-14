@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { UserProfile } from './useProfile';
 
@@ -11,8 +11,17 @@ interface UseAuthInitProps {
 export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
+  const refreshingRef = useRef(false);
 
   const refreshSession = useCallback(async () => {
+    // Prevent multiple refresh attempts
+    if (refreshingRef.current) {
+      console.log("Session refresh already in progress, skipping");
+      return null;
+    }
+
+    refreshingRef.current = true;
+    
     try {
       console.log("Refreshing session in useAuthInit");
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -34,12 +43,17 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
         } catch (error) {
           console.error("Error refreshing profile in useAuthInit:", error);
         }
+      } else {
+        console.log("No session found during refresh");
+        onProfileUpdate(null);
       }
       
       return null;
     } catch (error) {
       console.error("Error in refreshSession:", error);
       return null;
+    } finally {
+      refreshingRef.current = false;
     }
   }, [fetchProfile, onProfileUpdate]);
 
@@ -64,6 +78,12 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
     }
   }, [refreshSession, isInitialized]);
 
+  // Handler for page reload
+  const handlePageReload = useCallback(() => {
+    console.log("Page reload detected");
+    setIsLoading(true);
+  }, []);
+
   useEffect(() => {
     let mounted = true;
     
@@ -73,24 +93,29 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
     // Set up visibility change listener
     document.addEventListener('visibilitychange', handleVisibilityChange);
     
-    // Force loading state to finish after 2 seconds to prevent infinite loading
+    // Monitor page reloads
+    window.addEventListener('beforeunload', handlePageReload);
+    
+    // Force loading state to finish after timeout to prevent infinite loading
     const timeoutId = setTimeout(() => {
       if (mounted && isLoading) {
         console.log("Forcing loading state to finish after timeout in useAuthInit");
         setIsLoading(false);
         setIsInitialized(true);
       }
-    }, 2000);
+    }, 1500); // Reduced timeout to 1.5 seconds
 
     return () => {
       mounted = false;
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handlePageReload);
       clearTimeout(timeoutId);
     };
-  }, [initAuth, isLoading, handleVisibilityChange]);
+  }, [initAuth, isLoading, handleVisibilityChange, handlePageReload]);
 
   return {
     isLoading,
-    isInitialized
+    isInitialized,
+    refreshSession
   };
 };

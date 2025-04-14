@@ -1,9 +1,10 @@
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useRef } from "react";
 import { useProfile, UserProfile } from "@/hooks/useProfile";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuthInit } from "@/hooks/useAuthInit";
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -11,6 +12,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
+  refreshUserProfile: (userId: string) => Promise<UserProfile | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,10 +22,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { login: authLogin, logout: authLogout, isLoading: sessionLoading } = useAuthSession();
   const [isInitLoading, setIsInitLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
+  const refreshingRef = useRef(false);
 
-  // Function to handle profile refresh
+  // Function to handle profile refresh with debounce
   const refreshUserProfile = async (userId: string) => {
-    if (!userId) return null;
+    if (!userId || refreshingRef.current) return null;
+    
+    refreshingRef.current = true;
     
     try {
       console.log("Refreshing profile for user:", userId);
@@ -39,71 +44,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error("Error refreshing profile:", error);
       return null;
+    } finally {
+      // Reset the refreshing flag after a short delay
+      setTimeout(() => {
+        refreshingRef.current = false;
+      }, 300);
     }
   };
 
-  // Check session on mount to ensure we're properly initialized
+  // Initialize auth and handle session refreshes
+  const { isLoading: authInitLoading, refreshSession } = useAuthInit({
+    onProfileUpdate: setProfile,
+    fetchProfile
+  });
+
+  // Set up auth state listener and handle initial auth check
   useEffect(() => {
     let isMounted = true;
     let visibilityChangeHandler: null | ((e: Event) => void) = null;
-    
-    const checkSession = async () => {
-      try {
-        // Initialize from localStorage if available
-        const cachedProfile = localStorage.getItem('userProfile');
-        if (cachedProfile && isMounted) {
-          setProfile(JSON.parse(cachedProfile));
-        }
-        
-        const { data } = await supabase.auth.getSession();
-        
-        if (!isMounted) return;
-        
-        console.log("Initial session check:", data.session ? "Found session" : "No session");
-        
-        if (data.session) {
-          try {
-            // Force refresh profile on initial load
-            await refreshUserProfile(data.session.user.id);
-          } catch (error) {
-            console.error("Error refreshing profile:", error);
-            if (isMounted) setProfile(null);
-          }
-        } else {
-          if (isMounted) setProfile(null);
-        }
-        
-        if (isMounted) {
-          setInitialized(true);
-          setIsInitLoading(false);
-        }
-      } catch (error) {
-        console.error("Error checking session:", error);
-        if (isMounted) {
-          setProfile(null);
-          setInitialized(true);
-          setIsInitLoading(false);
-        }
-      }
-    };
-    
-    // Function to handle visibility change (tab switch)
-    visibilityChangeHandler = async () => {
-      if (document.visibilityState === 'visible') {
-        console.log("Tab became visible, checking auth session");
-        try {
-          const { data } = await supabase.auth.getSession();
-          if (data.session?.user?.id) {
-            // Refresh the profile when tab becomes visible
-            await refreshUserProfile(data.session.user.id);
-          }
-        } catch (error) {
-          console.error("Error handling visibility change:", error);
-        }
-      }
-    };
-    
-    checkSession();
     
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -111,7 +69,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (event === 'SIGNED_IN' && session?.user) {
         try {
-          await refreshUserProfile(session.user.id);
+          if (!refreshingRef.current) {
+            await refreshUserProfile(session.user.id);
+          }
         } catch (error) {
           console.error("Error fetching profile after state change:", error);
         }
@@ -119,6 +79,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile(null);
       }
     });
+    
+    // Function to handle visibility change (tab switch)
+    visibilityChangeHandler = async () => {
+      if (document.visibilityState === 'visible') {
+        console.log("Tab became visible, checking auth session");
+        try {
+          const { data } = await supabase.auth.getSession();
+          if (data.session?.user?.id && !refreshingRef.current) {
+            await refreshUserProfile(data.session.user.id);
+          }
+        } catch (error) {
+          console.error("Error handling visibility change:", error);
+        }
+      }
+    };
     
     // Add visibility change listener to handle tab switching
     document.addEventListener('visibilitychange', visibilityChangeHandler);
@@ -130,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setInitialized(true);
         setIsInitLoading(false);
       }
-    }, 2000); // Reduced timeout to 2 seconds
+    }, 1500); // Reduced timeout to 1.5 seconds
     
     return () => {
       isMounted = false;
@@ -141,7 +116,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       clearTimeout(timer);
     };
-  }, [fetchProfile, setProfile, isInitLoading]);
+  }, [fetchProfile, setProfile, isInitLoading, refreshUserProfile]);
+
+  useEffect(() => {
+    setIsInitLoading(authInitLoading);
+  }, [authInitLoading]);
 
   console.log("AuthProvider - Current state:", { 
     hasProfile: !!profile, 
@@ -178,7 +157,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login,
     logout,
     isAuthenticated: !!profile,
-    isLoading: (isInitLoading || sessionLoading || !initialized)
+    isLoading: (isInitLoading || sessionLoading || !initialized),
+    refreshUserProfile
   };
 
   return (

@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export type UserRole = "athlete" | "coach" | "individual_athlete" | "admin";
@@ -18,21 +18,16 @@ export interface UserProfile {
 }
 
 export function useProfile() {
-  // The issue is here - useState is being called with an immediately-invoked function
-  // that's accessing supabase outside of a component render cycle
   const [profile, setProfile] = useState<UserProfile | null>(null);
-
-  // Initialize from localStorage if available, but inside useEffect
-  useCallback(async () => {
+  
+  // Initialize from localStorage if available, inside useEffect
+  useEffect(() => {
     try {
-      const { data } = await supabase.auth.getSession();
-      const session = data.session;
-      
-      if (session) {
-        const cachedProfile = localStorage.getItem('userProfile');
-        if (cachedProfile) {
-          setProfile(JSON.parse(cachedProfile));
-        }
+      const cachedProfile = localStorage.getItem('userProfile');
+      if (cachedProfile) {
+        const parsedProfile = JSON.parse(cachedProfile);
+        console.log("Initialized profile from cache:", parsedProfile.role);
+        setProfile(parsedProfile);
       }
     } catch (error) {
       console.error("Error initializing profile from cache:", error);
