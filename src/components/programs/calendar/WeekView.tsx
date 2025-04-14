@@ -94,11 +94,24 @@ export const WeekView = ({
     }
   }, [startDate, onDateChange, isProcessing]);
   
-  // Fonction sécurisée pour filtrer les événements par date
+  // Fonction pour convertir une heure au format "HH:mm" en minutes depuis minuit
+  const getTimeValue = (timeString: string | null | undefined): number => {
+    if (!timeString) return Number.MAX_SAFE_INTEGER;
+    
+    const parts = timeString.split(':');
+    if (parts.length === 2) {
+      const hours = parseInt(parts[0], 10);
+      const minutes = parseInt(parts[1], 10);
+      return hours * 60 + minutes;
+    }
+    return Number.MAX_SAFE_INTEGER;
+  };
+  
+  // Fonction sécurisée pour filtrer les événements par date et les trier par heure
   const getEventsForDay = useCallback((day: Date) => {
     if (!events || !Array.isArray(events)) return [];
     
-    return events.filter(event => {
+    const filteredEvents = events.filter(event => {
       if (!event || !event.date) return false;
       
       // Protection contre les dates invalides
@@ -116,6 +129,13 @@ export const WeekView = ({
         console.error("Error comparing dates:", error);
         return false;
       }
+    });
+    
+    // Trier les événements par heure
+    return filteredEvents.sort((a, b) => {
+      const timeA = getTimeValue(a.time);
+      const timeB = getTimeValue(b.time);
+      return timeA - timeB;
     });
   }, [events]);
 

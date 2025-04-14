@@ -32,14 +32,35 @@ export const EventDetails = ({
     return format(date, "EEEE d MMMM yyyy", { locale: fr });
   };
 
-  const eventsForSelectedDate = events.filter((event) => {
-    const eventDate = new Date(event.date);
-    return (
-      eventDate.getDate() === selectedDate.getDate() &&
-      eventDate.getMonth() === selectedDate.getMonth() &&
-      eventDate.getFullYear() === selectedDate.getFullYear()
-    );
-  });
+  const getTimeValue = (timeString: string | null | undefined): number => {
+    if (!timeString) return Number.MAX_SAFE_INTEGER; // Les événements sans heure sont placés en dernier
+    
+    // Convertir le format "HH:mm" en minutes depuis minuit pour faciliter le tri
+    const parts = timeString.split(':');
+    if (parts.length === 2) {
+      const hours = parseInt(parts[0], 10);
+      const minutes = parseInt(parts[1], 10);
+      return hours * 60 + minutes;
+    }
+    return Number.MAX_SAFE_INTEGER;
+  };
+
+  // Filtrer et trier les événements pour la date sélectionnée
+  const eventsForSelectedDate = events
+    .filter((event) => {
+      const eventDate = new Date(event.date);
+      return (
+        eventDate.getDate() === selectedDate.getDate() &&
+        eventDate.getMonth() === selectedDate.getMonth() &&
+        eventDate.getFullYear() === selectedDate.getFullYear()
+      );
+    })
+    .sort((a, b) => {
+      // Trier d'abord par heure (si définie)
+      const timeA = getTimeValue(a.time);
+      const timeB = getTimeValue(b.time);
+      return timeA - timeB;
+    });
 
   const getEventTheme = (theme: string) => {
     const foundTheme = themeOptions.find((t) => t.value === theme);
@@ -100,12 +121,9 @@ export const EventDetails = ({
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  {event.time
-                    ? `${event.time} - ${
-                        event.type === "workout"
-                          ? event.description || "Aucune description"
-                          : event.description
-                      }`
+                  {event.time && <span className="font-medium">{event.time} - </span>}
+                  {event.type === "workout"
+                    ? event.description || "Aucune description"
                     : event.description || "Aucune description"}
                 </p>
                 <div className="flex justify-end mt-2">
