@@ -22,5 +22,8 @@ export const supabase = createClient<Database>(
         'Content-Type': 'application/json',
       },
     },
+    realtime: {
+      timeout: 60000, // Augmenter le délai d'attente pour réduire les reconnexions fréquentes
+    }
   }
 );

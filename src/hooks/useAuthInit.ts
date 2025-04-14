@@ -12,6 +12,7 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
   const refreshingRef = useRef(false);
+  const initCompletedRef = useRef(false);
 
   const refreshSession = useCallback(async () => {
     // Prevent multiple refresh attempts
@@ -24,7 +25,7 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
     
     try {
       console.log("Refreshing session in useAuthInit");
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const { data, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) {
         console.error("Session error during refresh:", sessionError);
@@ -32,13 +33,15 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
         return null;
       }
 
-      if (session?.user) {
+      if (data.session?.user) {
         try {
-          const userProfile = await fetchProfile(session.user.id);
+          const userProfile = await fetchProfile(data.session.user.id);
           if (userProfile) {
             console.log("Profile refreshed in useAuthInit:", userProfile.role);
             onProfileUpdate(userProfile);
             return userProfile;
+          } else {
+            console.log("No profile found during refresh");
           }
         } catch (error) {
           console.error("Error refreshing profile in useAuthInit:", error);
@@ -53,12 +56,17 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
       console.error("Error in refreshSession:", error);
       return null;
     } finally {
-      refreshingRef.current = false;
+      setTimeout(() => {
+        refreshingRef.current = false;
+      }, 200);
     }
   }, [fetchProfile, onProfileUpdate]);
 
   const initAuth = useCallback(async () => {
+    if (initCompletedRef.current) return;
+    
     try {
+      initCompletedRef.current = true;
       console.log("Initializing auth state...");
       await refreshSession();
     } catch (error) {
@@ -72,17 +80,11 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
 
   // Handler for visibility change
   const handleVisibilityChange = useCallback(async () => {
-    if (document.visibilityState === 'visible' && isInitialized) {
+    if (document.visibilityState === 'visible' && isInitialized && !refreshingRef.current) {
       console.log("Tab became visible, refreshing session in useAuthInit");
       await refreshSession();
     }
   }, [refreshSession, isInitialized]);
-
-  // Handler for page reload
-  const handlePageReload = useCallback(() => {
-    console.log("Page reload detected");
-    setIsLoading(true);
-  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -93,9 +95,6 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
     // Set up visibility change listener
     document.addEventListener('visibilitychange', handleVisibilityChange);
     
-    // Monitor page reloads
-    window.addEventListener('beforeunload', handlePageReload);
-    
     // Force loading state to finish after timeout to prevent infinite loading
     const timeoutId = setTimeout(() => {
       if (mounted && isLoading) {
@@ -103,15 +102,14 @@ export const useAuthInit = ({ onProfileUpdate, fetchProfile }: UseAuthInitProps)
         setIsLoading(false);
         setIsInitialized(true);
       }
-    }, 1500); // Reduced timeout to 1.5 seconds
+    }, 1000); // Reduced timeout to 1 second
 
     return () => {
       mounted = false;
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('beforeunload', handlePageReload);
       clearTimeout(timeoutId);
     };
-  }, [initAuth, isLoading, handleVisibilityChange, handlePageReload]);
+  }, [initAuth, isLoading, handleVisibilityChange]);
 
   return {
     isLoading,

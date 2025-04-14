@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export type UserRole = "athlete" | "coach" | "individual_athlete" | "admin";
@@ -19,9 +19,14 @@ export interface UserProfile {
 
 export function useProfile() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const initialized = useRef(false);
+  const fetchingRef = useRef(false);
   
   // Initialize from localStorage if available, inside useEffect
   useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+    
     try {
       const cachedProfile = localStorage.getItem('userProfile');
       if (cachedProfile) {
@@ -31,17 +36,26 @@ export function useProfile() {
       }
     } catch (error) {
       console.error("Error initializing profile from cache:", error);
+      // Si le cache est corrompu, le supprimer
+      localStorage.removeItem('userProfile');
     }
   }, []);
 
   const fetchProfile = useCallback(async (userId: string): Promise<UserProfile | null> => {
+    if (!userId) {
+      console.error("No user ID provided");
+      return null;
+    }
+    
+    if (fetchingRef.current) {
+      console.log("Profile fetch already in progress, skipping duplicate request");
+      return null;
+    }
+    
+    fetchingRef.current = true;
+    
     try {
       console.log("Fetching profile for user:", userId);
-      
-      if (!userId) {
-        console.error("No user ID provided");
-        return null;
-      }
 
       const { data: profileData, error } = await supabase
         .from('profiles')
@@ -74,12 +88,23 @@ export function useProfile() {
       };
 
       console.log("Processed user profile:", userProfile);
-      localStorage.setItem('userProfile', JSON.stringify(userProfile));
+      
+      // Sauvegarder dans localStorage
+      try {
+        localStorage.setItem('userProfile', JSON.stringify(userProfile));
+      } catch (storageError) {
+        console.error('Error saving profile to localStorage:', storageError);
+      }
+      
       setProfile(userProfile);
       return userProfile;
     } catch (error: any) {
       console.error('Error in fetchProfile:', error);
       return null;
+    } finally {
+      setTimeout(() => {
+        fetchingRef.current = false;
+      }, 200);
     }
   }, []);
 

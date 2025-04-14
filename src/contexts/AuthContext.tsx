@@ -23,6 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isInitLoading, setIsInitLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
   const refreshingRef = useRef(false);
+  const authCheckedRef = useRef(false);
 
   // Function to handle profile refresh with debounce
   const refreshUserProfile = async (userId: string) => {
@@ -58,14 +59,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     fetchProfile
   });
 
+  // Handle initial auth initialization
+  useEffect(() => {
+    if (authCheckedRef.current) return;
+
+    const initAuth = async () => {
+      try {
+        authCheckedRef.current = true;
+        const { data } = await supabase.auth.getSession();
+        
+        if (data.session?.user) {
+          console.log("Found existing session for user:", data.session.user.id);
+          await refreshUserProfile(data.session.user.id);
+        } else {
+          console.log("No session found during initialization");
+          setProfile(null);
+        }
+        setIsInitLoading(false);
+        setInitialized(true);
+      } catch (error) {
+        console.error("Error checking initial auth state:", error);
+        setIsInitLoading(false);
+        setInitialized(true);
+      }
+    };
+
+    initAuth();
+  }, [refreshUserProfile, setProfile]);
+
   // Set up auth state listener and handle initial auth check
   useEffect(() => {
     let isMounted = true;
-    let visibilityChangeHandler: null | ((e: Event) => void) = null;
     
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event);
+      
+      if (!isMounted) return;
       
       if (event === 'SIGNED_IN' && session?.user) {
         try {
@@ -76,27 +106,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.error("Error fetching profile after state change:", error);
         }
       } else if (event === 'SIGNED_OUT' && isMounted) {
+        console.log("User signed out, clearing profile");
         setProfile(null);
       }
     });
-    
-    // Function to handle visibility change (tab switch)
-    visibilityChangeHandler = async () => {
-      if (document.visibilityState === 'visible') {
-        console.log("Tab became visible, checking auth session");
-        try {
-          const { data } = await supabase.auth.getSession();
-          if (data.session?.user?.id && !refreshingRef.current) {
-            await refreshUserProfile(data.session.user.id);
-          }
-        } catch (error) {
-          console.error("Error handling visibility change:", error);
-        }
-      }
-    };
-    
-    // Add visibility change listener to handle tab switching
-    document.addEventListener('visibilitychange', visibilityChangeHandler);
     
     // Force initialization to prevent infinite loading
     const timer = setTimeout(() => {
@@ -105,15 +118,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setInitialized(true);
         setIsInitLoading(false);
       }
-    }, 1500); // Reduced timeout to 1.5 seconds
+    }, 1000); // Reduced timeout to 1 second
     
     return () => {
       isMounted = false;
       subscription.unsubscribe();
-      
-      if (visibilityChangeHandler) {
-        document.removeEventListener('visibilitychange', visibilityChangeHandler);
-      }
       clearTimeout(timer);
     };
   }, [fetchProfile, setProfile, isInitLoading, refreshUserProfile]);

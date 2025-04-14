@@ -12,6 +12,7 @@ export const useAuthState = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(true);
   const refreshingRef = useRef(false);
+  const initialCheckRef = useRef(false);
 
   const handleProfileFetch = useCallback(async (userId: string): Promise<UserProfile | null> => {
     if (!userId || !isMounted || refreshingRef.current) return null;
@@ -32,7 +33,7 @@ export const useAuthState = () => {
     } finally {
       setTimeout(() => {
         refreshingRef.current = false;
-      }, 300);
+      }, 200);
     }
   }, [fetchProfile, setProfile, isMounted]);
 
@@ -51,16 +52,13 @@ export const useAuthState = () => {
     }
   }, [handleProfileFetch, isMounted]);
 
-  // Handler for page reloads
-  const handleBeforeUnload = useCallback(() => {
-    console.log("Page reload detected in useAuthState");
-    // Optionally you could save some state to localStorage here
-  }, []);
-
   useEffect(() => {
     setIsMounted(true);
     
     const initializeAuth = async () => {
+      if (initialCheckRef.current) return;
+      initialCheckRef.current = true;
+      
       try {
         console.log("Initializing auth state in useAuthState");
         const session = await authService.getCurrentSession();
@@ -109,30 +107,25 @@ export const useAuthState = () => {
     // Add visibility change listener to handle tab switching
     document.addEventListener('visibilitychange', handleVisibilityChange);
     
-    // Add beforeunload listener to detect page reloads
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    
     // Add a timeout to prevent infinite loading
     const timeoutId = setTimeout(() => {
       if (isMounted && isLoading) {
         console.log("Forcing loading state to finish after timeout in useAuthState");
         setIsLoading(false);
       }
-    }, 1500); // Reduced timeout to 1.5 seconds
+    }, 1000); // Reduced timeout to 1 second
 
     return () => {
       setIsMounted(false);
       subscription.unsubscribe();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
       clearTimeout(timeoutId);
     };
   }, [
     navigate, 
     handleProfileFetch, 
     setProfile, 
-    handleVisibilityChange, 
-    handleBeforeUnload, 
+    handleVisibilityChange,
     isLoading
   ]);
 

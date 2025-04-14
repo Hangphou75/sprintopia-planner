@@ -13,11 +13,12 @@ import { MainNav } from "@/components/navigation/MainNav";
 import { LogoutButton } from "@/components/navigation/LogoutButton";
 import { Menu } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const Layout = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
+  const [showFallback, setShowFallback] = useState(false);
   
   console.log("Layout - Auth state:", { user, isAuthenticated, isLoading });
 
@@ -29,8 +30,20 @@ const Layout = () => {
     }
   }, [isAuthenticated, isLoading, navigate]);
 
+  // Afficher un écran de chargement uniquement si le chargement dure trop longtemps
+  useEffect(() => {
+    if (isLoading) {
+      const timer = setTimeout(() => {
+        setShowFallback(true);
+      }, 500);
+      return () => clearTimeout(timer);
+    } else {
+      setShowFallback(false);
+    }
+  }, [isLoading]);
+
   // Afficher un écran de chargement pendant la vérification de l'authentification
-  if (isLoading) {
+  if (isLoading && showFallback) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center space-y-4">
