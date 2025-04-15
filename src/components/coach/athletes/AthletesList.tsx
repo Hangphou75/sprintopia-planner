@@ -25,7 +25,7 @@ export const AthletesList = memo(({ athletes, isAdmin }: AthletesListProps) => {
       {athletes.map((relation) => (
         <div
           key={relation.id}
-          className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 cursor-pointer"
+          className="flex items-center justify-between p-4 rounded-lg hover:bg-muted/50 cursor-pointer border"
           onClick={() => handleAthleteClick(relation.athlete.id)}
         >
           <div>
