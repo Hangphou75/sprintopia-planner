@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Calendar, CalendarClock, Award, User, Mail, Clock, ExternalLink } from "lucide-react";
+import { ArrowLeft, Calendar, CalendarClock, Award, User, Mail, Clock, ExternalLink, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Profile } from "@/types/database";
@@ -44,6 +44,49 @@ const ProgramCard = ({ program }: { program: ExtendedProgram }) => {
   );
 };
 
+// Competition Card component pour afficher les compétitions
+const CompetitionCard = ({ competition }: { competition: any }) => {
+  return (
+    <Card className="h-full">
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-start">
+          <CardTitle className="text-lg">{competition.name}</CardTitle>
+          {competition.is_main && (
+            <Badge variant="outline" className="ml-2">Principale</Badge>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="text-sm space-y-2">
+        <div>
+          <p className="font-medium">
+            {format(new Date(competition.date), "dd MMMM yyyy", { locale: fr })}
+          </p>
+          <div className="flex items-center mt-1 text-muted-foreground">
+            <MapPin className="h-3.5 w-3.5 mr-1" />
+            <span>{competition.location || "Lieu non précisé"}</span>
+          </div>
+          {competition.distance && (
+            <p className="mt-1">Distance : {competition.distance}m</p>
+          )}
+          {competition.level && (
+            <p className="mt-1">Niveau : {
+              competition.level === "local" ? "Local" : 
+              competition.level === "regional" ? "Régional" : 
+              competition.level === "national" ? "National" : 
+              "International"
+            }</p>
+          )}
+        </div>
+        {competition.program && (
+          <div className="text-xs text-muted-foreground pt-2 border-t">
+            <p>Programme : {competition.program.name}</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
 const AthleteDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -51,9 +94,54 @@ const AthleteDetail = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("programs");
   const [isProgramDialogOpen, setIsProgramDialogOpen] = useState(false);
+  const [competitions, setCompetitions] = useState<any[]>([]);
+  const [competitionsLoading, setCompetitionsLoading] = useState(true);
   
   // Utiliser le hook useAthletePrograms pour charger les programmes de l'athlète
   const { data: programs, isLoading: programsLoading } = useAthletePrograms(id);
+
+  // Charger les compétitions associées aux programmes de l'athlète
+  useEffect(() => {
+    const fetchCompetitions = async () => {
+      if (!id || !programs || programs.length === 0) {
+        setCompetitionsLoading(false);
+        return;
+      }
+
+      try {
+        setCompetitionsLoading(true);
+        
+        // Récupérer les IDs des programmes
+        const programIds = programs.map(program => program.id);
+        
+        // Récupérer les compétitions pour ces programmes
+        const { data, error } = await supabase
+          .from("competitions")
+          .select(`
+            *,
+            program:programs (
+              id,
+              name,
+              objectives
+            )
+          `)
+          .in("program_id", programIds)
+          .order("date", { ascending: true });
+          
+        if (error) throw error;
+        
+        console.log("Competitions fetched for athlete:", data);
+        setCompetitions(data || []);
+      } catch (error) {
+        console.error("Error fetching competitions:", error);
+        toast.error("Erreur lors du chargement des compétitions");
+      } finally {
+        setCompetitionsLoading(false);
+      }
+    };
+    
+    fetchCompetitions();
+  }, [id, programs]);
 
   useEffect(() => {
     const fetchAthleteDetails = async () => {
@@ -203,9 +291,23 @@ const AthleteDetail = () => {
                   <CardTitle>Compétitions</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-10 text-muted-foreground">
-                    Les compétitions seront affichées ici.
-                  </div>
+                  {competitionsLoading ? (
+                    <div className="text-center py-6">
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mx-auto"></div>
+                      <p className="mt-2 text-muted-foreground">Chargement des compétitions...</p>
+                    </div>
+                  ) : competitions && competitions.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {competitions.map((competition) => (
+                        <CompetitionCard key={competition.id} competition={competition} />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-10 text-muted-foreground">
+                      <p>Aucune compétition planifiée pour cet athlète.</p>
+                      <p className="text-sm mt-2">Les compétitions sont définies dans les programmes assignés à l'athlète.</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
