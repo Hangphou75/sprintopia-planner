@@ -13,8 +13,10 @@ export const AthletesList = memo(({ athletes, isAdmin }: AthletesListProps) => {
   const navigate = useNavigate();
 
   const handleAthleteClick = useCallback((athleteId: string) => {
-    navigate(`/coach/athletes/${athleteId}`);
-  }, [navigate]);
+    // Determine the correct route based on whether the user is an admin or coach
+    const basePath = isAdmin ? "/admin/users" : "/coach/athletes";
+    navigate(`${basePath}/${athleteId}`);
+  }, [navigate, isAdmin]);
 
   if (!athletes || athletes.length === 0) {
     return <AthleteEmptyState isAdmin={isAdmin} />;
