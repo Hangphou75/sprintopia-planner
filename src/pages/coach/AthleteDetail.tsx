@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Calendar, CalendarClock, Award, User, Mail, Clock } from "lucide-react";
+import { ArrowLeft, Calendar, CalendarClock, Award, User, Mail, Clock, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Profile } from "@/types/database";
@@ -13,6 +13,36 @@ import { AssignProgramDialog } from "@/components/athletes/AssignProgramDialog";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { ExtendedProgram, useAthletePrograms } from "@/hooks/useAthletePrograms";
+import { Link } from "react-router-dom";
+
+// Programme Card component pour afficher les programmes
+const ProgramCard = ({ program }: { program: ExtendedProgram }) => {
+  return (
+    <Card className="h-full">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg">{program.name}</CardTitle>
+      </CardHeader>
+      <CardContent className="text-sm space-y-2">
+        <div>
+          <p>Durée : {program.duration} semaines</p>
+          <p>Début : {format(new Date(program.start_date), "dd MMMM yyyy", { locale: fr })}</p>
+          {program.objectives && <p>Objectifs : {program.objectives}</p>}
+        </div>
+        <div className="flex justify-end">
+          <Link 
+            to={`/coach/programs/${program.id}/workouts`}
+            className="flex items-center gap-1 text-sm text-blue-600 hover:underline"
+          >
+            <Calendar className="h-4 w-4" />
+            <span>Voir les entraînements</span>
+            <ExternalLink className="h-3 w-3" />
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 const AthleteDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +51,9 @@ const AthleteDetail = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("programs");
   const [isProgramDialogOpen, setIsProgramDialogOpen] = useState(false);
+  
+  // Utiliser le hook useAthletePrograms pour charger les programmes de l'athlète
+  const { data: programs, isLoading: programsLoading } = useAthletePrograms(id);
 
   useEffect(() => {
     const fetchAthleteDetails = async () => {
@@ -137,9 +170,29 @@ const AthleteDetail = () => {
                   <CardTitle>Programmes assignés</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-10 text-muted-foreground">
-                    Les programmes seront affichés ici.
-                  </div>
+                  {programsLoading ? (
+                    <div className="text-center py-6">
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mx-auto"></div>
+                      <p className="mt-2 text-muted-foreground">Chargement des programmes...</p>
+                    </div>
+                  ) : programs && programs.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {programs.map((program) => (
+                        <ProgramCard key={program.id} program={program} />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-10 text-muted-foreground">
+                      <p>Aucun programme assigné à cet athlète.</p>
+                      <Button 
+                        variant="outline" 
+                        className="mt-4"
+                        onClick={() => setIsProgramDialogOpen(true)}
+                      >
+                        Assigner un programme
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
